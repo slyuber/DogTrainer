@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#6C63FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Zu's Dog Trainer</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.svg">
+<style>
+/* ===== CSS Variables / Theme ===== */
+:root {
+  --primary: #6C63FF;
+  --primary-light: #8B85FF;
+  --primary-dark: #4F46E5;
+  --accent: #FF6B9D;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --bg: #0F0F1A;
+  --bg-card: #1A1A2E;
+  --bg-card-hover: #222240;
+  --bg-input: #252540;
+  --text: #E8E8F0;
+  --text-muted: #8888A0;
+  --text-dim: #555570;
+  --border: #2A2A45;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.3);
+  --transition: 0.2s ease;
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button { cursor: pointer; border: none; font: inherit; color: inherit; background: none; }
+input, textarea, select { font: inherit; color: var(--text); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; outline: none; width: 100%; }
+input:focus, textarea:focus, select:focus { border-color: var(--primary); }
+textarea { resize: vertical; min-height: 60px; }
+
+/* ===== Layout ===== */
+.app { display: flex; flex-direction: column; min-height: 100dvh; max-width: 500px; margin: 0 auto; }
+.app-header { padding: 16px 20px 8px; display: flex; align-items: center; gap: 10px; }
+.app-header h1 { font-size: 1.3rem; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.tab-content { flex: 1; padding: 8px 16px 100px; overflow-y: auto; }
+.tab-panel { display: none; animation: fadeIn 0.2s ease; }
+.tab-panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== Bottom Nav ===== */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 500px;
+  background: rgba(15,15,26,0.95); backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+  display: flex; padding: 6px 0; padding-bottom: max(6px, env(safe-area-inset-bottom));
+  z-index: 100;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 4px; font-size: 0.65rem; color: var(--text-dim); transition: color var(--transition);
+}
+.nav-btn svg { width: 22px; height: 22px; }
+.nav-btn.active { color: var(--primary); }
+.nav-btn.active svg { filter: drop-shadow(0 0 6px rgba(108,99,255,0.4)); }
+
+/* ===== Cards ===== */
+.card {
+  background: var(--bg-card); border-radius: var(--radius); padding: 16px;
+  margin-bottom: 12px; border: 1px solid var(--border); transition: background var(--transition);
+}
+.card:hover { background: var(--bg-card-hover); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.card-title { font-size: 1rem; font-weight: 600; }
+.card-subtitle { font-size: 0.8rem; color: var(--text-muted); }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;
+  transition: all var(--transition);
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-light); transform: translateY(-1px); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { opacity: 0.9; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { opacity: 0.9; }
+.btn-outline { border: 1px solid var(--border); color: var(--text-muted); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+.btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+.btn-block { width: 100%; }
+.btn:disabled { opacity: 0.4; pointer-events: none; }
+
+/* ===== Progress Bar ===== */
+.progress-bar { height: 6px; background: var(--bg-input); border-radius: 3px; overflow: hidden; }
+.progress-bar .fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+
+/* ===== Badge ===== */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+.badge-phase1 { background: rgba(16,185,129,0.15); color: var(--success); }
+.badge-phase2 { background: rgba(108,99,255,0.15); color: var(--primary); }
+.badge-phase3 { background: rgba(245,158,11,0.15); color: var(--warning); }
+.badge-phase4 { background: rgba(255,107,157,0.15); color: var(--accent); }
+.badge-locked { background: rgba(85,85,112,0.2); color: var(--text-dim); }
+
+/* ===== Dashboard ===== */
+.profile-card { text-align: center; padding: 20px; }
+.profile-avatar {
+  width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 12px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center; font-size: 2rem;
+}
+.profile-name { font-size: 1.4rem; font-weight: 700; }
+.profile-info { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+.stat-box { text-align: center; padding: 12px 8px; background: var(--bg-input); border-radius: var(--radius-sm); }
+.stat-value { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+
+.daily-plan { margin-top: 8px; }
+.daily-plan h3 { font-size: 0.9rem; margin-bottom: 10px; color: var(--text-muted); }
+.plan-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px;
+  background: var(--bg-input); border-radius: var(--radius-sm); margin-bottom: 8px;
+  cursor: pointer; transition: all var(--transition);
+}
+.plan-item:hover { background: var(--bg-card-hover); }
+.plan-item .skill-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+.plan-item .skill-info { flex: 1; min-width: 0; }
+.plan-item .skill-name { font-size: 0.85rem; font-weight: 600; }
+.plan-item .skill-step { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-item .skill-rate { font-size: 0.8rem; font-weight: 600; }
+
+/* ===== Skills Library ===== */
+.phase-section { margin-bottom: 20px; }
+.phase-header { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+.skill-card {
+  padding: 14px; margin-bottom: 8px; cursor: pointer; transition: all var(--transition);
+}
+.skill-card.locked { opacity: 0.45; pointer-events: none; }
+.skill-card-top { display: flex; align-items: center; gap: 12px; }
+.skill-card .skill-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+.skill-card .skill-main { flex: 1; min-width: 0; }
+.skill-card .skill-name { font-weight: 600; font-size: 0.95rem; }
+.skill-card .skill-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+.skill-card .progress-bar { margin-top: 8px; }
+
+.skill-detail { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.skill-card.expanded .skill-detail { display: block; }
+.step-list { list-style: none; }
+.step-item { display: flex; gap: 10px; padding: 8px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(42,42,69,0.5); }
+.step-item:last-child { border-bottom: none; }
+.step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-input); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; color: var(--text-dim); }
+.step-item.current .step-num { background: var(--primary); color: #fff; }
+.step-item.completed .step-num { background: var(--success); color: #fff; }
+.step-text { flex: 1; line-height: 1.4; }
+.video-link { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-size: 0.8rem; margin-top: 10px; text-decoration: none; }
+.video-link:hover { text-decoration: underline; }
+
+/* ===== Training Session ===== */
+.session-setup { text-align: center; }
+.skill-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
+.skill-select-btn {
+  padding: 14px 10px; background: var(--bg-input); border-radius: var(--radius-sm); text-align: center;
+  font-size: 0.8rem; font-weight: 600; transition: all var(--transition); border: 2px solid transparent;
+}
+.skill-select-btn:hover { border-color: var(--primary); }
+.skill-select-btn.selected { border-color: var(--primary); background: rgba(108,99,255,0.1); }
+.skill-select-btn .skill-emoji { font-size: 1.3rem; display: block; margin-bottom: 4px; }
+
+.session-active { display: none; }
+.session-active.visible { display: block; }
+.session-setup.hidden { display: none; }
+
+.session-timer {
+  text-align: center; padding: 20px; margin-bottom: 16px;
+}
+.timer-display { font-size: 3rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 2px; }
+.timer-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+.timer-controls { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+
+.session-instructions { padding: 14px; margin-bottom: 12px; }
+.session-instructions h3 { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
+.session-instructions p { font-size: 0.9rem; line-height: 1.5; }
+
+.rep-tracker { text-align: center; padding: 20px; }
+.rep-count { font-size: 2.5rem; font-weight: 700; }
+.rep-label { font-size: 0.8rem; color: var(--text-muted); }
+.rep-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+.rep-btn {
+  width: 80px; height: 80px; border-radius: 50%; font-size: 1.8rem; display: flex;
+  align-items: center; justify-content: center; transition: all var(--transition);
+}
+.rep-btn.success-btn { background: rgba(16,185,129,0.15); color: var(--success); border: 2px solid var(--success); }
+.rep-btn.success-btn:hover { background: rgba(16,185,129,0.3); }
+.rep-btn.fail-btn { background: rgba(239,68,68,0.15); color: var(--danger); border: 2px solid var(--danger); }
+.rep-btn.fail-btn:hover { background: rgba(239,68,68,0.3); }
+.rep-btn:active { transform: scale(0.92); }
+
+.session-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+
+.session-notes { margin: 12px 0; }
+.session-notes label { font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px; }
+
+.end-session-area { margin-top: 16px; }
+
+/* ===== Progress Tab ===== */
+.heatmap-container { padding: 14px; overflow-x: auto; }
+.heatmap-container h3 { font-size: 0.9rem; margin-bottom: 12px; }
+.heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.heatmap-day {
+  aspect-ratio: 1; border-radius: 3px; background: var(--bg-input); position: relative;
+}
+.heatmap-day.level-1 { background: rgba(108,99,255,0.2); }
+.heatmap-day.level-2 { background: rgba(108,99,255,0.4); }
+.heatmap-day.level-3 { background: rgba(108,99,255,0.6); }
+.heatmap-day.level-4 { background: rgba(108,99,255,0.9); }
+.heatmap-day.future { background: transparent; border: 1px solid var(--border); opacity: 0.3; }
+.heatmap-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.65rem; color: var(--text-dim); }
+
+.milestone-list { margin-top: 8px; }
+.milestone-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px; margin-bottom: 6px;
+  background: var(--bg-input); border-radius: var(--radius-sm);
+}
+.milestone-icon { font-size: 1.3rem; }
+.milestone-text { font-size: 0.85rem; flex: 1; }
+.milestone-date { font-size: 0.7rem; color: var(--text-dim); }
+
+.history-list { margin-top: 8px; }
+.history-item { padding: 12px; margin-bottom: 6px; }
+.history-top { display: flex; justify-content: space-between; align-items: center; }
+.history-skill { font-weight: 600; font-size: 0.9rem; }
+.history-rate { font-weight: 600; font-size: 0.85rem; }
+.history-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+.history-notes { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; font-style: italic; }
+
+/* ===== Settings ===== */
+.setting-group { margin-bottom: 20px; }
+.setting-group h3 { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.setting-row:last-child { border-bottom: none; }
+.setting-label { font-size: 0.9rem; }
+.setting-value { display: flex; align-items: center; gap: 8px; }
+.setting-value input[type="number"] { width: 70px; text-align: center; }
+.setting-value input[type="date"] { width: 150px; }
+.setting-value input[type="text"] { width: 150px; }
+
+.danger-zone { margin-top: 30px; padding: 16px; border: 1px solid var(--danger); border-radius: var(--radius); }
+.danger-zone h3 { color: var(--danger); margin-bottom: 12px; }
+
+/* ===== Modal ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200;
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.visible { display: flex; }
+.modal {
+  background: var(--bg-card); border-radius: var(--radius); padding: 24px;
+  max-width: 400px; width: 100%; border: 1px solid var(--border); animation: fadeIn 0.2s ease;
+}
+.modal h3 { margin-bottom: 12px; }
+.modal p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+  background: var(--bg-card); border: 1px solid var(--border); padding: 12px 20px;
+  border-radius: var(--radius); font-size: 0.85rem; z-index: 300;
+  opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
+}
+.toast.visible { opacity: 1; }
+
+/* ===== Responsive ===== */
+@media (min-width: 500px) {
+  .skill-select-grid { grid-template-columns: 1fr 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="app-header">
+    <h1>Zu's Kikopup Trainer</h1>
+  </header>
+
+  <!-- ===== TAB: Dashboard ===== -->
+  <div class="tab-content">
+    <div id="tab-dashboard" class="tab-panel active">
+      <div class="card profile-card">
+        <div class="profile-avatar">🐕</div>
+        <div class="profile-name" id="dash-name">Zu</div>
+        <div class="profile-info" id="dash-info">8.5 kg mixed rescue</div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-value" id="stat-streak">0</div>
+            <div class="stat-label">Day Streak</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="stat-sessions">0</div>
+            <div class="stat-label">Sessions</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="stat-skills">0</div>
+            <div class="stat-label">Skills Active</div>
+          </div>
+        </div>
+      </div>
+      <div class="daily-plan">
+        <h3>Today's Training Plan</h3>
+        <div id="daily-plan-list"></div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: Skills Library ===== -->
+    <div id="tab-skills" class="tab-panel">
+      <div id="skills-list"></div>
+    </div>
+
+    <!-- ===== TAB: Train ===== -->
+    <div id="tab-train" class="tab-panel">
+      <div class="session-setup" id="session-setup">
+        <h2 style="margin-bottom:4px;">Start Training</h2>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">Choose a skill to practice</p>
+        <div class="skill-select-grid" id="skill-select-grid"></div>
+        <div style="margin:16px 0;">
+          <label style="font-size:0.8rem;color:var(--text-muted);display:block;margin-bottom:4px;">Session Duration</label>
+          <div style="display:flex;gap:8px;justify-content:center;">
+            <button class="btn btn-outline btn-sm duration-btn" data-dur="60">1 min</button>
+            <button class="btn btn-outline btn-sm duration-btn selected" data-dur="120">2 min</button>
+            <button class="btn btn-outline btn-sm duration-btn" data-dur="180">3 min</button>
+            <button class="btn btn-outline btn-sm duration-btn" data-dur="300">5 min</button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-block" id="btn-start-session" disabled>Begin Session</button>
+      </div>
+
+      <div class="session-active" id="session-active">
+        <div class="card session-timer">
+          <div class="timer-display" id="timer-display">2:00</div>
+          <div class="timer-label">Session Time</div>
+          <div class="timer-controls">
+            <button class="btn btn-outline btn-sm" id="btn-timer-toggle">Start Timer</button>
+            <button class="btn btn-outline btn-sm" id="btn-timer-reset">Reset</button>
+          </div>
+        </div>
+
+        <div class="card session-instructions" id="session-instructions">
+          <h3>Current Step</h3>
+          <p id="step-instruction-text"></p>
+        </div>
+
+        <div class="card rep-tracker">
+          <div style="display:flex;justify-content:center;gap:30px;">
+            <div><div class="rep-count" id="rep-success" style="color:var(--success)">0</div><div class="rep-label">Success</div></div>
+            <div><div class="rep-count" id="rep-fail" style="color:var(--danger)">0</div><div class="rep-label">Missed</div></div>
+          </div>
+          <div class="rep-buttons">
+            <button class="rep-btn fail-btn" id="btn-rep-fail" title="Miss">✗</button>
+            <button class="rep-btn success-btn" id="btn-rep-success" title="Success">✓</button>
+          </div>
+          <div class="session-stats" style="margin-top:16px;">
+            <div class="stat-box"><div class="stat-value" id="session-total">0</div><div class="stat-label">Total Reps</div></div>
+            <div class="stat-box"><div class="stat-value" id="session-rate">0%</div><div class="stat-label">Success Rate</div></div>
+            <div class="stat-box"><div class="stat-value" id="session-elapsed">0:00</div><div class="stat-label">Elapsed</div></div>
+          </div>
+        </div>
+
+        <div class="session-notes">
+          <label>Session Notes</label>
+          <textarea id="session-notes-input" placeholder="How did Zu do? Any observations..."></textarea>
+        </div>
+
+        <div class="end-session-area">
+          <button class="btn btn-danger btn-block" id="btn-end-session">End Session</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: Progress ===== -->
+    <div id="tab-progress" class="tab-panel">
+      <div class="card heatmap-container">
+        <h3>Training Activity</h3>
+        <div class="heatmap" id="heatmap"></div>
+        <div class="heatmap-labels"><span>8 weeks ago</span><span>Today</span></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:0.9rem;margin-bottom:10px;">Milestones</h3>
+        <div class="milestone-list" id="milestone-list">
+          <p style="font-size:0.85rem;color:var(--text-dim);">Complete training sessions to earn milestones!</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:0.9rem;margin-bottom:10px;">Session History</h3>
+        <div class="history-list" id="history-list">
+          <p style="font-size:0.85rem;color:var(--text-dim);">No sessions yet. Start training!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: Settings ===== -->
+    <div id="tab-settings" class="tab-panel">
+      <div class="card">
+        <div class="setting-group">
+          <h3>Zu's Profile</h3>
+          <div class="setting-row">
+            <span class="setting-label">Name</span>
+            <div class="setting-value"><input type="text" id="set-name" value="Zu"></div>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Weight (kg)</span>
+            <div class="setting-value"><input type="number" id="set-weight" value="8.5" step="0.1"></div>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Rescue Date</span>
+            <div class="setting-value"><input type="date" id="set-rescue-date"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="setting-group">
+          <h3>Training Defaults</h3>
+          <div class="setting-row">
+            <span class="setting-label">Default Duration (sec)</span>
+            <div class="setting-value"><input type="number" id="set-duration" value="120" min="30" max="600" step="30"></div>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Target Reps / Session</span>
+            <div class="setting-value"><input type="number" id="set-target-reps" value="10" min="1" max="50"></div>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Auto-advance Threshold (%)</span>
+            <div class="setting-value"><input type="number" id="set-threshold" value="80" min="50" max="100"></div>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Sessions to Evaluate</span>
+            <div class="setting-value"><input type="number" id="set-eval-sessions" value="3" min="1" max="10"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="setting-group">
+          <h3>Treat Value Tiers</h3>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;">Notes on treat hierarchy for training</p>
+          <textarea id="set-treat-notes" rows="4" placeholder="e.g., Low: kibble, Medium: cheese, High: chicken..."></textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div class="setting-group">
+          <h3>Data</h3>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" id="btn-export">Export Data</button>
+            <button class="btn btn-outline btn-sm" id="btn-import">Import Data</button>
+          </div>
+          <input type="file" id="import-file" accept=".json" style="display:none;">
+        </div>
+      </div>
+      <div class="danger-zone">
+        <h3>Danger Zone</h3>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">This will permanently delete all training data.</p>
+        <button class="btn btn-danger btn-sm" id="btn-reset">Reset All Data</button>
+      </div>
+      <button class="btn btn-primary btn-block" id="btn-save-settings" style="margin-top:16px;">Save Settings</button>
+    </div>
+  </div>
+
+  <!-- ===== Bottom Navigation ===== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </button>
+    <button class="nav-btn" data-tab="skills">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Skills
+    </button>
+    <button class="nav-btn" data-tab="train">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+      Train
+    </button>
+    <button class="nav-btn" data-tab="progress">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Progress
+    </button>
+    <button class="nav-btn" data-tab="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<!-- ===== Modal ===== -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<!-- ===== Toast ===== -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// SKILLS DATABASE - Kikopup Progressive Reinforcement Training
+// ============================================================
+const SKILLS_DB = [
+  // Phase 1: Foundation
+  {
+    id: 'attention', name: 'Attention Game', emoji: '👀', phase: 1,
+    prereqs: [],
+    video: 'https://www.youtube.com/watch?v=uSFkKsh_jlA',
+    steps: [
+      { title: 'Mark & Reward Eye Contact', desc: 'Wait for Zu to look at your eyes. The instant she makes eye contact, mark (click or "yes") and treat. No cue needed yet - just capture natural glances.' },
+      { title: 'Increase Duration', desc: 'Gradually wait for longer eye contact before marking. Start with 1 second, build to 3 seconds. If Zu breaks contact, just wait - don\'t repeat or prompt.' },
+      { title: 'Add Distractions', desc: 'Practice with mild distractions (toy on floor, person nearby). Mark eye contact that occurs despite distractions. Keep sessions short (1-2 min).' },
+      { title: 'Add Cue', desc: 'Say "watch me" or Zu\'s name, then mark eye contact. Pair the verbal cue with the behavior she\'s already offering reliably.' },
+      { title: 'Proof in New Environments', desc: 'Practice in different rooms, outdoors on leash, near other dogs at distance. Lower criteria in new environments (accept shorter duration).' }
+    ]
+  },
+  {
+    id: 'interrupter', name: 'Positive Interrupter', emoji: '🔔', phase: 1,
+    prereqs: [],
+    video: 'https://www.youtube.com/watch?v=TBvPaqMZyo8',
+    steps: [
+      { title: 'Charge the Sound', desc: 'Choose a unique sound (kissy noise, whistle, specific word). Make the sound → immediately give a high-value treat. Repeat 10-20 times. Zu doesn\'t need to do anything.' },
+      { title: 'Test the Response', desc: 'When Zu is mildly distracted, make the sound. She should whip her head toward you. If not, go back to charging. Mark & treat when she orients to you.' },
+      { title: 'Use with Mild Distractions', desc: 'Practice when Zu is sniffing something, looking away, etc. Sound → she looks → mark & treat. Never use it for punishment or when she\'s over threshold.' },
+      { title: 'Increase Distraction Level', desc: 'Gradually use around more interesting distractions. Always reward generously - this needs to remain a "jackpot" sound. Never overuse it.' }
+    ]
+  },
+  {
+    id: 'nomugging', name: 'No Mugging', emoji: '🤚', phase: 1,
+    prereqs: [],
+    video: 'https://www.youtube.com/watch?v=PZngak0ChcI',
+    steps: [
+      { title: 'Closed Fist Exercise', desc: 'Hold a treat in your closed fist. Zu will nose, paw, lick your hand. Wait. The moment she backs away or looks away from your hand, mark & treat from the OTHER hand.' },
+      { title: 'Open Hand on Floor', desc: 'Place your open hand with treat on the floor. Cover if she goes for it. When she looks away or backs off, mark & treat from other hand.' },
+      { title: 'Treat on the Floor', desc: 'Place a treat on the floor, cover with your hand if she goes for it. Mark & reward from the other hand when she shows restraint. Build to uncovered treats.' },
+      { title: 'Extended Duration', desc: 'Build up time Zu can show restraint around visible food. Practice with food on low tables, your plate, etc. Always reward the choice to leave it.' }
+    ]
+  },
+  {
+    id: 'calmness', name: 'Capturing Calmness', emoji: '😌', phase: 1,
+    prereqs: [],
+    video: 'https://www.youtube.com/watch?v=wesm2OpE_2c',
+    steps: [
+      { title: 'Reward Calm Moments', desc: 'Throughout the day, when Zu naturally lies down or is calm, gently mark and toss a treat to her. No cue, no prompting. You\'re reinforcing a state of being, not a behavior.' },
+      { title: 'On a Mat/Bed', desc: 'When Zu settles on her bed or mat, calmly reward. Build up to rewarding multiple times while she stays settled. Deliver treats slowly and calmly.' },
+      { title: 'Duration on Mat', desc: 'Gradually increase time between rewards while Zu stays relaxed on her mat. If she gets up, just wait - no correction. Reward the next calm settle.' },
+      { title: 'Calm in Exciting Contexts', desc: 'Practice mat settling when visitors arrive (at distance), in new rooms, or when activity is happening. Start with easy contexts and build up.' }
+    ]
+  },
+  {
+    id: 'crate', name: 'Crate Training', emoji: '🏠', phase: 1,
+    prereqs: [],
+    video: 'https://www.youtube.com/watch?v=dUzF4Pb3JBo',
+    steps: [
+      { title: 'Crate = Treats', desc: 'Toss treats near, then into the crate. Let Zu explore freely. Door stays OPEN. No luring, no pushing. End on a good note if she shows hesitation.' },
+      { title: 'Eating Meals Inside', desc: 'Feed Zu\'s meals inside the crate with door open. She should go in willingly. If she won\'t, move the bowl closer gradually over sessions.' },
+      { title: 'Brief Door Closure', desc: 'While Zu eats, gently close door. Open BEFORE she finishes. Gradually extend time door stays closed (seconds at a time). Stay nearby.' },
+      { title: 'Short Separations', desc: 'Close door, step away briefly (10 sec), return calmly, treat & open. Build duration very slowly. Never use the crate as punishment.' },
+      { title: 'Extended Crate Time', desc: 'Build to 30+ minutes with you in another room. Leave a stuffed Kong or safe chew. Keep departures and arrivals low-key.' }
+    ]
+  },
+  {
+    id: 'house', name: 'House Training', emoji: '🏡', phase: 1,
+    prereqs: [],
+    video: 'https://www.youtube.com/watch?v=QEtOLAiGJOA',
+    steps: [
+      { title: 'Frequent Outings', desc: 'Take Zu out every 1-2 hours, after meals, naps, and play. Go to the same spot. Wait quietly. When she goes, mark & throw a treat party!' },
+      { title: 'Learn the Signals', desc: 'Watch for sniffing, circling, going to the door. Immediately take her out. Reward every outdoor success. Manage indoor access (close doors, use gates).' },
+      { title: 'Extend Intervals', desc: 'Gradually increase time between outings as Zu shows reliability. Continue rewarding outdoor elimination. If accidents happen, just clean up - no punishment.' },
+      { title: 'Full House Access', desc: 'Gradually give Zu more freedom in the house as she proves reliable. Continue occasional rewards for going outside to maintain the habit.' }
+    ]
+  },
+  // Phase 2: Core Skills
+  {
+    id: 'recall', name: 'Recall (Come)', emoji: '📣', phase: 2,
+    prereqs: ['attention'],
+    video: 'https://www.youtube.com/watch?v=P8yy5_waikk',
+    steps: [
+      { title: 'Restrained Recall Game', desc: 'Have someone gently hold Zu. Show a treat, back up excitedly, call "Zu, come!" When released, she runs to you → huge reward party. Keep distance short (5-10 feet).' },
+      { title: 'Surprise Recalls Indoors', desc: 'When Zu is nearby but not focused on you, call "Zu, come!" in a happy voice. Reward generously when she comes. Practice in different rooms.' },
+      { title: 'Outdoor on Long Line', desc: 'Practice in fenced area or on a long line (15-30 ft). Call when Zu is exploring. Reward with her favorite treats. Never call to punish or end fun.' },
+      { title: 'Add Distractions', desc: 'Practice around other dogs (at distance), squirrels, people. Start far from distractions. Always make coming to you the BEST option. Use high-value treats.' },
+      { title: 'Proof Reliability', desc: 'Practice in many environments. Vary rewards (treats, play, praise). Randomly reinforce to maintain reliability. Keep it a lifelong rewarding behavior.' }
+    ]
+  },
+  {
+    id: 'name', name: 'Name Recognition', emoji: '📛', phase: 2,
+    prereqs: [],
+    video: 'https://www.youtube.com/watch?v=sSgZX06PklQ',
+    steps: [
+      { title: 'Name = Treat', desc: 'Say "Zu" → immediately treat. Repeat 15-20 times per session. She doesn\'t need to do anything specific yet. Just building the association name = good things.' },
+      { title: 'Name → Orientation', desc: 'Say "Zu" when she\'s slightly distracted. The moment she orients toward you, mark & treat. Practice in low-distraction environments first.' },
+      { title: 'Name with Distance', desc: 'Say "Zu" from across the room. Mark & treat when she orients. Build to calling from other rooms.' },
+      { title: 'Name in Busy Environments', desc: 'Practice outdoors and with distractions. Her name should always predict something wonderful. Never use her name for scolding.' }
+    ]
+  },
+  {
+    id: 'sit', name: 'Sit', emoji: '🦮', phase: 2,
+    prereqs: [],
+    video: 'https://www.youtube.com/watch?v=FBTavnZCd6M',
+    steps: [
+      { title: 'Capture or Lure', desc: 'Either wait for Zu to sit naturally and mark it, or hold a treat above her nose and slowly move it back over her head. As her bum touches the ground, mark & treat.' },
+      { title: 'Add Verbal Cue', desc: 'Once Zu is offering sits reliably, say "sit" just BEFORE she sits. Mark & treat. Repeat until the word predicts the action.' },
+      { title: 'Sit in Different Positions', desc: 'Practice sit when you\'re standing, sitting, at different angles to Zu. She should respond to the verbal cue regardless of your body position.' },
+      { title: 'Sit with Duration', desc: 'Ask for sit, then slowly build duration before marking. Start with 2 seconds, build to 10+. Release with your release cue before she breaks.' },
+      { title: 'Sit with Distractions', desc: 'Practice around distractions. Start easy and build. Ask for sit before meals, before going through doors, before putting leash on (making it functional).' }
+    ]
+  },
+  {
+    id: 'release', name: 'Release Cue', emoji: '🟢', phase: 2,
+    prereqs: ['sit'],
+    video: 'https://www.youtube.com/watch?v=YKENEAM4jRY',
+    steps: [
+      { title: 'Pair Release Word', desc: 'Ask for a sit. Say "free!" (or "okay!" / "break!") and toss a treat away so Zu moves. The release word = permission to move. Practice with very short sits.' },
+      { title: 'Release Before She Breaks', desc: 'Key principle: always release BEFORE Zu breaks position on her own. This builds understanding that YOUR word ends the behavior, not her decision.' },
+      { title: 'Vary What Follows Release', desc: 'Sometimes release to a treat, sometimes to play, sometimes just to freedom. Make the release cue meaningful in different contexts.' },
+      { title: 'Use with All Stationary Cues', desc: 'Apply the release cue to sit, down, stay, wait, mat work. Zu learns that all "stay in position" cues end with the release word.' }
+    ]
+  },
+  {
+    id: 'down', name: 'Down', emoji: '⬇️', phase: 2,
+    prereqs: ['sit'],
+    video: 'https://www.youtube.com/watch?v=YKENEAM4jRY',
+    steps: [
+      { title: 'Lure from Sit', desc: 'From a sit, hold a treat at Zu\'s nose and slowly lower it straight down to the floor between her paws. Mark & treat the instant her belly touches the floor.' },
+      { title: 'Lure from Standing', desc: 'Lure down from a standing position. Lower the treat to the floor, then slowly pull it toward you if needed. Be patient - this can take time.' },
+      { title: 'Add Verbal Cue', desc: 'Once Zu follows the lure smoothly, add "down" just before the lure motion. Fade the lure gradually (smaller hand motion, empty hand, then just the word).' },
+      { title: 'Down with Duration', desc: 'Build duration in the down position. Mark & treat while Zu stays down. Build from 2 seconds to 30+ seconds.' },
+      { title: 'Down in Various Contexts', desc: 'Practice on different surfaces, in different rooms, outdoors. Combine with mat work for relaxation training.' }
+    ]
+  },
+  {
+    id: 'leaveit', name: 'Leave It', emoji: '⛔', phase: 2,
+    prereqs: ['nomugging'],
+    video: 'https://www.youtube.com/watch?v=R1TS5nA7z6Q',
+    steps: [
+      { title: 'Two-Treat Method', desc: 'Show Zu a treat in one hand, close your fist. When she stops trying to get it (backs away, looks at you), mark & treat from the OTHER hand. She never gets the "leave it" treat.' },
+      { title: 'Add "Leave It" Cue', desc: 'Say "leave it" before presenting the closed fist. Mark & reward from other hand when she turns away. The forbidden item is never the reward.' },
+      { title: 'Leave It on the Floor', desc: 'Place a treat on the floor, cover with your hand/foot if needed. Say "leave it." Reward from your other hand when she looks away. Build to uncovered items.' },
+      { title: 'Leave It on Walks', desc: 'Practice with objects on the ground during walks. Start with low-interest items. Say "leave it," reward for turning away. Build to food on sidewalks, etc.' },
+      { title: 'Leave It with High-Value Items', desc: 'Practice with increasingly tempting items. Always reward with something equally good or better from you. "Leave it" means "turn away and I\'ll make it worth your while."' }
+    ]
+  },
+  {
+    id: 'dropit', name: 'Drop It', emoji: '🎾', phase: 2,
+    prereqs: [],
+    video: 'https://www.youtube.com/watch?v=ndTiVOCNY4M',
+    steps: [
+      { title: 'Trade Game', desc: 'When Zu has a toy, show a high-value treat. When she drops the toy to take the treat, mark & treat, then give the toy BACK. Drop it = you get something better AND your toy back.' },
+      { title: 'Add "Drop It" Cue', desc: 'Say "drop it" just before offering the trade. Over time, she\'ll drop on the verbal cue alone. Always reward. Never chase or force items away.' },
+      { title: 'Drop Various Objects', desc: 'Practice with different items (toys, sticks, things she finds). Always trade for something high-value. The goal is voluntary release, not fear of losing things.' },
+      { title: 'Quick Drop Response', desc: 'Build speed of response. Say "drop it" and she should release immediately. Maintain with high-value rewards. This is a safety behavior - keep it well-practiced.' }
+    ]
+  },
+  // Phase 3: Life Skills
+  {
+    id: 'leashpressure', name: 'Leash Pressure Game', emoji: '🔗', phase: 3,
+    prereqs: ['attention'],
+    video: 'https://www.youtube.com/watch?v=iKG89GRqJPM',
+    steps: [
+      { title: 'Leash Pressure = Treat', desc: 'With Zu on leash, apply gentle pressure in any direction. The instant she takes a step in the direction of pressure, mark & treat. Release pressure immediately.' },
+      { title: 'Follow Pressure in All Directions', desc: 'Practice pressure forward, back, left, right. Zu should yield to any gentle pressure by stepping toward it. Keep it very light - this is about communication, not force.' },
+      { title: 'Moving Together', desc: 'Use micro-pressure cues to guide Zu while walking. She should respond to very subtle leash communication. Reward frequently for following along.' },
+      { title: 'Leash Pressure Around Distractions', desc: 'Practice near distractions. Gentle pressure → Zu yields → mark & treat. This prevents pulling and teaches leash = communication tool.' }
+    ]
+  },
+  {
+    id: 'llwindoor', name: 'Loose Leash Walking (Indoor)', emoji: '🏢', phase: 3,
+    prereqs: ['leashpressure', 'attention'],
+    video: 'https://www.youtube.com/watch?v=sFgtqgiAKoQ',
+    steps: [
+      { title: 'Reward at Your Side', desc: 'With Zu on leash indoors, reward her for being at your side (either side). Mark & treat rapidly at first. She learns: "next to human = treats happen."' },
+      { title: 'Take a Few Steps', desc: 'Take 2-3 steps, if Zu stays at your side with loose leash, mark & treat. If she pulls ahead, stop. Wait for her to return to your side or look at you, then reward.' },
+      { title: 'Walk Through Rooms', desc: 'Build to walking through your home on a loose leash. Change directions frequently. Reward Zu for choosing to stay with you. Make yourself more interesting than the environment.' },
+      { title: 'Add Indoor Distractions', desc: 'Practice with toys on the floor, family members moving around. Reward Zu for maintaining loose leash despite distractions. Vary your pace.' }
+    ]
+  },
+  {
+    id: 'fetch', name: 'Fetch', emoji: '🎯', phase: 3,
+    prereqs: ['dropit'],
+    video: 'https://www.youtube.com/watch?v=D-uUzzOmBns',
+    steps: [
+      { title: 'Build Toy Drive', desc: 'Make a toy exciting by moving it on the ground like prey. When Zu grabs it, celebrate! Use a toy she already likes. Short play sessions to keep excitement high.' },
+      { title: 'Short Tosses + Trade', desc: 'Toss toy 3-5 feet. When Zu picks it up, call her back. Use "drop it" and trade for a treat, then throw again. The throw IS the reward for bringing it back.' },
+      { title: 'Increase Distance', desc: 'Gradually increase throw distance. Keep the game pattern: throw → fetch → bring back → drop → throw again. If she doesn\'t bring it back, shorten the distance.' },
+      { title: 'Fetch as Life Reward', desc: 'Use fetch as a reward for other behaviors. Build endurance. Some dogs love fetch, others are more casual - follow Zu\'s enthusiasm level.' }
+    ]
+  },
+  {
+    id: 'handling', name: 'Handling & Grooming', emoji: '✋', phase: 3,
+    prereqs: ['calmness'],
+    video: 'https://www.youtube.com/watch?v=AElTViRKFlA',
+    steps: [
+      { title: 'Touch = Treat', desc: 'Briefly touch Zu\'s shoulder → treat. Touch ear → treat. Touch paw → treat. Keep touches brief and pair each with food. Let her move away if she wants.' },
+      { title: 'Longer Handling', desc: 'Build duration of touch. Hold paw for 1 sec → treat. Look in ear → treat. Lift lip to see teeth → treat. Go at Zu\'s pace - never restrain.' },
+      { title: 'Grooming Tools', desc: 'Show brush → treat. Touch brush to body → treat. One brush stroke → treat. Build very gradually. Let Zu investigate tools first.' },
+      { title: 'Full Grooming Sessions', desc: 'Build to brushing, nail handling, ear cleaning with cooperative participation. If Zu moves away, pause and make it easier. Use Chirag Patel\'s bucket game for consent.' },
+      { title: 'Vet Prep Handling', desc: 'Practice vet-like handling: look in ears, check teeth, hold paws, touch all over body. Practice standing on a scale. Build comfort with being examined.' }
+    ]
+  },
+  {
+    id: 'llwoutdoor', name: 'Loose Leash Walking (Outdoor)', emoji: '🌳', phase: 3,
+    prereqs: ['llwindoor', 'interrupter'],
+    video: 'https://www.youtube.com/watch?v=sFgtqgiAKoQ',
+    steps: [
+      { title: 'Front Yard / Quiet Area', desc: 'Start in the least distracting outdoor area. Very high rate of reinforcement for being at your side. Stop when leash gets tight - wait for Zu to check in.' },
+      { title: 'Short Walks, High Reward', desc: 'Take very short walks (even just to the end of the driveway). Reward constantly for loose leash. Quality over distance. End before Zu gets over-stimulated.' },
+      { title: 'Neighborhood Walks', desc: 'Extend distance gradually. Use treats, direction changes, and your positive interrupter. If Zu is over-aroused, increase distance from triggers or go home and try again later.' },
+      { title: 'Busy Environment Walks', desc: 'Practice near busier areas, parks, other dogs at distance. Manage distance from triggers. Reward all check-ins and loose leash moments.' },
+      { title: 'Relaxed Walking', desc: 'Build to comfortable walks with less frequent reinforcement. Let Zu sniff (it\'s enrichment!). Alternate between structured walking and free sniffing time.' }
+    ]
+  },
+  {
+    id: 'separation', name: 'Separation Training', emoji: '👋', phase: 3,
+    prereqs: ['crate', 'calmness'],
+    video: 'https://www.youtube.com/watch?v=HWT9DI7hMfo',
+    steps: [
+      { title: 'Brief Out-of-Sight', desc: 'Step behind a door for 1 second, return calmly. Gradually increase to 5, 10, 30 seconds. Keep departures and returns boring. Leave a stuffed Kong.' },
+      { title: 'Short Departures', desc: 'Leave for 1-2 minutes. Pick up keys, go through front door, return. Don\'t make a fuss when leaving or returning. Gradually extend time.' },
+      { title: 'Build to 15 Minutes', desc: 'The hardest part of alone time is the first 15 minutes. Build up in small increments. Watch for signs of distress (consider filming). Go at Zu\'s pace.' },
+      { title: 'Extended Alone Time', desc: 'Build to 30 min, then 1 hour, then 2+ hours. Leave enrichment (Kongs, puzzles). Establish a departure routine that Zu finds relaxing. Always return before she\'s distressed.' }
+    ]
+  },
+  {
+    id: 'doormanners', name: 'Door Manners', emoji: '🚪', phase: 3,
+    prereqs: ['sit', 'release'],
+    video: 'https://www.youtube.com/watch?v=K8I84t-BYHY',
+    steps: [
+      { title: 'Sit at Door', desc: 'Approach door. Ask for sit. Reach for handle - if Zu breaks, restart. When she holds sit as you touch the handle, mark & treat. Build in tiny steps.' },
+      { title: 'Door Opens, Zu Waits', desc: 'Sit → open door a crack. If she stays, mark & treat. If she breaks, close door, re-cue sit. Build to fully open door while she waits.' },
+      { title: 'Release Through Doorway', desc: 'Full door open, Zu waits in sit, then release cue → she goes through. Practice at front door, back door, car door.' },
+      { title: 'Doorbell/Knock Protocol', desc: 'When doorbell rings, Zu goes to mat or designated spot instead of rushing the door. Start with knocking sounds while practicing, build to actual visitors.' }
+    ]
+  }
+];
+
+// Phase metadata
+const PHASES = {
+  1: { name: 'Foundation', range: 'Days 1-7', badge: 'badge-phase1', color: '#10B981' },
+  2: { name: 'Core Skills', range: 'Days 7-21', badge: 'badge-phase2', color: '#6C63FF' },
+  3: { name: 'Life Skills', range: 'Days 14-42', badge: 'badge-phase3', color: '#F59E0B' },
+  4: { name: 'Generalization', range: 'Ongoing', badge: 'badge-phase4', color: '#FF6B9D' }
+};
+
+// ============================================================
+// DATA LAYER - localStorage persistence
+// ============================================================
+const STORAGE_KEY = 'zuTrainer';
+
+function getDefaultData() {
+  return {
+    profile: { name: 'Zu', weight: 8.5, rescueDate: '' },
+    settings: { duration: 120, targetReps: 10, threshold: 80, evalSessions: 3, treatNotes: '' },
+    skillProgress: {},  // { [skillId]: { currentStep: 0, unlocked: true } }
+    sessions: [],       // { id, skillId, date, step, successes, failures, notes, duration }
+    milestones: []      // { id, text, date, emoji }
+  };
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      // Ensure all keys exist (migration safety)
+      const def = getDefaultData();
+      return { ...def, ...d, profile: { ...def.profile, ...d.profile }, settings: { ...def.settings, ...d.settings } };
+    }
+  } catch(e) { console.error('Load error', e); }
+  return getDefaultData();
+}
+
+function saveData(data) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+  catch(e) { console.error('Save error', e); }
+}
+
+let APP = loadData();
+
+// Initialize skill progress for any new skills
+SKILLS_DB.forEach(skill => {
+  if (!APP.skillProgress[skill.id]) {
+    // Phase 1 skills + skills with no prereqs are auto-unlocked
+    const unlocked = skill.phase === 1 || skill.prereqs.length === 0;
+    APP.skillProgress[skill.id] = { currentStep: 0, unlocked };
+  }
+});
+saveData(APP);
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+function $(sel) { return document.querySelector(sel); }
+function $$(sel) { return document.querySelectorAll(sel); }
+
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 2500);
+}
+
+function showModal(title, body, actions) {
+  $('#modal-title').textContent = title;
+  $('#modal-body').textContent = body;
+  const actEl = $('#modal-actions');
+  actEl.innerHTML = '';
+  actions.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = `btn ${a.cls || 'btn-outline'} btn-sm`;
+    btn.textContent = a.label;
+    btn.onclick = () => { $('#modal-overlay').classList.remove('visible'); if (a.action) a.action(); };
+    actEl.appendChild(btn);
+  });
+  $('#modal-overlay').classList.add('visible');
+}
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function dateKey(d) {
+  const dt = d ? new Date(d) : new Date();
+  return dt.toISOString().split('T')[0];
+}
+
+function getSkillSessions(skillId) {
+  return APP.sessions.filter(s => s.skillId === skillId).sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+function getSuccessRate(session) {
+  const total = session.successes + session.failures;
+  return total > 0 ? Math.round((session.successes / total) * 100) : 0;
+}
+
+function getRollingAvg(skillId, n) {
+  const sessions = getSkillSessions(skillId).slice(0, n || APP.settings.evalSessions);
+  if (sessions.length === 0) return null;
+  const rates = sessions.map(getSuccessRate);
+  return Math.round(rates.reduce((a, b) => a + b, 0) / rates.length);
+}
+
+function getStreak() {
+  const dates = [...new Set(APP.sessions.map(s => dateKey(s.date)))].sort().reverse();
+  if (dates.length === 0) return 0;
+  let streak = 0;
+  let check = new Date();
+  // If no session today, check yesterday
+  if (dates[0] !== dateKey(check)) {
+    check.setDate(check.getDate() - 1);
+    if (dates[0] !== dateKey(check)) return 0;
+  }
+  for (const d of dates) {
+    if (d === dateKey(check)) {
+      streak++;
+      check.setDate(check.getDate() - 1);
+    } else break;
+  }
+  return streak;
+}
+
+function isSkillUnlocked(skill) {
+  if (skill.prereqs.length === 0) return true;
+  return skill.prereqs.every(pid => {
+    const prog = APP.skillProgress[pid];
+    const sk = SKILLS_DB.find(s => s.id === pid);
+    return prog && prog.currentStep >= 1 && sk; // At least started step 2
+  });
+}
+
+function updateUnlocks() {
+  SKILLS_DB.forEach(skill => {
+    APP.skillProgress[skill.id].unlocked = isSkillUnlocked(skill);
+  });
+  saveData(APP);
+}
+
+function checkMilestones() {
+  const milestones = [];
+  const sessionCount = APP.sessions.length;
+  const milestoneDefs = [
+    { id: 'first_session', check: () => sessionCount >= 1, text: 'First Training Session!', emoji: '🎉' },
+    { id: '10_sessions', check: () => sessionCount >= 10, text: '10 Sessions Completed', emoji: '⭐' },
+    { id: '25_sessions', check: () => sessionCount >= 25, text: '25 Sessions Completed', emoji: '🏆' },
+    { id: '50_sessions', check: () => sessionCount >= 50, text: '50 Sessions Completed', emoji: '👑' },
+    { id: '100_sessions', check: () => sessionCount >= 100, text: '100 Sessions Completed!', emoji: '💎' },
+    { id: 'streak_3', check: () => getStreak() >= 3, text: '3-Day Streak', emoji: '🔥' },
+    { id: 'streak_7', check: () => getStreak() >= 7, text: '7-Day Streak', emoji: '🔥' },
+    { id: 'streak_14', check: () => getStreak() >= 14, text: '14-Day Streak!', emoji: '🔥' },
+    { id: 'streak_30', check: () => getStreak() >= 30, text: '30-Day Streak!', emoji: '🔥' },
+  ];
+  // Per-skill milestones: completing all steps
+  SKILLS_DB.forEach(skill => {
+    milestoneDefs.push({
+      id: `complete_${skill.id}`,
+      check: () => APP.skillProgress[skill.id].currentStep >= skill.steps.length,
+      text: `${skill.name} Mastered!`,
+      emoji: skill.emoji
+    });
+  });
+
+  milestoneDefs.forEach(m => {
+    const exists = APP.milestones.find(x => x.id === m.id);
+    if (!exists && m.check()) {
+      APP.milestones.push({ id: m.id, text: m.text, emoji: m.emoji, date: new Date().toISOString() });
+    }
+  });
+  saveData(APP);
+}
+
+function getDailyPlan() {
+  // Prioritize: skills not trained recently + skills close to advancement
+  const plan = [];
+  const today = dateKey();
+  SKILLS_DB.forEach(skill => {
+    const prog = APP.skillProgress[skill.id];
+    if (!prog.unlocked || prog.currentStep >= skill.steps.length) return;
+    const sessions = getSkillSessions(skill.id);
+    const lastSession = sessions[0];
+    const daysSince = lastSession ? Math.floor((Date.now() - new Date(lastSession.date)) / 86400000) : 999;
+    const avg = getRollingAvg(skill.id);
+    plan.push({ skill, daysSince, avg, sessions: sessions.length });
+  });
+  // Sort: most days since last trained first, then by closeness to advancement
+  plan.sort((a, b) => {
+    if (b.daysSince !== a.daysSince) return b.daysSince - a.daysSince;
+    const aClose = a.avg !== null ? Math.abs(a.avg - APP.settings.threshold) : 100;
+    const bClose = b.avg !== null ? Math.abs(b.avg - APP.settings.threshold) : 100;
+    return aClose - bClose;
+  });
+  return plan.slice(0, 5);
+}
+
+// ============================================================
+// TAB NAVIGATION
+// ============================================================
+function switchTab(tabName) {
+  $$('.tab-panel').forEach(p => p.classList.remove('active'));
+  $$('.nav-btn').forEach(b => b.classList.remove('active'));
+  $(`#tab-${tabName}`).classList.add('active');
+  $(`.nav-btn[data-tab="${tabName}"]`).classList.add('active');
+  // Render tab content
+  if (tabName === 'dashboard') renderDashboard();
+  else if (tabName === 'skills') renderSkills();
+  else if (tabName === 'train') renderTrainSetup();
+  else if (tabName === 'progress') renderProgress();
+  else if (tabName === 'settings') renderSettings();
+}
+
+$$('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+// ============================================================
+// DASHBOARD RENDER
+// ============================================================
+function renderDashboard() {
+  const p = APP.profile;
+  $('#dash-name').textContent = p.name || 'Zu';
+  const info = [];
+  if (p.weight) info.push(`${p.weight} kg`);
+  info.push('mixed rescue');
+  if (p.rescueDate) {
+    const days = Math.floor((Date.now() - new Date(p.rescueDate)) / 86400000);
+    info.push(`home ${days} days`);
+  }
+  $('#dash-info').textContent = info.join(' · ');
+  $('#stat-streak').textContent = getStreak();
+  $('#stat-sessions').textContent = APP.sessions.length;
+  const activeSkills = SKILLS_DB.filter(s => APP.skillProgress[s.id].unlocked && APP.skillProgress[s.id].currentStep < s.steps.length).length;
+  $('#stat-skills').textContent = activeSkills;
+
+  // Daily plan
+  const plan = getDailyPlan();
+  const planEl = $('#daily-plan-list');
+  if (plan.length === 0) {
+    planEl.innerHTML = '<p style="font-size:0.85rem;color:var(--text-dim);padding:12px;">All skills are mastered or locked! Check the Skills tab.</p>';
+    return;
+  }
+  planEl.innerHTML = plan.map(p => {
+    const prog = APP.skillProgress[p.skill.id];
+    const step = p.skill.steps[prog.currentStep];
+    const phase = PHASES[p.skill.phase];
+    const rateColor = p.avg === null ? 'var(--text-dim)' : p.avg >= 80 ? 'var(--success)' : p.avg < 50 ? 'var(--danger)' : 'var(--warning)';
+    return `<div class="plan-item" onclick="startTrainingFor('${p.skill.id}')">
+      <div class="skill-icon" style="background:${phase.color}22;color:${phase.color}">${p.skill.emoji}</div>
+      <div class="skill-info">
+        <div class="skill-name">${p.skill.name}</div>
+        <div class="skill-step">Step ${prog.currentStep + 1}: ${step ? step.title : 'Complete'}</div>
+      </div>
+      <div class="skill-rate" style="color:${rateColor}">${p.avg !== null ? p.avg + '%' : '—'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// SKILLS LIBRARY RENDER
+// ============================================================
+function renderSkills() {
+  const container = $('#skills-list');
+  let html = '';
+  [1, 2, 3].forEach(phase => {
+    const pInfo = PHASES[phase];
+    const skills = SKILLS_DB.filter(s => s.phase === phase);
+    html += `<div class="phase-section">
+      <div class="phase-header"><span class="badge ${pInfo.badge}">Phase ${phase}</span> ${pInfo.name} <span style="color:var(--text-dim);font-weight:400;text-transform:none;">(${pInfo.range})</span></div>`;
+    skills.forEach(skill => {
+      const prog = APP.skillProgress[skill.id];
+      const locked = !prog.unlocked;
+      const pct = Math.round((prog.currentStep / skill.steps.length) * 100);
+      const avg = getRollingAvg(skill.id);
+      html += `<div class="card skill-card ${locked ? 'locked' : ''}" id="skill-${skill.id}" onclick="toggleSkillDetail('${skill.id}')">
+        <div class="skill-card-top">
+          <div class="skill-icon" style="background:${pInfo.color}22;color:${pInfo.color}">${skill.emoji}</div>
+          <div class="skill-main">
+            <div class="skill-name">${skill.name} ${locked ? '<span class="badge badge-locked">Locked</span>' : ''}</div>
+            <div class="skill-meta">Step ${Math.min(prog.currentStep + 1, skill.steps.length)} of ${skill.steps.length}${avg !== null ? ` · ${avg}% avg` : ''}</div>
+          </div>
+        </div>
+        <div class="progress-bar" style="margin-top:10px;"><div class="fill" style="width:${pct}%"></div></div>
+        <div class="skill-detail">
+          <ul class="step-list">
+            ${skill.steps.map((step, i) => {
+              const cls = i < prog.currentStep ? 'completed' : i === prog.currentStep ? 'current' : '';
+              return `<li class="step-item ${cls}"><span class="step-num">${i < prog.currentStep ? '✓' : i + 1}</span><div class="step-text"><strong>${step.title}</strong><br><span style="color:var(--text-muted);font-size:0.8rem;">${step.desc}</span></div></li>`;
+            }).join('')}
+          </ul>
+          ${skill.video ? `<a href="${skill.video}" target="_blank" rel="noopener" class="video-link">▶ Watch Kikopup Video</a>` : ''}
+          ${!locked ? `<button class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="event.stopPropagation(); startTrainingFor('${skill.id}')">Train This Skill</button>` : ''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function toggleSkillDetail(skillId) {
+  const el = $(`#skill-${skillId}`);
+  if (el) el.classList.toggle('expanded');
+}
+
+// ============================================================
+// TRAINING SESSION
+// ============================================================
+let currentSession = null;
+let timerInterval = null;
+let timerRunning = false;
+let timerSeconds = 0;
+let selectedDuration = 120;
+let selectedSkillId = null;
+let sessionStartTime = null;
+
+function renderTrainSetup() {
+  if (currentSession) return; // Don't re-render if session is active
+  const grid = $('#skill-select-grid');
+  const available = SKILLS_DB.filter(s => APP.skillProgress[s.id].unlocked && APP.skillProgress[s.id].currentStep < s.steps.length);
+  grid.innerHTML = available.map(skill => {
+    const sel = selectedSkillId === skill.id ? 'selected' : '';
+    return `<button class="skill-select-btn ${sel}" onclick="selectSkill('${skill.id}')">
+      <span class="skill-emoji">${skill.emoji}</span>
+      ${skill.name}
+    </button>`;
+  }).join('');
+  if (available.length === 0) {
+    grid.innerHTML = '<p style="grid-column:1/-1;color:var(--text-dim);font-size:0.85rem;">No skills available. Unlock more in the Skills tab!</p>';
+  }
+  $('#btn-start-session').disabled = !selectedSkillId;
+}
+
+function selectSkill(skillId) {
+  selectedSkillId = skillId;
+  $$('.skill-select-btn').forEach(b => b.classList.remove('selected'));
+  const btns = $$('.skill-select-btn');
+  btns.forEach(b => { if (b.textContent.trim().includes(SKILLS_DB.find(s => s.id === skillId).name)) b.classList.add('selected'); });
+  $('#btn-start-session').disabled = false;
+}
+
+function startTrainingFor(skillId) {
+  selectedSkillId = skillId;
+  switchTab('train');
+  setTimeout(() => startSession(), 50);
+}
+
+function startSession() {
+  if (!selectedSkillId) return;
+  const skill = SKILLS_DB.find(s => s.id === selectedSkillId);
+  const prog = APP.skillProgress[skill.id];
+  const step = skill.steps[prog.currentStep];
+  if (!step) { toast('This skill is fully completed!'); return; }
+
+  currentSession = { skillId: skill.id, successes: 0, failures: 0 };
+  sessionStartTime = Date.now();
+  timerSeconds = selectedDuration;
+  timerRunning = false;
+
+  $('#session-setup').classList.add('hidden');
+  $('#session-active').classList.add('visible');
+  $('#step-instruction-text').textContent = `Step ${prog.currentStep + 1}: ${step.title} — ${step.desc}`;
+  $('#rep-success').textContent = '0';
+  $('#rep-fail').textContent = '0';
+  $('#session-total').textContent = '0';
+  $('#session-rate').textContent = '0%';
+  $('#session-elapsed').textContent = '0:00';
+  $('#session-notes-input').value = '';
+  updateTimerDisplay();
+  $('#btn-timer-toggle').textContent = 'Start Timer';
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  $('#timer-display').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function updateSessionStats() {
+  if (!currentSession) return;
+  const total = currentSession.successes + currentSession.failures;
+  const rate = total > 0 ? Math.round((currentSession.successes / total) * 100) : 0;
+  $('#session-total').textContent = total;
+  $('#session-rate').textContent = rate + '%';
+  const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+  const em = Math.floor(elapsed / 60);
+  const es = elapsed % 60;
+  $('#session-elapsed').textContent = `${em}:${es.toString().padStart(2, '0')}`;
+}
+
+$('#btn-timer-toggle').addEventListener('click', () => {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    $('#btn-timer-toggle').textContent = 'Resume';
+  } else {
+    timerRunning = true;
+    $('#btn-timer-toggle').textContent = 'Pause';
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      updateTimerDisplay();
+      updateSessionStats();
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        $('#btn-timer-toggle').textContent = 'Done!';
+        toast('Time is up! End your session when ready.');
+      }
+    }, 1000);
+  }
+});
+
+$('#btn-timer-reset').addEventListener('click', () => {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = selectedDuration;
+  updateTimerDisplay();
+  $('#btn-timer-toggle').textContent = 'Start Timer';
+});
+
+$('#btn-rep-success').addEventListener('click', () => {
+  if (!currentSession) return;
+  currentSession.successes++;
+  $('#rep-success').textContent = currentSession.successes;
+  updateSessionStats();
+});
+
+$('#btn-rep-fail').addEventListener('click', () => {
+  if (!currentSession) return;
+  currentSession.failures++;
+  $('#rep-fail').textContent = currentSession.failures;
+  updateSessionStats();
+});
+
+$('#btn-end-session').addEventListener('click', () => {
+  if (!currentSession) return;
+  clearInterval(timerInterval);
+  timerRunning = false;
+  const total = currentSession.successes + currentSession.failures;
+  if (total === 0) {
+    showModal('End Session?', 'You have no reps recorded. Discard this session?', [
+      { label: 'Keep Training', cls: 'btn-outline' },
+      { label: 'Discard', cls: 'btn-danger', action: resetSession }
+    ]);
+    return;
+  }
+  endSession();
+});
+
+function endSession() {
+  const session = {
+    id: Date.now().toString(),
+    skillId: currentSession.skillId,
+    date: new Date().toISOString(),
+    step: APP.skillProgress[currentSession.skillId].currentStep,
+    successes: currentSession.successes,
+    failures: currentSession.failures,
+    notes: $('#session-notes-input').value.trim(),
+    duration: Math.floor((Date.now() - sessionStartTime) / 1000)
+  };
+  APP.sessions.push(session);
+  saveData(APP);
+  updateUnlocks();
+  checkMilestones();
+
+  const rate = getSuccessRate(session);
+  const skillId = currentSession.skillId;
+  const skill = SKILLS_DB.find(s => s.id === skillId);
+  const prog = APP.skillProgress[skillId];
+
+  // Auto-adjustment logic
+  const avg = getRollingAvg(skillId);
+  const sessionsForSkill = getSkillSessions(skillId);
+  const evalCount = APP.settings.evalSessions;
+  const threshold = APP.settings.threshold;
+
+  if (avg !== null && sessionsForSkill.length >= evalCount) {
+    if (avg >= threshold && prog.currentStep < skill.steps.length - 1) {
+      showModal(
+        'Advance to Next Step?',
+        `${skill.name}: ${avg}% average over last ${evalCount} sessions! Ready to move to Step ${prog.currentStep + 2}: "${skill.steps[prog.currentStep + 1].title}"?`,
+        [
+          { label: 'Stay Here', cls: 'btn-outline' },
+          { label: 'Advance!', cls: 'btn-success', action: () => {
+            prog.currentStep++;
+            saveData(APP);
+            updateUnlocks();
+            checkMilestones();
+            toast(`Advanced to Step ${prog.currentStep + 1}!`);
+          }}
+        ]
+      );
+    } else if (avg < 50 && prog.currentStep > 0) {
+      showModal(
+        'Go Back a Step?',
+        `${skill.name}: ${avg}% average. It might help to revisit Step ${prog.currentStep}: "${skill.steps[prog.currentStep - 1].title}".`,
+        [
+          { label: 'Stay Here', cls: 'btn-outline' },
+          { label: 'Go Back', cls: 'btn-warning', action: () => {
+            prog.currentStep--;
+            saveData(APP);
+            toast(`Moved back to Step ${prog.currentStep + 1}`);
+          }}
+        ]
+      );
+    } else if (avg >= threshold && prog.currentStep === skill.steps.length - 1) {
+      // Completed all steps!
+      prog.currentStep = skill.steps.length;
+      saveData(APP);
+      updateUnlocks();
+      checkMilestones();
+      showModal('Skill Complete!', `${skill.emoji} ${skill.name} is mastered! Amazing work with ${APP.profile.name || 'Zu'}!`, [
+        { label: 'Awesome!', cls: 'btn-primary' }
+      ]);
+    }
+  }
+
+  toast(`Session saved! ${rate}% success rate`);
+  resetSession();
+}
+
+function resetSession() {
+  currentSession = null;
+  selectedSkillId = null;
+  sessionStartTime = null;
+  clearInterval(timerInterval);
+  timerRunning = false;
+  $('#session-active').classList.remove('visible');
+  $('#session-setup').classList.remove('hidden');
+  renderTrainSetup();
+}
+
+// Duration buttons
+$$('.duration-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    selectedDuration = parseInt(btn.dataset.dur);
+    $$('.duration-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    if (!currentSession) {
+      timerSeconds = selectedDuration;
+      updateTimerDisplay();
+    }
+  });
+});
+
+$('#btn-start-session').addEventListener('click', startSession);
+
+// ============================================================
+// PROGRESS / HISTORY RENDER
+// ============================================================
+function renderProgress() {
+  renderHeatmap();
+  renderMilestones();
+  renderHistory();
+}
+
+function renderHeatmap() {
+  const heatmap = $('#heatmap');
+  const today = new Date();
+  const days = 56; // 8 weeks
+  const sessionDates = {};
+  APP.sessions.forEach(s => {
+    const key = dateKey(s.date);
+    sessionDates[key] = (sessionDates[key] || 0) + 1;
+  });
+
+  let html = '';
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = dateKey(d);
+    const count = sessionDates[key] || 0;
+    const level = count === 0 ? '' : count <= 1 ? 'level-1' : count <= 2 ? 'level-2' : count <= 4 ? 'level-3' : 'level-4';
+    const title = `${formatDate(d)}: ${count} session${count !== 1 ? 's' : ''}`;
+    html += `<div class="heatmap-day ${level}" title="${title}"></div>`;
+  }
+  heatmap.innerHTML = html;
+}
+
+function renderMilestones() {
+  const list = $('#milestone-list');
+  if (APP.milestones.length === 0) {
+    list.innerHTML = '<p style="font-size:0.85rem;color:var(--text-dim);">Complete training sessions to earn milestones!</p>';
+    return;
+  }
+  list.innerHTML = APP.milestones.slice().reverse().map(m =>
+    `<div class="milestone-item">
+      <span class="milestone-icon">${m.emoji}</span>
+      <span class="milestone-text">${m.text}</span>
+      <span class="milestone-date">${formatDate(m.date)}</span>
+    </div>`
+  ).join('');
+}
+
+function renderHistory() {
+  const list = $('#history-list');
+  const sessions = APP.sessions.slice().reverse();
+  if (sessions.length === 0) {
+    list.innerHTML = '<p style="font-size:0.85rem;color:var(--text-dim);">No sessions yet. Start training!</p>';
+    return;
+  }
+  list.innerHTML = sessions.slice(0, 30).map(s => {
+    const skill = SKILLS_DB.find(sk => sk.id === s.skillId);
+    const rate = getSuccessRate(s);
+    const rateColor = rate >= 80 ? 'var(--success)' : rate < 50 ? 'var(--danger)' : 'var(--warning)';
+    const dur = s.duration ? `${Math.floor(s.duration / 60)}:${(s.duration % 60).toString().padStart(2, '0')}` : '';
+    return `<div class="card history-item">
+      <div class="history-top">
+        <span class="history-skill">${skill ? skill.emoji + ' ' + skill.name : 'Unknown'}</span>
+        <span class="history-rate" style="color:${rateColor}">${rate}%</span>
+      </div>
+      <div class="history-meta">${formatDate(s.date)} · Step ${s.step + 1} · ${s.successes + s.failures} reps${dur ? ' · ' + dur : ''}</div>
+      ${s.notes ? `<div class="history-notes">"${s.notes}"</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function renderSettings() {
+  $('#set-name').value = APP.profile.name || 'Zu';
+  $('#set-weight').value = APP.profile.weight || 8.5;
+  $('#set-rescue-date').value = APP.profile.rescueDate || '';
+  $('#set-duration').value = APP.settings.duration;
+  $('#set-target-reps').value = APP.settings.targetReps;
+  $('#set-threshold').value = APP.settings.threshold;
+  $('#set-eval-sessions').value = APP.settings.evalSessions;
+  $('#set-treat-notes').value = APP.settings.treatNotes || '';
+}
+
+$('#btn-save-settings').addEventListener('click', () => {
+  APP.profile.name = $('#set-name').value.trim() || 'Zu';
+  APP.profile.weight = parseFloat($('#set-weight').value) || 8.5;
+  APP.profile.rescueDate = $('#set-rescue-date').value;
+  APP.settings.duration = parseInt($('#set-duration').value) || 120;
+  APP.settings.targetReps = parseInt($('#set-target-reps').value) || 10;
+  APP.settings.threshold = parseInt($('#set-threshold').value) || 80;
+  APP.settings.evalSessions = parseInt($('#set-eval-sessions').value) || 3;
+  APP.settings.treatNotes = $('#set-treat-notes').value;
+  selectedDuration = APP.settings.duration;
+  saveData(APP);
+  toast('Settings saved!');
+});
+
+$('#btn-export').addEventListener('click', () => {
+  const data = JSON.stringify(APP, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `zu-trainer-backup-${dateKey()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Data exported!');
+});
+
+$('#btn-import').addEventListener('click', () => $('#import-file').click());
+$('#import-file').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (imported.sessions && imported.skillProgress) {
+        showModal('Import Data?', 'This will replace all current data. Are you sure?', [
+          { label: 'Cancel', cls: 'btn-outline' },
+          { label: 'Import', cls: 'btn-primary', action: () => {
+            APP = { ...getDefaultData(), ...imported };
+            saveData(APP);
+            toast('Data imported successfully!');
+            switchTab('dashboard');
+          }}
+        ]);
+      } else {
+        toast('Invalid backup file');
+      }
+    } catch(err) { toast('Error reading file'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+$('#btn-reset').addEventListener('click', () => {
+  showModal('Reset All Data?', 'This will permanently delete ALL training data, session history, and progress. This cannot be undone.', [
+    { label: 'Cancel', cls: 'btn-outline' },
+    { label: 'Reset Everything', cls: 'btn-danger', action: () => {
+      localStorage.removeItem(STORAGE_KEY);
+      APP = getDefaultData();
+      SKILLS_DB.forEach(skill => {
+        const unlocked = skill.phase === 1 || skill.prereqs.length === 0;
+        APP.skillProgress[skill.id] = { currentStep: 0, unlocked };
+      });
+      saveData(APP);
+      toast('All data has been reset');
+      switchTab('dashboard');
+    }}
+  ]);
+});
+
+// Close modal on overlay click
+$('#modal-overlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible');
+});
+
+// ============================================================
+// INIT
+// ============================================================
+updateUnlocks();
+checkMilestones();
+renderDashboard();
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
