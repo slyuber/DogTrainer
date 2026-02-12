@@ -210,6 +210,41 @@ textarea{resize:vertical;min-height:60px}
 .body-chip{padding:6px 10px;border-radius:16px;background:var(--card2);border:1px solid var(--brd);
   color:var(--txt2);font-size:0.75rem;cursor:pointer;min-height:32px;display:flex;align-items:center}
 .body-chip.active{background:var(--bad);color:#fff;border-color:var(--bad)}
+.shrine-header{display:flex;align-items:center;gap:10px;padding:4px 0}
+.shrine-header h1{font-size:1.15rem;margin:0}
+.shrine-stats{display:flex;gap:10px;font-size:0.72rem;color:var(--txt2)}
+.shrine-stats .sv{color:var(--pri);font-weight:600;font-family:var(--font-d)}
+.gear-btn{background:none;border:none;color:var(--txt3);cursor:pointer;padding:8px;min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center}
+.gear-btn:active{color:var(--pri)}
+.quick-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0}
+.quick-btn{display:flex;align-items:center;justify-content:center;padding:10px 4px;border-radius:var(--r);
+  border:1px solid var(--brd);background:var(--card);color:var(--txt2);font-family:var(--font-b);
+  font-size:0.75rem;font-weight:600;cursor:pointer;min-height:40px;transition:transform 0.1s}
+.quick-btn:active{background:var(--card2);transform:scale(0.95)}
+.quick-btn.cat-routine{border-color:var(--pri-dim);color:var(--pri)}
+.quick-btn.cat-care{border-color:rgba(78,205,196,0.3);color:var(--acc)}
+.quick-btn.cat-alert{border-color:rgba(199,91,91,0.3);color:var(--bad)}
+.quick-btn.cat-note{border-color:rgba(232,184,75,0.3);color:var(--warn)}
+.alone-shrine{background:rgba(199,91,91,0.1);border:1px solid var(--bad);border-radius:var(--r2);
+  padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+.alone-shrine .as-time{font-family:var(--font-d);font-size:1.8rem;color:var(--bad);font-weight:700;
+  font-variant-numeric:tabular-nums;flex:1}
+.alone-shrine .as-dot{width:10px;height:10px;border-radius:50%;background:var(--bad);animation:pulse 1.5s infinite;flex-shrink:0}
+.cap-row{display:flex;gap:10px;margin:8px 0;width:100%}
+.cap-wide{flex:1;padding:16px;border-radius:var(--r2);border:2px solid;font-family:var(--font-d);
+  font-weight:700;font-size:0.85rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;
+  gap:4px;min-height:70px;justify-content:center;background:none;transition:transform 0.1s}
+.cap-wide:active{transform:scale(0.96)}
+.cap-wide.success{background:rgba(123,198,126,0.1);border-color:var(--ok);color:var(--ok)}
+.cap-wide.miss{background:rgba(199,91,91,0.1);border-color:var(--bad);color:var(--bad)}
+.cap-wide.observe{background:rgba(78,205,196,0.1);border-color:var(--acc);color:var(--acc)}
+.cap-wide .count{font-size:1.5rem;font-family:var(--font-b)}
+.undo-btn{background:none;border:1px solid var(--brd);color:var(--txt3);padding:6px 16px;border-radius:var(--r);
+  font-size:0.75rem;cursor:pointer;min-height:36px;font-family:var(--font-b)}
+.undo-btn:active{background:var(--card2)}
+.timeline-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 0}
+.timeline-toggle svg{width:16px;height:16px;fill:var(--txt3);transition:transform 0.2s;flex-shrink:0}
+.timeline-toggle.open svg{transform:rotate(90deg)}
 </style>
 </head>
 <body>
@@ -991,29 +1026,35 @@ function runSession(wardId){
  const renderUI=()=>{
   let captureHtml='';
   if(cap.type==='reps'||cap.type==='timed_reps'){
-   captureHtml=`<div class="capture-area">
-    <button class="capture-btn success" onclick="captureOk()"><span class="count" id="okCount">${ritual.ok}</span>${cap.successLabel}</button>
-    ${cap.missLabel?`<button class="capture-btn miss" onclick="captureNo()"><span class="count" id="noCount">${ritual.no}</span>${cap.missLabel}</button>`:''}
+   captureHtml=`<div class="cap-row">
+    <button class="cap-wide success" onclick="captureOk()"><span class="count" id="okCount">${ritual.ok}</span>${cap.successLabel}</button>
+    ${cap.missLabel?`<button class="cap-wide miss" onclick="captureNo()"><span class="count" id="noCount">${ritual.no}</span>${cap.missLabel}</button>`:''}
    </div>`;
   }else if(cap.type==='observe'){
-   captureHtml=`<div class="capture-area">
-    <button class="capture-btn observe" onclick="captureOk()"><span class="count" id="okCount">${ritual.ok}</span>${cap.successLabel}</button>
+   captureHtml=`<div class="cap-row">
+    <button class="cap-wide observe" onclick="captureOk()"><span class="count" id="okCount">${ritual.ok}</span>${cap.successLabel}</button>
    </div>`;
   }else if(cap.type==='duration'){
    captureHtml=`<div class="capture-area" style="flex-direction:column;align-items:center">
     <button class="hold-btn" id="holdBtn" onclick="toggleHold()">${ritual.holdStart?'Holding...':'Tap to Start Hold'}</button>
     <div id="holdTime" style="font-size:1.2rem;color:var(--acc);margin-top:8px;font-variant-numeric:tabular-nums">0:00</div>
+    ${cap.missLabel?`<div class="cap-row" style="margin-top:12px">
+     <button class="cap-wide success" onclick="captureOk()"><span class="count" id="okCount">${ritual.ok}</span>${cap.successLabel}</button>
+     <button class="cap-wide miss" onclick="captureNo()"><span class="count" id="noCount">${ritual.no}</span>${cap.missLabel}</button>
+    </div>`:`<div class="session-stats mt-8"><span><span class="val" id="okCount">${ritual.ok}</span>${cap.successLabel||'good'}</span></div>`}
     <div class="session-stats mt-8"><span><span class="val" id="holdCount">${ritual.holds.length}</span>holds</span>
-     <span><span class="val" id="okCount">${ritual.ok}</span>${cap.successLabel||'good'}</span>
-     ${cap.missLabel?`<span><span class="val" id="noCount">${ritual.no}</span>${cap.missLabel}</span>`:''}
+     <span><button class="undo-btn" onclick="undoLastCapture()">Undo</button></span>
     </div>
    </div>`;
   }
   let statsHtml='';
   if(cap.type==='reps'||cap.type==='timed_reps'){
    const rate=getRate(ritual.ok,ritual.no);
-   statsHtml=`<div class="session-stats"><span><span class="val">${ritual.ok+ritual.no}</span>total</span>
-    <span><span class="val">${rate}%</span>rate</span></div>`;
+   statsHtml=`<div class="session-stats"><span><span class="val" id="statTotal">${ritual.ok+ritual.no}</span>total</span>
+    <span><span class="val" id="statRate">${rate}%</span>rate</span>
+    <span><button class="undo-btn" onclick="undoLastCapture()">Undo</button></span></div>`;
+  }else if(cap.type==='observe'){
+   statsHtml=`<div class="session-stats"><span><button class="undo-btn" onclick="undoLastCapture()">Undo</button></span></div>`;
   }
   $('#tab-ritual').innerHTML=`
    <div class="session-timer" id="sessionTimer">${fmtTime(ritual.duration-ritual.elapsed)}</div>
@@ -1041,24 +1082,40 @@ function runSession(wardId){
  },1000);
 }
 
+let lastCapture=null;
+
 function captureOk(){
- ritual.ok++;
+ ritual.ok++;lastCapture={type:'ok'};
  const el=$('#okCount');if(el)el.textContent=ritual.ok;
- // Update stats
  updateSessionStats();
  if(navigator.vibrate)navigator.vibrate(50);
 }
 
 function captureNo(){
- ritual.no++;
+ ritual.no++;lastCapture={type:'no'};
  const el=$('#noCount');if(el)el.textContent=ritual.no;
  updateSessionStats();
  if(navigator.vibrate)navigator.vibrate([30,30,30]);
 }
 
+function undoLastCapture(){
+ if(!lastCapture)return;
+ if(lastCapture.type==='ok'){
+  ritual.ok--;
+  if(lastCapture.holdDur!=null){ritual.holds.pop();const hc=$('#holdCount');if(hc)hc.textContent=ritual.holds.length;}
+  const el=$('#okCount');if(el)el.textContent=ritual.ok;
+ }else{
+  ritual.no--;
+  const el=$('#noCount');if(el)el.textContent=ritual.no;
+ }
+ lastCapture=null;updateSessionStats();toast('Undone');
+}
+
 function updateSessionStats(){
- const statsEls=$$('.session-stats .val');
- // Simple refresh for reps
+ const total=ritual.ok+ritual.no;
+ const rate=getRate(ritual.ok,ritual.no);
+ const t=$('#statTotal');if(t)t.textContent=total;
+ const r=$('#statRate');if(r)r.textContent=rate+'%';
 }
 
 function toggleHold(){
@@ -1068,7 +1125,7 @@ function toggleHold(){
   if(btn){btn.classList.add('holding');btn.textContent='Holding...';}
  }else{
   const dur=Math.floor((Date.now()-ritual.holdStart)/1000);
-  ritual.holds.push(dur);ritual.ok++;ritual.holdStart=null;
+  ritual.holds.push(dur);ritual.ok++;ritual.holdStart=null;lastCapture={type:'ok',holdDur:dur};
   if(btn){btn.classList.remove('holding');btn.textContent='Tap to Start Hold';}
   const hc=$('#holdCount');if(hc)hc.textContent=ritual.holds.length;
   const oc=$('#okCount');if(oc)oc.textContent=ritual.ok;
@@ -1108,7 +1165,8 @@ function showSummary(){
  let recommendation='';let canAdvance=false;
  if(cap.type==='observe'){
   recommendation='Great observation session!';
-  if(recent.length>=D.settings.evalSessions)canAdvance=true;
+  const validObs=recent.filter(s=>s.ok>=1);
+  if(validObs.length>=D.settings.evalSessions)canAdvance=true;
  }else if(avgRate>=D.settings.threshold&&recent.length>=D.settings.evalSessions){
   recommendation='Ready to advance to next step!';canAdvance=true;
  }else if(avgRate<50){
@@ -1260,7 +1318,10 @@ function resumeAloneTimer(){
 function updateAlonePill(){
  if(!D.aloneTimerState.running)return;
  const elapsed=Math.floor((Date.now()-D.aloneTimerState.startTime)/1000)+D.aloneTimerState.elapsed;
- $('#alonePillTime').textContent=fmtTime(elapsed);
+ const timeStr=fmtTime(elapsed);
+ $('#alonePillTime').textContent=timeStr;
+ const shrineEl=$('#shrineAloneTime');
+ if(shrineEl)shrineEl.textContent=timeStr;
 }
 
 function getAloneElapsed(){
@@ -1297,14 +1358,14 @@ function aloneFormFields(dur){
  return`<div class="form-group"><label>Duration (minutes)</label>
   <input type="number" id="aloneDur" value="${Math.round(dur/60)}" min="0"></div>
  <div class="form-group"><label>Location</label>
-  <div class="chip-group" id="aloneLoc">${['Crate','Room','House','Yard'].map(v=>
-   `<div class="chip" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
+  <div class="chip-group" id="aloneLoc">${['Crate','Room','House','Yard'].map((v,i)=>
+   `<div class="chip${i===0?' active':''}" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
  <div class="form-group"><label>Distance</label>
-  <div class="chip-group" id="aloneDist">${['Door','Room','Floor','Out'].map(v=>
-   `<div class="chip" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
+  <div class="chip-group" id="aloneDist">${['Door','Room','Floor','Out'].map((v,i)=>
+   `<div class="chip${i===0?' active':''}" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
  <div class="form-group"><label>Departure Reaction</label>
-  <div class="chip-group" id="aloneDepart">${['Calm','Noticed','Whined','Barked','Panicked'].map(v=>
-   `<div class="chip" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
+  <div class="chip-group" id="aloneDepart">${['Calm','Noticed','Whined','Barked','Panicked'].map((v,i)=>
+   `<div class="chip${i===0?' active':''}" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
  <div class="form-group"><label>Arrival Reaction</label>
   <div class="chip-group" id="aloneArrive">${['Calm','Excited','Frantic','Ignored'].map(v=>
    `<div class="chip" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
@@ -1355,11 +1416,11 @@ function openPottyForm(){
  openModal(`<div class="modal-header"><h2>Log Potty</h2>
   <button class="modal-close" onclick="closeModal()">X</button></div>
  <div class="form-group"><label>Type</label>
-  <div class="chip-group" id="pottyType">${['Pee','Poop','Both'].map(v=>
-   `<div class="chip" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
+  <div class="chip-group" id="pottyType">${['Pee','Poop','Both'].map((v,i)=>
+   `<div class="chip${i===0?' active':''}" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
  <div class="form-group"><label>Location</label>
-  <div class="chip-group" id="pottyLoc">${['Outside','Inside'].map(v=>
-   `<div class="chip" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
+  <div class="chip-group" id="pottyLoc">${['Outside','Inside'].map((v,i)=>
+   `<div class="chip${i===0?' active':''}" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
  <div class="form-group"><label>Context</label>
   <div class="chip-group" id="pottyCtx">${['After meal','After nap','After play','Morning','Bedtime'].map(v=>
    `<div class="chip" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
@@ -1388,8 +1449,8 @@ function openEnrichmentForm(){
  openModal(`<div class="modal-header"><h2>Log Enrichment</h2>
   <button class="modal-close" onclick="closeModal()">X</button></div>
  <div class="form-group"><label>Type</label>
-  <div class="chip-group" id="enrichType">${['Kong','Puzzle','Lick mat','Snuffle mat','Scatter feed','Decompression walk','Flirt pole','Chew','Other'].map(v=>
-   `<div class="chip" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
+  <div class="chip-group" id="enrichType">${['Kong','Puzzle','Lick mat','Snuffle mat','Scatter feed','Decompression walk','Flirt pole','Chew','Other'].map((v,i)=>
+   `<div class="chip${i===0?' active':''}" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
  <div class="form-group"><label>Duration (minutes)</label>
   <input type="number" id="enrichDur" value="10" min="1"></div>
  <div class="form-group"><label>Engagement</label>
@@ -1413,8 +1474,8 @@ function openBehaviorForm(){
  openModal(`<div class="modal-header"><h2>Log Behavior</h2>
   <button class="modal-close" onclick="closeModal()">X</button></div>
  <div class="form-group"><label>Category</label>
-  <div class="chip-group" id="behCat">${['Reactivity','Fear','Excitement','Resource guarding','Aggression','Positive social','Other'].map(v=>
-   `<div class="chip" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
+  <div class="chip-group" id="behCat">${['Reactivity','Fear','Excitement','Resource guarding','Aggression','Positive social','Other'].map((v,i)=>
+   `<div class="chip${i===0?' active':''}" onclick="toggleChip(this)">${v}</div>`).join('')}</div></div>
  <div class="form-group"><label>Trigger</label>
   <input type="text" id="behTrigger" placeholder="What caused it?"></div>
  <div class="form-group"><label>Intensity</label>
@@ -1499,15 +1560,37 @@ function renderTimeline(){
  }).join('');
 }
 
+// === QUICK LOG (one-tap) ===
+function quickLog(typeKey){
+ D.dailySchedule.push({id:uid(),dt:new Date().toISOString(),type:typeKey,detail:'',notes:''});
+ save();toast('Logged');
+ if(activeTab==='shrine')renderShrine();
+}
+
+function quickStopAlone(){
+ const elapsed=stopAloneTimer();
+ D.aloneLogs.push({id:uid(),dt:new Date().toISOString(),dur:elapsed,
+  loc:'',dist:'',departureReaction:'',arrivalReaction:'',
+  bodyLanguage:[],vocalization:'',enrichmentUsed:'',notes:'',calm:''});
+ save();toast('Alone time logged: '+fmtDur(elapsed));checkMilestones();
+ if(activeTab==='shrine')renderShrine();
+}
+
+function toggleTimeline(el){
+ el.classList.toggle('open');
+ const content=$('#timelineContent');
+ if(content)content.style.display=content.style.display==='none'?'':'none';
+}
+
 // === SHRINE (HOME) ===
 function renderShrine(){
  const streak=calcVigil();
  const totalRituals=D.sessions.length;
- const activeWards=WARDS.filter(w=>D.progress[w.id].startedAt&&!D.progress[w.id].masteredAt).length;
  const sealedWards=WARDS.filter(w=>D.progress[w.id].masteredAt).length;
- const daysSinceRescue=D.profile.rescueDate?Math.floor((Date.now()-new Date(D.profile.rescueDate).getTime())/86400000):'--';
- // Daily Rite
  const rite=getDailyRite();
+ const todayEntries=getTodaySchedule();
+ const timelineCollapsed=todayEntries.length>5;
+
  let riteHtml=rite.map(w=>{
   const p=D.progress[w.id],step=w.steps[p.step];
   return`<div class="rite-item" onclick="startRitual('${w.id}')">
@@ -1515,45 +1598,57 @@ function renderShrine(){
    <div class="rite-name">${w.name}</div>
    <div class="rite-step">${step?step.t:''}</div></div>`;
  }).join('')||'<div class="text-dim" style="font-size:0.85rem">Complete all wards or start training!</div>';
- // Potty count today
- const pottyToday=D.pottyLogs.filter(p=>p.dt.slice(0,10)===today()).length;
- // Recent activity
- let recent=[];
- D.sessions.slice(-3).forEach(s=>{const w=wardById(s.sid);if(w)recent.push({dt:s.dt,text:w.name+' ritual',type:'ritual'});});
- D.pottyLogs.slice(-2).forEach(p=>recent.push({dt:p.dt,text:'Potty: '+p.type+' ('+p.loc+')',type:'potty'}));
- D.aloneLogs.slice(-2).forEach(a=>recent.push({dt:a.dt,text:'Alone: '+fmtDur(a.dur),type:'alone'}));
- recent.sort((a,b)=>new Date(b.dt)-new Date(a.dt));recent=recent.slice(0,5);
+
+ let aloneHtml='';
+ if(D.aloneTimerState&&D.aloneTimerState.running){
+  aloneHtml=`<div class="alone-shrine">
+   <div class="as-dot"></div>
+   <div class="as-time" id="shrineAloneTime">${fmtTime(getAloneElapsed())}</div>
+   <button class="btn btn-bad btn-sm" onclick="quickStopAlone()">Stop & Log</button>
+  </div>`;
+ }
+
+ const aloneAction=D.aloneTimerState&&D.aloneTimerState.running?'openAloneForm()':'startAloneTimer()';
 
  $('#tab-shrine').innerHTML=`
-  <div class="text-center">
-   <div class="profile-frame"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
-   <h1>${D.profile.name}</h1>
-   <div class="text-dim" style="font-size:0.8rem">${D.profile.breed} | ${daysSinceRescue} days since rescue</div>
+  <div class="shrine-header">
+   <button class="gear-btn" onclick="openSettings()"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.61 3.61 0 0112 15.6z"/></svg></button>
+   <div style="flex:1">
+    <h1 style="font-size:1.15rem;margin:0">${D.profile.name}</h1>
+    <div class="shrine-stats">
+     <span><span class="sv">${streak}</span> vigil</span>
+     <span><span class="sv">${totalRituals}</span> rituals</span>
+     <span><span class="sv">${sealedWards}</span>/${WARDS.length} sealed</span>
+    </div>
+   </div>
   </div>
-  <div class="vigil-display"><div class="vigil-number">${streak}</div><div class="vigil-label">Day Vigil</div></div>
-  <div class="profile-stats">
-   <div class="stat"><div class="stat-val">${totalRituals}</div><div class="stat-lbl">Rituals</div></div>
-   <div class="stat"><div class="stat-val">${activeWards}</div><div class="stat-lbl">Active</div></div>
-   <div class="stat"><div class="stat-val">${sealedWards}</div><div class="stat-lbl">Sealed</div></div>
+  ${aloneHtml}
+  <div class="section-header"><h3>Quick Log</h3></div>
+  <div class="quick-grid">
+   <button class="quick-btn cat-routine" onclick="quickLog('wake')">Wake</button>
+   <button class="quick-btn cat-routine" onclick="quickLog('meal')">Meal</button>
+   <button class="quick-btn cat-care" onclick="openPottyForm()">Potty</button>
+   <button class="quick-btn cat-routine" onclick="quickLog('walk')">Walk</button>
+   <button class="quick-btn cat-routine" onclick="quickLog('nap')">Nap</button>
+   <button class="quick-btn cat-routine" onclick="quickLog('cuddle')">Cuddle</button>
+   <button class="quick-btn cat-note" onclick="quickLog('mouth')">Mouth</button>
+   <button class="quick-btn cat-care" onclick="openEnrichmentForm()">Enrich</button>
+   <button class="quick-btn cat-alert" onclick="${aloneAction}">Alone</button>
+   <button class="quick-btn cat-routine" onclick="quickLog('bedtime')">Bed</button>
   </div>
-  <div class="divider"></div>
-  <div class="section-header"><h3>Today's Schedule</h3></div>
-  <div style="display:flex;gap:6px;overflow-x:auto;padding:4px 0;-webkit-overflow-scrolling:touch">
-   ${SCHEDULE_TYPES.map(st=>`<div style="min-width:44px;height:44px;border-radius:50%;background:var(--card2);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:0.6rem;font-weight:700;color:var(--txt2);cursor:pointer;flex-shrink:0" onclick="openScheduleLog('${st.key}')">${st.abbr}</div>`).join('')}
-   <div style="min-width:44px;height:44px;border-radius:50%;background:var(--card2);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:var(--acc);cursor:pointer;flex-shrink:0" onclick="openPottyForm()">PT</div>
-   <div style="min-width:44px;height:44px;border-radius:50%;background:var(--card2);border:1px solid ${D.aloneTimerState.running?'var(--bad)':'var(--brd)'};display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:var(--bad);cursor:pointer;flex-shrink:0" onclick="openAloneForm()">AL</div>
-   <div style="min-width:44px;height:44px;border-radius:50%;background:var(--card2);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:var(--acc);cursor:pointer;flex-shrink:0" onclick="openEnrichmentForm()">EN</div>
-   <div style="min-width:44px;height:44px;border-radius:50%;background:var(--card2);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:var(--warn);cursor:pointer;flex-shrink:0" onclick="openBehaviorForm()">BH</div>
+  <div style="margin-top:12px">
+   <div class="timeline-toggle${timelineCollapsed?'':' open'}" onclick="toggleTimeline(this)">
+    <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+    <h3 style="margin:0">Today</h3>
+    <span class="text-dim" style="font-size:0.75rem;margin-left:4px">${todayEntries.length} entries</span>
+   </div>
   </div>
-  <div style="margin-top:8px">${renderTimeline()}</div>
+  <div id="timelineContent" style="${timelineCollapsed?'display:none':''}">
+   ${renderTimeline()}
+  </div>
   <div class="divider"></div>
   <div class="section-header"><h3>The Daily Rite</h3></div>
-  <div class="rite-list">${riteHtml}</div>
-  ${recent.length?`<div class="divider"></div><div class="section-header"><h3>Recent</h3></div>
-   ${recent.map(r=>`<div class="history-item"><div class="h-abbr">${r.type==='ritual'?'RI':r.type==='potty'?'PT':'AL'}</div>
-    <div class="h-info"><div class="h-title">${r.text}</div><div class="h-date">${fmtDate(r.dt)}</div></div></div>`).join('')}`:''}
-  <div class="divider"></div>
-  <button class="btn btn-ghost btn-block btn-sm" onclick="openSettings()">Settings</button>`;
+  <div class="rite-list">${riteHtml}</div>`;
 }
 
 function getDailyRite(){
@@ -1576,17 +1671,18 @@ function getDailyRite(){
   // Recently unlocked
   if(!D.progress[w.id].startedAt)score+=20;
   return{w,score};
- }).sort((a,b)=>b.score-a.score).slice(0,5).map(x=>x.w);
+ }).sort((a,b)=>b.score-a.score).slice(0,3).map(x=>x.w);
 }
 
 // === CHRONICLE (Session History) ===
+let chronicleFilterVal='';
 function renderChronicle(){
  let html=`<h2 class="mb-8">Chronicle</h2>`;
  // Filter
- html+=`<div class="form-group"><select id="chronicleFilter" onchange="renderChronicle()">
+ html+=`<div class="form-group"><select id="chronicleFilter" onchange="chronicleFilterVal=this.value;renderChronicle()">
   <option value="">All Wards</option>
-  ${WARDS.map(w=>`<option value="${w.id}">${w.name}</option>`).join('')}</select></div>`;
- const filter=$('#chronicleFilter')?.value||'';
+  ${WARDS.map(w=>`<option value="${w.id}"${chronicleFilterVal===w.id?' selected':''}>${w.name}</option>`).join('')}</select></div>`;
+ const filter=chronicleFilterVal;
  let sessions=[...D.sessions].reverse();
  if(filter)sessions=sessions.filter(s=>s.sid===filter);
  if(!sessions.length){html+=`<div class="empty-state">No rituals recorded yet.</div>`;$('#tab-chronicle').innerHTML=html;return;}
@@ -1636,21 +1732,36 @@ function renderChronicles(){
 }
 
 function renderHeatmap(){
- const now=new Date();const weeks=8;
- let html='<div class="heatmap">';
+ const now=new Date();const totalDays=56;
  const counts={};
  D.sessions.forEach(s=>{const d=s.dt.slice(0,10);counts[d]=(counts[d]||0)+1;});
- for(let w=weeks-1;w>=0;w--){
+ // Build array of dates from 55 days ago to today
+ const days=[];
+ for(let i=totalDays-1;i>=0;i--){
+  const d=new Date(now);d.setDate(d.getDate()-i);days.push(d);
+ }
+ // Find the Monday on or before the first day
+ const firstDay=days[0];const dow=firstDay.getDay();
+ const mondayOffset=(dow===0?6:dow-1); // days since Monday
+ // Pad start with empty cells to align to Monday
+ const padded=[];for(let i=0;i<mondayOffset;i++)padded.push(null);
+ padded.push(...days);
+ // Group into weeks (columns of 7 rows: Mon-Sun)
+ const weeks=[];
+ for(let i=0;i<padded.length;i+=7){weeks.push(padded.slice(i,i+7));}
+ let html='<div class="heatmap">';
+ weeks.forEach(week=>{
   html+='<div class="heatmap-week">';
   for(let d=0;d<7;d++){
-   const date=new Date(now);date.setDate(date.getDate()-w*7-((now.getDay()+7-d)%7));
+   const date=week[d];
+   if(!date){html+='<div class="heatmap-cell"></div>';continue;}
    const ds=date.toISOString().slice(0,10);
    const c=counts[ds]||0;
    const lvl=c===0?'':c===1?'l1':c===2?'l2':c<=4?'l3':'l4';
    html+=`<div class="heatmap-cell ${lvl}" title="${ds}: ${c}"></div>`;
   }
   html+='</div>';
- }
+ });
  html+='</div>';return html;
 }
 
