@@ -4,130 +4,159 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A PWA dog training tracker for Zu (8.5 kg mixed rescue) built on Emily Larlham's (Kikopup) Progressive Reinforcement Training methodology. Single HTML file with embedded CSS/JS, no build tools, no dependencies. Deployed via GitHub Pages at `slyuber.github.io/DogTrainer/`. Target device is Pixel 4a (5.81" OLED, 1080x2340).
+**Pazuzu's Wards** — a PWA dog training tracker for Zuzu (8.5 kg Chiweenie rescue from Mexico) built on Emily Larlham's (Kikopup) Progressive Reinforcement Training methodology. Themed around the Mesopotamian protective deity Pazuzu — a household guardian spirit who frightened away worse things. Skills are "Wards," sessions are "Rituals," streaks are "Vigils," milestones are "Inscriptions."
+
+Single HTML file with embedded CSS/JS, no build tools, no dependencies. Deployed via GitHub Pages at `slyuber.github.io/DogTrainer/`. Target device is Pixel 4a (5.81" OLED, 1080x2340).
 
 ## Development
 
 No build step. Open `index.html` in a browser. After changes, commit and push to deploy:
 ```
-git add index.html && git commit -m "description" && git push
+git add index.html sw.js && git commit -m "description" && git push
 ```
-Bump `CACHE_NAME` version in `sw.js` when updating cached assets to bust the service worker cache.
+Bump `CACHE_NAME` version in `sw.js` when updating cached assets. No co-author attribution in commits.
 
 ## Architecture
 
-**Single-file SPA** (`index.html`): all CSS, HTML, and JS in one file. ~1130 lines.
+**Single-file SPA** (`index.html`): all CSS, HTML, and JS in one file.
 
 ### File Layout
-- `index.html` — entire app (styles lines 13-291, markup 293-414, JS 416-1131)
-- `sw.js` — service worker, cache-first offline strategy
+- `index.html` — entire app (styles, markup, JS all embedded)
+- `sw.js` — service worker, cache-first offline strategy, `CACHE_NAME: 'pazuzu-v1'`
 - `manifest.json` — PWA manifest for Android install
-- `icons/` — SVG app icons
+- `icons/` — SVG app icons (Pazuzu-themed: stylized canine face with wings)
 
-### JS Architecture (inside `<script>` in index.html)
-
-| Section | Lines | Purpose |
-|---------|-------|---------|
-| `SKILLS` array | 420-632 | Skill database — 20 skills across 3 phases, each with `id`, `abbr`, `phase`, `prereqs[]`, `steps[]` |
-| `PHASES` object | 634-638 | Phase metadata (name, date range, badge class, color) |
-| Data layer | 640-657 | `load()`/`save()` with localStorage key `zuTrainer`, migration-safe defaults merging |
-| Utilities | 659-716 | `$()`, `toast()`, `modal()`, date helpers, `rollingAvg()`, `streak()`, `unlocked()`, `dailyPlan()` |
-| Navigation | 718-726 | `go(tabName)` switches tabs, calls render function |
-| Tab renderers | 728-1092 | `rHome()`, `rSkills()`, `rTrain()`, `rLog()`, `rProg()` — each rebuilds innerHTML |
-| Settings | 1094-1124 | Bottom-sheet panel (not a tab), export/import JSON, reset |
-
-### Data Model (localStorage `zuTrainer`)
+### Data Model (localStorage key: `pazuzuWards`)
 
 ```
 D = {
-  profile: { name, weight, rescueDate },
-  settings: { duration, threshold, evalSessions, treatNotes },
-  progress: { [skillId]: { step: number, unlocked: boolean } },
-  sessions: [{ id, sid, dt, step, ok, no, notes, dur }],
+  profile: { name, weight, rescueDate, breed, age, origin },
+  settings: { duration (180s default), threshold (80), evalSessions (3), treatTiers, soundEnabled, reminders },
+  progress: { [skillId]: { step, unlocked, startedAt, masteredAt } },
+  sessions: [{ id, sid, dt, step, ok, no, dur, notes, captureType, environment, treatLevel, distractionLevel }],
   milestones: [{ id, t, ic, dt }],
-  pottyLogs: [{ id, dt, type, loc, ctx, photo, notes }],
-  aloneLogs: [{ id, dt, dur, loc, dist, bark, calm, notes }]
+  pottyLogs: [{ id, dt, type, loc, ctx, surface, photo (base64 JPEG), notes, signalGiven }],
+  aloneLogs: [{ id, dt, dur, loc, dist, departureReaction, arrivalReaction, bodyLanguage[], vocalization, destructive, ate, enrichmentUsed, eliminatedInside, departureCuesPracticed, calm, notes }],
+  enrichmentLogs: [{ id, dt, type, duration, engagement, notes }],
+  foodNotes: { kibble, highValueTreats[], medValueTreats[], lowValueTreats[], dislikes[], allergies[], feedingSchedule, notes },
+  behaviorNotes: [{ id, dt, category, trigger, intensity, bodyLanguage[], response, outcome, notes }],
+  aloneTimerState: { running, startTime, elapsed }
 }
 ```
 
-Photos in pottyLogs are base64 JPEG strings, resized to max 600px to fit localStorage (~5MB limit).
+Migration: if old `zuTrainer` key exists but `pazuzuWards` doesn't, migrate data.
+
+### Skill (Ward) System
+
+20 skills across 3 Circles (phases). Each has `id`, `name`, `abbr` (2-letter), `phase`, `prereqs[]`, `desc`, `video` (YouTube search URL), `steps[]`.
+
+Each step has:
+- `t` (title), `d` (description)
+- `guidance`: `{ vocal, hand, position }` — what to say, do with hands, where to stand
+- `capture`: `{ type, successLabel, missLabel, notes_prompt }` — how to track data
+  - Types: `reps` (success/miss buttons), `duration` (hold timer), `observe` (success-only, no fail), `timed_reps`
 
 ### Skill Progression Logic
 
-- Each skill has ordered `steps[]`. `progress[skillId].step` is the current 0-based step index.
-- Skills unlock when all `prereqs` have `step >= 1` (started step 2+).
-- Phase 1 skills and skills with empty `prereqs` auto-unlock.
-- After each training session, `rollingAvg()` computes mean success rate over last N sessions (default 3):
-  - **>= 80%** → prompt to advance to next step
-  - **< 50%** → suggest going back one step
+- `progress[skillId].step` is 0-based step index
+- Skills unlock when all `prereqs` have `step >= 1`
+- Phase 1 skills and skills with empty `prereqs` auto-unlock
+- After each session, `rollingAvg()` over last N sessions (default 3):
+  - **>= 80%** → prompt to advance
+  - **< 50%** → suggest going back
   - **50-80%** → stay at current step
-- Users can also manually jump to any step via `setStep()` in the Skills tab.
-- When the last step passes threshold, skill is marked mastered (`step = steps.length`).
+- Last step + threshold → skill mastered ("Ward Sealed"), `masteredAt` set
+- First-time flow: "Where is Zuzu with this Ward?" modal lets user pick starting step
 
-### CSS Conventions
+### Prerequisite Map
+```
+attention → recall, leashpressure → llwindoor → llwoutdoor
+interrupter → llwoutdoor
+nomugging → leaveit
+sit → release, down, doormanners
+release → doormanners
+calmness → handling, separation
+crate → separation
+dropit → fetch
+```
 
-- CSS variables prefixed short: `--pri`, `--ok`, `--bad`, `--bg`, `--card`, `--txt`, `--brd`, `--r`, `--rs`
-- True black BG (`#0B0B14`) for OLED power saving
-- No emoji anywhere — skills use 2-letter abbreviation badges (AT, PI, IC, etc.)
-- All interactive elements have min 44px touch targets and `:active` transform feedback
-- No `:hover` states (mobile-first) — use `:active` for press feedback
-- Class names are terse: `.cd` (card), `.btn-p` (primary), `.tog` (toggle chip), `.si` (skill icon)
+### Alone Timer Background Persistence
 
-### Navigation
+The alone timer must survive app backgrounding, tab closure, and phone lock:
+- On start: save `{ running: true, startTime: Date.now(), elapsed: 0 }` to localStorage
+- On `visibilitychange`: persist state
+- On app load: if timer was running, resume from saved `startTime`
+- Periodic save every 30 seconds while running
+- Floating indicator pill visible on all tabs when timer is active
 
-5 bottom tabs: Home, Skills, Train, Log, Progress. Settings is a gear icon in header opening a bottom-sheet overlay. Tab switching calls `go('tabName')` which toggles `.on` class and calls the tab's render function.
+## Visual Design
 
-## Training Methodology Reference
+**Aesthetic: Mesopotamian Arcane + Dark OLED Gaming UI** (Hades-game meets Babylonian temple inscriptions)
 
-This app implements Emily Larlham's Progressive Reinforcement Training (PRT). Key principles that inform the UX:
+### Color Palette
+- Primary: warm gold `#D4A853` (Pazuzu amulet bronze)
+- Accent: teal `#4ECDC4` (lapis lazuli, Ishtar Gate)
+- Status: sage green `#7BC67E` (sealed), amber `#E8B84B` (warning), clay red `#C75B5B`
+- Surfaces: near-black `#0A0A0F`, dark stone `#12121E`, `#1A1A2A`
+- Text: warm parchment `#E8E4D9`, weathered stone `#9B9685`, faded `#5A564A`
 
-- **Progressive Reinforcement Training manifesto**: https://progressivereinforcementtraining.com
-- **Kikopup YouTube channel** (400+ free tutorials): https://www.youtube.com/@kikopup
-- **Kikopup Academy** (structured courses): https://www.kikopupacademy.com
-- **Dogmantics** (Emily's training site): https://dogmantics.com
+### Typography
+- Display/Headers: `Cinzel` (Google Font — evokes carved stone inscriptions)
+- Body: `DM Sans` (humanist sans-serif, warm and readable)
+- Abbreviation badges: monospace or slab
 
-### Core PRT Principles Embedded in the App
+### Naming Convention
+| Concept | App Term |
+|---------|----------|
+| Skills | Wards |
+| Mastering a skill | Sealing the Ward |
+| Skill phases | Circles (I, II, III) |
+| Training sessions | Rituals |
+| Daily plan | The Daily Rite |
+| Milestones | Inscriptions |
+| Skill tree | The Ward Tree / Pazuzu's Shield |
+| Streak | Vigil |
 
-1. **No punishment** — the app tracks success/miss, never "corrections." Language throughout is positive.
-2. **Tiny progressive steps** — each skill has 4-5 graduated steps from easiest to hardest.
-3. **Criterion: 80% over 3 sessions** — research-backed threshold before advancing (from applied behavior analysis standard).
-4. **Regression is normal** — the app suggests going back a step at <50%, with encouraging language ("Reinforcing earlier steps is always good").
-5. **Short sessions** — default 3 minutes (research shows 3-5 min optimal for retention in dogs).
-6. **Multiple skills per day** — daily plan recommends 5 different skills, prioritizing those not practiced recently.
-7. **Distinct Leave It vs Drop It** — explicitly separated as different skills per Kikopup methodology.
-8. **Prerequisite chains** — e.g., Recall requires Attention; Door Manners requires Sit + Release Cue; Outdoor LLW requires Indoor LLW + Positive Interrupter.
+## CSS Conventions
 
-### Skill Phase Progression
+- CSS variables prefixed short: `--pri`, `--acc`, `--ok`, `--bad`, `--bg`, `--card`, `--txt`, `--brd`
+- True black BG for OLED power saving
+- No emoji anywhere — skills use 2-letter abbreviation badges
+- All interactive elements min 44px touch targets
+- `:active` states for press feedback, NOT `:hover` (mobile-first)
+- Max-width: 430px centered
+- Toggle chips (`.tog`) for all multi-choice inputs, never `<select>`
+- Subtle Mesopotamian geometric patterns (zigzag, stepped) on card borders
 
-| Phase | Skills | Timeline | Gate |
-|-------|--------|----------|------|
-| 1: Foundation | Attention, Positive Interrupter, Impulse Control, Capturing Calmness, Crate Training, House Training | Days 1-7 | Auto-unlocked |
-| 2: Core Skills | Name Recognition, Recall, Sit, Release Cue, Down, Leave It, Drop It | Days 7-21 | Most auto-unlock; Recall needs Attention; Release/Down need Sit; Leave It needs Impulse Control |
-| 3: Life Skills | Leash Pressure, LLW Indoor, Fetch, Handling, LLW Outdoor, Separation, Door Manners | Days 14-42 | Each has specific prereqs from Phase 1-2 |
+## Navigation
 
-### Research References for Training Content
+5 bottom tabs with themed icons:
+- **Shrine** (Home): ziggurat icon — dashboard, quick actions, daily rite
+- **Ward Tree** (Skills): shield/tree icon — interactive skill tree with SVG connection lines
+- **Ritual** (Train): flame icon — training session with context-aware capture
+- **Chronicle** (Log): scroll icon — potty, alone time, enrichment, behavior logging
+- **Progress**: rising steps icon — heatmap, inscriptions, separation chart
 
-- **Impulse Control / It's Yer Choice**: https://www.youtube.com/results?search_query=kikopup+its+yer+choice
-- **Capturing Calmness protocol**: https://www.youtube.com/results?search_query=kikopup+capturing+calmness
-- **Positive Interrupter**: https://www.youtube.com/results?search_query=kikopup+positive+interrupter
-- **Cooperative Care / Handling**: Based on Chirag Patel's Bucket Game + Kikopup handling protocols
-- **Loose Leash Walking**: Kikopup's "Leash Walking CONNECTED" methodology — must be reliable indoors before outdoor proofing
-- **Separation Training**: Graduated departure protocol, first 15 minutes is hardest
-- **Session structure research**: Multiple short sessions (3-5 min) > one long session; train multiple different behaviors per session for best engagement and retention
-
-## Design Principles
-
-- **Mobile-first, phone-only**: Max-width 430px, optimized for one-hand thumb use on Pixel 4a
-- **OLED dark theme**: True black background saves battery, high contrast text
-- **Minimal taps**: Quick-action buttons on dashboard for potty logging and alone time tracking
-- **Toggle chips over dropdowns**: All multi-choice inputs use tappable pill buttons (`.tog` class), never `<select>` — faster on mobile
-- **Photo capture**: Uses `capture="environment"` attribute to open camera directly, images resized to 600px max for localStorage budget
-- **Offline-first**: Service worker caches all assets; all data in localStorage; works without internet after first load
-- **No emoji in UI**: Skills identified by 2-letter codes in colored circles matching phase color. SVG icons for navigation and actions.
+Settings accessed via gear icon in header (bottom-sheet overlay).
 
 ## Key Constraints
 
-- **localStorage ~5MB limit**: Photos are JPEG compressed at 0.7 quality, resized to 600px max dimension. Monitor pottyLogs array size.
-- **Single file**: All CSS/JS must stay in index.html. No external dependencies, no CDN links, no build step.
-- **Service worker caching**: After changing index.html, users may need to refresh twice or close/reopen the app. Bump `CACHE_NAME` in sw.js for breaking changes.
-- **No server**: All data is client-side only. Export/import JSON is the only backup mechanism.
+- **localStorage ~5MB limit**: Photos JPEG 0.7, max 600px. Monitor log array sizes.
+- **Single file**: All CSS/JS in index.html. No external deps except Google Fonts.
+- **Service worker caching**: Bump `CACHE_NAME` in sw.js for breaking changes.
+- **No server**: All data client-side. JSON export/import is the only backup. Auto-export reminder every 7 days.
+- **No emoji in UI**: 2-letter codes in styled badges. SVG icons for navigation.
+- **Audio**: Web Audio API for timer ding (sine wave 880Hz + 1318.5Hz chime). No external audio files.
+- **Vibration**: `navigator.vibrate(200)` on timer end.
+
+## Training Methodology Reference
+
+Implements Emily Larlham's Progressive Reinforcement Training (PRT):
+- **PRT manifesto**: https://progressivereinforcementtraining.com
+- **Kikopup YouTube** (400+ tutorials): https://www.youtube.com/@kikopup
+- **Kikopup Academy**: https://www.kikopupacademy.com
+- **Dogmantics**: https://dogmantics.com
+- **Calming signals** (Turid Rugaas): lip licking, yawning, whale eye, tucked tail, etc. — used in anxiety tracking
+- **Cooperative Care** (Chirag Patel's Bucket Game): used in Handling & Grooming ward
+- **Session research**: 3-5 min sessions optimal for dog retention; multiple different behaviors per day
+- **80% criterion**: From applied behavior analysis standard before advancing difficulty

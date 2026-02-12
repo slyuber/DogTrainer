@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zu-trainer-v2';
+const CACHE_NAME = 'pazuzu-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -26,9 +26,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      // Cache-first, fallback to network
       return cached || fetch(event.request).then((response) => {
-        // Cache successful responses for same-origin requests
         if (response.ok && event.request.url.startsWith(self.location.origin)) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
@@ -36,7 +34,6 @@ self.addEventListener('fetch', (event) => {
         return response;
       });
     }).catch(() => {
-      // Offline fallback
       if (event.request.mode === 'navigate') {
         return caches.match('./index.html');
       }

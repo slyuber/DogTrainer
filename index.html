@@ -2,1132 +2,1800 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#6C63FF">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0A0A0F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Zu's Trainer</title>
+<title>Pazuzu's Wards</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-192.svg">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=DM+Sans:ital,wght@0,400;0,500;0,700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --pri: #7C6EF6;
-  --pri-glow: rgba(124,110,246,0.25);
-  --acc: #F472B6;
-  --ok: #34D399;
-  --warn: #FBBF24;
-  --bad: #F87171;
-  --bg: #0B0B14;
-  --card: #151524;
-  --card2: #1C1C32;
-  --input: #1E1E36;
-  --txt: #EAEAF2;
-  --txt2: #9090AC;
-  --txt3: #55556E;
-  --brd: #262644;
-  --r: 14px;
-  --rs: 10px;
+:root{
+  --pri:#D4A853;--pri-glow:rgba(212,168,83,0.20);--pri-dim:#8B7035;
+  --acc:#4ECDC4;--acc-glow:rgba(78,205,196,0.15);
+  --ok:#7BC67E;--warn:#E8B84B;--bad:#C75B5B;
+  --bg:#0A0A0F;--card:#12121E;--card2:#1A1A2A;--input:#161625;
+  --txt:#E8E4D9;--txt2:#9B9685;--txt3:#5A564A;
+  --brd:#2A2A3A;
+  --r:14px;--rs:10px;
+  --font-d:'Cinzel',Georgia,serif;
+  --font-b:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
-  background:var(--bg);color:var(--txt);min-height:100dvh;overflow-x:hidden;
-  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;
-  overscroll-behavior-y:contain;line-height:1.45;
+  font-family:var(--font-b);background:var(--bg);color:var(--txt);
+  min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;
+  -webkit-font-smoothing:antialiased;overscroll-behavior-y:contain;line-height:1.5;
+}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:0.025;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
 }
 button{cursor:pointer;border:none;font:inherit;color:inherit;background:none;-webkit-user-select:none;user-select:none}
-input,textarea,select{font:inherit;color:var(--txt);background:var(--input);border:1px solid var(--brd);border-radius:var(--rs);padding:11px 14px;outline:none;width:100%}
-input:focus,textarea:focus,select:focus{border-color:var(--pri)}
+input,textarea{font:inherit;color:var(--txt);background:var(--input);border:1px solid var(--brd);border-radius:var(--rs);padding:11px 14px;outline:none;width:100%}
+input:focus,textarea:focus{border-color:var(--pri)}
 textarea{resize:vertical;min-height:56px}
+h1,h2,h3{font-family:var(--font-d);font-weight:700}
 
 /* Layout */
 .app{display:flex;flex-direction:column;min-height:100dvh;max-width:430px;margin:0 auto;position:relative}
 .hdr{padding:14px 18px 6px;display:flex;align-items:center;justify-content:space-between}
-.hdr h1{font-size:1.15rem;font-weight:700;color:var(--pri)}
-.hdr-gear{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--txt3);transition:color .15s}
+.hdr h1{font-size:1.1rem;color:var(--pri);letter-spacing:0.5px}
+.hdr-gear{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--txt3)}
 .hdr-gear:active{color:var(--pri)}
-.hdr-gear svg{width:20px;height:20px}
-.tabs{flex:1;padding:6px 14px 90px;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.tab{display:none;animation:fadeUp .18s ease}
-.tab.on{display:block}
-@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 16px 16px;-webkit-overflow-scrolling:touch}
+.pan{display:none}
+.pan.on{display:block}
 
-/* Bottom nav */
-.nav{
-  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
-  background:rgba(11,11,20,.96);backdrop-filter:blur(12px);border-top:1px solid var(--brd);
-  display:flex;padding:4px 0;padding-bottom:max(4px,env(safe-area-inset-bottom));z-index:100;
-}
-.nav-b{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 2px;
-  font-size:.6rem;font-weight:600;letter-spacing:.02em;color:var(--txt3);transition:color .12s;min-height:54px;
-}
-.nav-b svg{width:22px;height:22px;stroke-width:1.8}
-.nav-b.on{color:var(--pri)}
+/* Bottom Nav */
+.nav{display:flex;border-top:1px solid var(--brd);background:var(--card);padding:4px 0;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;color:var(--txt3);font-size:0.65rem;font-family:var(--font-b);font-weight:500;letter-spacing:0.3px;transition:color .15s}
+.nav-btn.on{color:var(--pri)}
+.nav-btn:active{color:var(--pri)}
+.nav-btn svg{width:22px;height:22px}
 
-/* Cards & common */
-.cd{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:10px;border:1px solid var(--brd)}
-.cd2{background:var(--card2);border-radius:var(--rs);padding:12px}
-.sec-title{font-size:.78rem;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+/* Cards */
+.cd{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:16px;margin-bottom:12px;position:relative}
+.cd-glow{box-shadow:var(--glow-gold);border-color:var(--pri-dim)}
+.cd h3{font-size:0.95rem;color:var(--pri);margin-bottom:6px}
+.cd-sub{font-size:0.8rem;color:var(--txt2);line-height:1.45}
 
 /* Buttons */
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  padding:12px 22px;border-radius:var(--rs);font-weight:600;font-size:.88rem;
-  transition:transform .1s,opacity .15s;min-height:46px;
-}
-.btn:active{transform:scale(.96)}
-.btn-p{background:var(--pri);color:#fff}
-.btn-ok{background:var(--ok);color:#fff}
-.btn-bad{background:var(--bad);color:#fff}
-.btn-o{border:1.5px solid var(--brd);color:var(--txt2)}
-.btn-o:active,.btn-o.sel{border-color:var(--pri);color:var(--pri);background:rgba(124,110,246,.08)}
-.btn-s{padding:8px 16px;font-size:.8rem;min-height:38px}
-.btn-block{width:100%}
-.btn:disabled{opacity:.35;pointer-events:none}
+.btn-p{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--pri);color:#0A0A0F;font-weight:700;font-family:var(--font-d);padding:14px 24px;border-radius:var(--rs);font-size:0.9rem;min-height:48px;letter-spacing:0.5px;width:100%;transition:transform .1s}
+.btn-p:active{transform:scale(0.97)}
+.btn-s{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--card2);border:1px solid var(--brd);padding:12px 18px;border-radius:var(--rs);font-size:0.85rem;min-height:44px;color:var(--txt);font-weight:500;transition:transform .1s}
+.btn-s:active{transform:scale(0.97)}
+.btn-ok{background:var(--ok);color:#0A0A0F;font-weight:700;font-size:1.1rem;padding:18px;border-radius:var(--rs);min-height:56px;flex:1;transition:transform .08s}
+.btn-ok:active{transform:scale(0.95)}
+.btn-no{background:var(--bad);color:#fff;font-weight:700;font-size:1.1rem;padding:18px;border-radius:var(--rs);min-height:56px;flex:1;transition:transform .08s}
+.btn-no:active{transform:scale(0.95)}
+.btn-sm{padding:8px 14px;font-size:0.78rem;min-height:36px;border-radius:8px}
+.btn-icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--txt2)}
+.btn-icon:active{color:var(--pri);background:var(--pri-glow)}
+.btn-danger{background:var(--bad);color:#fff;font-weight:600}
 
-/* Progress bar */
-.pbar{height:5px;background:var(--input);border-radius:3px;overflow:hidden}
-.pbar .fill{height:100%;border-radius:3px;transition:width .4s ease;background:linear-gradient(90deg,var(--pri),var(--acc))}
+/* Toggle Chips */
+.tog-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.tog{padding:8px 14px;border-radius:20px;font-size:0.8rem;border:1px solid var(--brd);color:var(--txt2);background:var(--card2);min-height:36px;transition:all .12s;font-weight:500}
+.tog.on{border-color:var(--pri);color:var(--pri);background:var(--pri-glow)}
+.tog:active{transform:scale(0.96)}
+.tog-acc.on{border-color:var(--acc);color:var(--acc);background:var(--acc-glow)}
 
-/* Badge */
-.badge{display:inline-block;padding:3px 10px;border-radius:16px;font-size:.68rem;font-weight:600}
-.b-1{background:rgba(52,211,153,.12);color:var(--ok)}
-.b-2{background:rgba(124,110,246,.12);color:var(--pri)}
-.b-3{background:rgba(251,191,36,.12);color:var(--warn)}
-.b-lock{background:rgba(85,85,110,.15);color:var(--txt3)}
+/* Skill Icon Badges */
+.si{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:700;font-size:0.75rem;color:var(--bg);flex-shrink:0;letter-spacing:0.5px}
+.si-1{background:var(--pri)}
+.si-2{background:var(--acc)}
+.si-3{background:var(--ok)}
+.si-locked{background:var(--txt3);opacity:0.5}
+.si-mastered{background:var(--pri);box-shadow:0 0 12px rgba(212,168,83,0.4)}
 
-/* Skill icon (letter-based) */
-.si{
-  width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
-  font-size:.7rem;font-weight:800;letter-spacing:.5px;flex-shrink:0;
-}
+/* Ward Tree */
+.tree-wrap{position:relative;width:100%;min-height:480px;margin:8px 0}
+.tree-svg{position:absolute;inset:0;pointer-events:none}
+.tree-node{position:absolute;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:700;font-size:0.7rem;cursor:pointer;transition:all .15s;z-index:2;border:2px solid var(--brd)}
+.tree-node.locked{background:var(--card);color:var(--txt3);opacity:0.5;border-color:var(--txt3)}
+.tree-node.available{background:var(--card2);color:var(--pri);border-color:var(--pri-dim);animation:pulse 2s infinite}
+.tree-node.active{background:var(--pri-glow);color:var(--pri);border-color:var(--pri)}
+.tree-node.mastered{background:var(--pri);color:var(--bg);border-color:var(--pri);box-shadow:0 0 16px rgba(212,168,83,0.35)}
+.tree-node:active{transform:scale(0.92)}
+.tree-label{position:absolute;top:52px;left:50%;transform:translateX(-50%);font-size:0.55rem;color:var(--txt3);white-space:nowrap;text-align:center;font-family:var(--font-b);font-weight:500;pointer-events:none}
+.tree-phase{font-family:var(--font-d);font-size:0.75rem;color:var(--pri-dim);margin:4px 0;letter-spacing:1px}
 
-/* ── DASHBOARD ── */
-.prof{text-align:center;padding:18px 14px}
-.prof-av{width:68px;height:68px;border-radius:50%;margin:0 auto 10px;background:linear-gradient(135deg,var(--pri),var(--acc));display:flex;align-items:center;justify-content:center}
-.prof-av svg{width:36px;height:36px;fill:#fff}
-.prof-name{font-size:1.3rem;font-weight:700}
-.prof-sub{font-size:.78rem;color:var(--txt2);margin-top:2px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
-.st{text-align:center;padding:12px 6px;background:var(--input);border-radius:var(--rs)}
-.st-v{font-size:1.35rem;font-weight:700;color:var(--pri)}
-.st-l{font-size:.65rem;color:var(--txt2);margin-top:2px}
-.plan-h{font-size:.82rem;color:var(--txt2);margin-bottom:8px;font-weight:600}
-.pl-i{
-  display:flex;align-items:center;gap:11px;padding:13px 12px;background:var(--input);
-  border-radius:var(--rs);margin-bottom:7px;transition:transform .1s;min-height:58px;
-}
-.pl-i:active{transform:scale(.98)}
-.pl-i .si{width:36px;height:36px;font-size:.65rem}
-.pl-i-info{flex:1;min-width:0}
-.pl-i-name{font-size:.84rem;font-weight:600}
-.pl-i-step{font-size:.72rem;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pl-i-rate{font-size:.8rem;font-weight:700;flex-shrink:0}
+/* Guidance Box */
+.guide-box{background:var(--card2);border:1px solid var(--brd);border-radius:var(--rs);padding:12px;margin:10px 0}
+.guide-row{display:flex;gap:8px;align-items:flex-start;margin:4px 0;font-size:0.8rem;color:var(--txt2)}
+.guide-icon{color:var(--acc);font-weight:700;min-width:20px;font-size:0.75rem}
 
-/* Quick action buttons */
-.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
-.qa-btn{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
-  padding:18px 10px;background:var(--input);border-radius:var(--rs);
-  font-size:.78rem;font-weight:600;color:var(--txt2);transition:transform .1s;min-height:80px;
-}
-.qa-btn:active{transform:scale(.96);background:var(--card2)}
-.qa-btn svg{width:28px;height:28px;stroke-width:1.6}
+/* Session UI */
+.sess-timer{font-family:var(--font-d);font-size:2.8rem;text-align:center;color:var(--pri);padding:16px 0;letter-spacing:2px}
+.sess-btns{display:flex;gap:12px;margin:12px 0}
+.sess-count{text-align:center;font-size:0.85rem;color:var(--txt2);margin:8px 0}
+.sess-rate{font-family:var(--font-d);font-size:1.4rem;color:var(--pri);text-align:center}
 
-/* ── SKILLS ── */
-.ph-sec{margin-bottom:18px}
-.sk-cd{padding:13px;margin-bottom:7px;cursor:pointer;transition:background .12s}
-.sk-cd:active{background:var(--card2)}
-.sk-cd.lock{opacity:.4;pointer-events:none}
-.sk-top{display:flex;align-items:center;gap:11px}
-.sk-main{flex:1;min-width:0}
-.sk-name{font-weight:600;font-size:.92rem}
-.sk-meta{font-size:.72rem;color:var(--txt2);margin-top:2px}
-.sk-prereq{font-size:.7rem;color:var(--acc);margin-top:3px}
-.sk-det{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--brd)}
-.sk-cd.exp .sk-det{display:block}
-.stp-list{list-style:none}
-.stp-i{display:flex;gap:10px;padding:10px 6px;border-bottom:1px solid rgba(38,38,68,.5);border-radius:6px;cursor:pointer;transition:background .12s}
-.stp-i:last-child{border-bottom:none}
-.stp-i:active{background:rgba(124,110,246,.08)}
-.stp-n{
-  width:28px;height:28px;border-radius:50%;background:var(--input);display:flex;align-items:center;
-  justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;color:var(--txt3);transition:all .15s;
-}
-.stp-i.cur .stp-n{background:var(--pri);color:#fff;box-shadow:0 0 10px var(--pri-glow)}
-.stp-i.done .stp-n{background:var(--ok);color:#fff}
-.stp-txt{flex:1;line-height:1.4}
-.stp-txt strong{font-size:.84rem}
-.stp-txt span{color:var(--txt2);font-size:.78rem}
-.stp-jmp{font-size:.68rem;color:var(--pri);align-self:center;opacity:.5;white-space:nowrap}
-.stp-i.cur .stp-jmp{display:none}
-.vid-link{display:inline-flex;align-items:center;gap:5px;color:var(--acc);font-size:.78rem;margin-top:10px;text-decoration:none}
-.vid-link:active{text-decoration:underline}
+/* Progress Bar */
+.pbar{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin:6px 0}
+.pbar-fill{height:100%;border-radius:3px;transition:width .3s}
+.pbar-pri .pbar-fill{background:var(--pri)}
+.pbar-ok .pbar-fill{background:var(--ok)}
 
-/* ── TRAIN ── */
-.ss-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:14px 0}
-.ss-btn{
-  padding:15px 8px;background:var(--input);border-radius:var(--rs);text-align:center;
-  font-size:.78rem;font-weight:600;transition:all .1s;border:2px solid transparent;min-height:68px;
-}
-.ss-btn:active{transform:scale(.96)}
-.ss-btn.sel{border-color:var(--pri);background:rgba(124,110,246,.1)}
-.ss-btn .si{margin:0 auto 5px;width:32px;height:32px;font-size:.6rem}
-.sess{display:none}.sess.vis{display:block}
-.setup.hid{display:none}
-.timer-d{font-size:2.8rem;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:2px;text-align:center}
-.timer-l{font-size:.78rem;color:var(--txt2);text-align:center;margin-top:3px}
-.timer-c{display:flex;gap:8px;justify-content:center;margin-top:10px}
-.rep-area{text-align:center;padding:16px}
-.rep-v{font-size:2.2rem;font-weight:700}
-.rep-l{font-size:.75rem;color:var(--txt2)}
-.rep-btns{display:flex;gap:14px;justify-content:center;margin-top:14px}
-.rep-b{
-  width:88px;height:88px;border-radius:50%;font-size:1.8rem;display:flex;align-items:center;
-  justify-content:center;transition:transform .08s,background .12s;
-}
-.rep-b:active{transform:scale(.88)}
-.rep-b.ok{background:rgba(52,211,153,.12);color:var(--ok);border:2.5px solid var(--ok)}
-.rep-b.ok:active{background:rgba(52,211,153,.35)}
-.rep-b.no{background:rgba(248,113,113,.12);color:var(--bad);border:2.5px solid var(--bad)}
-.rep-b.no:active{background:rgba(248,113,113,.35)}
+/* Section Headers */
+.sec-h{font-family:var(--font-d);font-size:0.85rem;color:var(--pri-dim);letter-spacing:1.5px;text-transform:uppercase;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--brd)}
+.sec-h::before{content:'';display:inline-block;width:16px;height:1px;background:var(--pri-dim);margin-right:8px;vertical-align:middle}
 
-/* ── LOG TAB ── */
-.log-btn{
-  display:flex;align-items:center;gap:12px;padding:16px 14px;background:var(--input);
-  border-radius:var(--rs);margin-bottom:8px;font-size:.88rem;font-weight:600;
-  transition:transform .1s;min-height:60px;width:100%;text-align:left;
-}
-.log-btn:active{transform:scale(.97);background:var(--card2)}
-.log-btn svg{width:26px;height:26px;flex-shrink:0}
-.log-btn-sub{font-size:.72rem;color:var(--txt2);font-weight:400;margin-top:1px}
+/* Quick Action Grid */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.qa-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;background:var(--card);border:1px solid var(--brd);border-radius:var(--r);font-size:0.75rem;color:var(--txt2);min-height:72px;transition:transform .1s;font-weight:500}
+.qa-btn:active{transform:scale(0.96);border-color:var(--pri-dim)}
+.qa-btn svg{width:24px;height:24px;color:var(--pri)}
 
-.log-form{display:none;padding:14px}.log-form.vis{display:block}
-.log-form h3{font-size:.95rem;margin-bottom:12px}
-.tog-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
-.tog{
-  padding:10px 16px;border-radius:20px;font-size:.8rem;font-weight:600;
-  background:var(--input);color:var(--txt2);border:1.5px solid var(--brd);transition:all .12s;
-}
-.tog:active,.tog.on{border-color:var(--pri);color:var(--pri);background:rgba(124,110,246,.1)}
-.tog-label{font-size:.75rem;color:var(--txt2);margin-bottom:6px;font-weight:600}
-.photo-btn{
-  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;
-  border:2px dashed var(--brd);border-radius:var(--rs);color:var(--txt3);font-size:.82rem;
-  margin-bottom:12px;min-height:52px;transition:all .12s;
-}
-.photo-btn:active{border-color:var(--pri);color:var(--pri)}
-.photo-btn.has-photo{border-color:var(--ok);color:var(--ok);border-style:solid}
-.photo-preview{width:100%;max-height:200px;object-fit:cover;border-radius:var(--rs);margin-bottom:10px}
-
-/* Alone time tracker */
-.alone-timer{text-align:center;padding:20px 14px}
-.alone-timer .timer-d{font-size:3rem}
-.alone-status{display:inline-block;padding:4px 14px;border-radius:16px;font-size:.75rem;font-weight:700;margin-bottom:8px}
-.alone-status.recording{background:rgba(248,113,113,.15);color:var(--bad);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-
-/* Log history */
-.log-entry{padding:11px;margin-bottom:6px;display:flex;align-items:flex-start;gap:10px}
-.log-entry .le-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.log-entry .le-icon svg{width:18px;height:18px}
-.le-body{flex:1;min-width:0}
-.le-title{font-size:.84rem;font-weight:600}
-.le-meta{font-size:.72rem;color:var(--txt2);margin-top:2px}
-.le-thumb{width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0}
-
-/* ── PROGRESS ── */
-.hmap{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.hm-d{aspect-ratio:1;border-radius:3px;background:var(--input)}
-.hm-d.l1{background:rgba(124,110,246,.2)}.hm-d.l2{background:rgba(124,110,246,.4)}
-.hm-d.l3{background:rgba(124,110,246,.6)}.hm-d.l4{background:rgba(124,110,246,.85)}
-.hm-labels{display:flex;justify-content:space-between;margin-top:5px;font-size:.62rem;color:var(--txt3)}
-.ms-i{display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:5px;background:var(--input);border-radius:var(--rs)}
-.ms-ico{width:28px;height:28px;border-radius:50%;background:var(--pri-glow);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ms-ico svg{width:14px;height:14px;stroke:var(--pri)}
-.ms-txt{font-size:.82rem;flex:1}.ms-dt{font-size:.68rem;color:var(--txt3)}
-.hi-item{padding:11px;margin-bottom:5px}
-.hi-top{display:flex;justify-content:space-between;align-items:center}
-.hi-name{font-weight:600;font-size:.88rem}.hi-rate{font-weight:700;font-size:.84rem}
-.hi-meta{font-size:.72rem;color:var(--txt2);margin-top:3px}
-.hi-note{font-size:.78rem;color:var(--txt2);margin-top:5px;font-style:italic}
-
-/* ── SETTINGS PANEL ── */
-.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:none;align-items:flex-end;justify-content:center}
-.settings-overlay.vis{display:flex}
-.settings-panel{
-  background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:20px 18px 30px;
-  max-width:430px;width:100%;max-height:85dvh;overflow-y:auto;animation:slideUp .2s ease;
-}
-@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
-.settings-panel h2{font-size:1rem;margin-bottom:16px}
-.s-group{margin-bottom:18px}
-.s-group h3{font-size:.76rem;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.s-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--brd)}
-.s-row:last-child{border-bottom:none}
-.s-row label{font-size:.88rem}
-.s-row input[type=number]{width:72px;text-align:center}
-.s-row input[type=date]{width:150px}
-.s-row input[type=text]{width:150px}
+/* Heatmap */
+.hm-wrap{overflow-x:auto;padding:4px 0;margin:8px 0}
+.hm-grid{display:flex;gap:3px}
+.hm-col{display:flex;flex-direction:column;gap:3px}
+.hm-cell{width:14px;height:14px;border-radius:3px;background:var(--card2)}
+.hm-1{background:rgba(212,168,83,0.2)}
+.hm-2{background:rgba(212,168,83,0.4)}
+.hm-3{background:rgba(212,168,83,0.65)}
+.hm-4{background:var(--pri)}
 
 /* Modal */
-.modal-o{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-o.vis{display:flex}
-.modal{background:var(--card);border-radius:var(--r);padding:22px;max-width:360px;width:100%;border:1px solid var(--brd);animation:fadeUp .18s ease}
-.modal h3{margin-bottom:10px;font-size:1rem}
-.modal p{font-size:.88rem;color:var(--txt2);margin-bottom:16px;line-height:1.5}
-.modal-act{display:flex;gap:8px;justify-content:flex-end}
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.modal{background:var(--card);border:1px solid var(--brd);border-radius:var(--r) var(--r) 0 0;padding:24px 20px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto}
+.modal h2{font-family:var(--font-d);font-size:1rem;color:var(--pri);margin-bottom:12px}
+.modal-btns{display:flex;gap:10px;margin-top:16px}
+.modal-btns .btn-p,.modal-btns .btn-s{flex:1}
+
+/* Slide-up Detail Sheet */
+.sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;max-height:85vh;background:var(--card);border:1px solid var(--brd);border-radius:var(--r) var(--r) 0 0;padding:24px 20px;overflow-y:auto;z-index:90;animation:slideUp .25s ease-out}
+.sheet-close{position:absolute;top:12px;right:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--txt3);font-size:1.2rem}
+.sheet-close:active{color:var(--pri)}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:89}
+
+/* Overlay (Settings) */
+.overlay{position:fixed;inset:0;background:var(--bg);z-index:80;overflow-y:auto;padding:20px 16px;max-width:430px;margin:0 auto}
+.overlay .hdr{padding:0 0 12px}
 
 /* Toast */
-.toast{
-  position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
-  background:var(--card);border:1px solid var(--brd);padding:11px 20px;border-radius:var(--r);
-  font-size:.84rem;z-index:400;opacity:0;transition:opacity .25s;pointer-events:none;
-}
-.toast.vis{opacity:1}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card2);color:var(--txt);border:1px solid var(--pri-dim);padding:12px 20px;border-radius:var(--rs);font-size:0.85rem;opacity:0;transition:all .3s;z-index:110;pointer-events:none;max-width:360px;text-align:center;font-family:var(--font-b)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Countdown Overlay */
+.countdown-wrap{position:fixed;inset:0;background:rgba(10,10,15,0.95);z-index:120;display:flex;align-items:center;justify-content:center}
+.countdown-num{font-family:var(--font-d);font-size:6rem;color:var(--pri);animation:countPop .6s ease-out}
+
+/* Alone Timer Pill */
+.alone-pill{position:fixed;top:8px;left:50%;transform:translateX(-50%);background:var(--bad);color:#fff;padding:6px 16px;border-radius:20px;font-size:0.78rem;font-weight:700;z-index:70;display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--font-b)}
+.alone-pill::before{content:'';width:8px;height:8px;border-radius:50%;background:#fff;animation:blink 1s infinite}
+.alone-pill:active{transform:translateX(-50%) scale(0.96)}
+
+/* Step List */
+.step-list{margin:8px 0}
+.step-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--brd);align-items:flex-start;cursor:pointer}
+.step-item:last-child{border-bottom:none}
+.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;border:2px solid var(--brd);color:var(--txt3);font-family:var(--font-d)}
+.step-num.done{background:var(--pri);color:var(--bg);border-color:var(--pri)}
+.step-num.current{border-color:var(--pri);color:var(--pri)}
+.step-info{flex:1;min-width:0}
+.step-info h4{font-size:0.82rem;font-weight:600;margin-bottom:2px}
+.step-info p{font-size:0.75rem;color:var(--txt2);line-height:1.4}
+.step-item:active{background:var(--card2);border-radius:var(--rs)}
+
+/* Skill Row (for lists) */
+.sk-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border:1px solid var(--brd);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:transform .1s}
+.sk-row:active{transform:scale(0.98)}
+.sk-info{flex:1;min-width:0}
+.sk-info h4{font-size:0.85rem;font-weight:600;margin-bottom:2px}
+.sk-info p{font-size:0.72rem;color:var(--txt2)}
+.sk-prereq{font-size:0.7rem;color:var(--bad);margin-top:2px}
+
+/* Vigil (streak) display */
+.vigil{display:flex;align-items:center;gap:8px;font-family:var(--font-d);font-size:1.4rem;color:var(--pri);margin:8px 0}
+.vigil-flame{width:28px;height:28px;color:var(--warn)}
+
+/* Stat pills */
+.stats{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+.stat{background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);padding:10px 14px;flex:1;min-width:80px;text-align:center}
+.stat-val{font-family:var(--font-d);font-size:1.3rem;color:var(--pri)}
+.stat-lbl{font-size:0.68rem;color:var(--txt3);margin-top:2px}
+
+/* Form labels */
+.lbl{font-size:0.78rem;color:var(--txt2);margin:12px 0 4px;font-weight:500}
+.lbl:first-child{margin-top:0}
+
+/* Log entries */
+.log-entry{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--brd);align-items:flex-start}
+.log-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.7rem;font-weight:700;font-family:var(--font-d)}
+.log-body{flex:1;min-width:0}
+.log-body h4{font-size:0.8rem;font-weight:600;margin-bottom:2px}
+.log-body p{font-size:0.72rem;color:var(--txt2)}
+.log-time{font-size:0.68rem;color:var(--txt3);flex-shrink:0}
+
+/* Animations */
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--pri-glow)}50%{box-shadow:0 0 12px 4px var(--pri-glow)}}
+@keyframes slideUp{from{transform:translateX(-50%) translateY(100%)}to{transform:translateX(-50%) translateY(0)}}
+@keyframes countPop{0%{transform:scale(0.5);opacity:0}50%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(212,168,83,0.2)}50%{box-shadow:0 0 24px rgba(212,168,83,0.4)}}
+
+.hide{display:none!important}
+.anim-in{animation:fadeIn .25s ease-out}
 </style>
 </head>
 <body>
 <div class="app">
-  <header class="hdr">
-    <h1>Zu's Trainer</h1>
-    <button class="hdr-gear" onclick="openSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-  </header>
-  <div class="tabs">
-    <!-- HOME -->
-    <div id="t-home" class="tab on"></div>
-    <!-- SKILLS -->
-    <div id="t-skills" class="tab"></div>
-    <!-- TRAIN -->
-    <div id="t-train" class="tab">
-      <div class="setup" id="setup">
-        <h2 style="text-align:center;margin-bottom:2px">Start Training</h2>
-        <p style="color:var(--txt2);font-size:.82rem;text-align:center;margin-bottom:12px">Pick a skill to practice</p>
-        <div class="ss-grid" id="ss-grid"></div>
-        <div style="margin:12px 0">
-          <div class="tog-label">Session Duration</div>
-          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
-            <button class="btn btn-o btn-s dur-b" data-d="60">1 min</button>
-            <button class="btn btn-o btn-s dur-b" data-d="120">2 min</button>
-            <button class="btn btn-o btn-s dur-b sel" data-d="180">3 min</button>
-            <button class="btn btn-o btn-s dur-b" data-d="300">5 min</button>
-          </div>
-        </div>
-        <button class="btn btn-p btn-block" id="btn-go" disabled>Begin Session</button>
-      </div>
-      <div class="sess" id="sess">
-        <div class="cd" style="text-align:center;padding:18px">
-          <div class="timer-d" id="tm-d">3:00</div>
-          <div class="timer-l">Session Time</div>
-          <div class="timer-c">
-            <button class="btn btn-o btn-s" id="tm-tog">Start Timer</button>
-            <button class="btn btn-o btn-s" id="tm-rst">Reset</button>
-          </div>
-        </div>
-        <div class="cd" id="sess-instr">
-          <div style="font-size:.76rem;color:var(--txt2);margin-bottom:4px;font-weight:600">CURRENT STEP</div>
-          <p id="instr-txt" style="font-size:.88rem;line-height:1.5"></p>
-        </div>
-        <div class="cd rep-area">
-          <div style="display:flex;justify-content:center;gap:28px">
-            <div><div class="rep-v" id="r-ok" style="color:var(--ok)">0</div><div class="rep-l">Success</div></div>
-            <div><div class="rep-v" id="r-no" style="color:var(--bad)">0</div><div class="rep-l">Missed</div></div>
-          </div>
-          <div class="rep-btns">
-            <button class="rep-b no" id="b-no">&#10007;</button>
-            <button class="rep-b ok" id="b-ok">&#10003;</button>
-          </div>
-          <div class="stats" style="margin-top:14px">
-            <div class="st"><div class="st-v" id="s-tot">0</div><div class="st-l">Total</div></div>
-            <div class="st"><div class="st-v" id="s-rate">0%</div><div class="st-l">Rate</div></div>
-            <div class="st"><div class="st-v" id="s-elap">0:00</div><div class="st-l">Elapsed</div></div>
-          </div>
-        </div>
-        <div style="margin:10px 0">
-          <div class="tog-label">Notes</div>
-          <textarea id="sess-notes" placeholder="How did Zu do? Observations..."></textarea>
-        </div>
-        <button class="btn btn-bad btn-block" id="btn-end">End Session</button>
-      </div>
-    </div>
-    <!-- LOG -->
-    <div id="t-log" class="tab"></div>
-    <!-- PROGRESS -->
-    <div id="t-prog" class="tab"></div>
-  </div>
-  <nav class="nav">
-    <button class="nav-b on" data-t="home">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
-    </button>
-    <button class="nav-b" data-t="skills">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Skills
-    </button>
-    <button class="nav-b" data-t="train">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>Train
-    </button>
-    <button class="nav-b" data-t="log">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Log
-    </button>
-    <button class="nav-b" data-t="prog">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Progress
-    </button>
-  </nav>
+
+<div id="alonePill" class="alone-pill hide" onclick="showAloneForm()">
+  <span id="alonePillTime">00:00</span> alone
 </div>
 
-<!-- Settings panel -->
-<div class="settings-overlay" id="sett-o" onclick="if(event.target===this)closeSettings()">
-  <div class="settings-panel" id="sett-p">
-    <h2>Settings</h2>
-    <div class="s-group"><h3>Zu's Profile</h3>
-      <div class="s-row"><label>Name</label><input type="text" id="s-name" value="Zu"></div>
-      <div class="s-row"><label>Weight (kg)</label><input type="number" id="s-wt" value="8.5" step="0.1"></div>
-      <div class="s-row"><label>Rescue Date</label><input type="date" id="s-rdate"></div>
-    </div>
-    <div class="s-group"><h3>Training</h3>
-      <div class="s-row"><label>Default Duration (sec)</label><input type="number" id="s-dur" value="180" min="30" max="600" step="30"></div>
-      <div class="s-row"><label>Advance Threshold (%)</label><input type="number" id="s-thresh" value="80" min="50" max="100"></div>
-      <div class="s-row"><label>Sessions to Evaluate</label><input type="number" id="s-eval" value="3" min="1" max="10"></div>
-    </div>
-    <div class="s-group"><h3>Treat Tiers</h3>
-      <textarea id="s-treats" rows="3" placeholder="Low: kibble&#10;Medium: cheese&#10;High: chicken..."></textarea>
-    </div>
-    <div class="s-group"><h3>Data</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-o btn-s" onclick="exportData()">Export</button>
-        <button class="btn btn-o btn-s" onclick="$('#imp-f').click()">Import</button>
-      </div>
-      <input type="file" id="imp-f" accept=".json" style="display:none">
-    </div>
-    <div style="border:1px solid var(--bad);border-radius:var(--rs);padding:14px;margin-top:12px">
-      <div style="font-size:.82rem;color:var(--bad);font-weight:700;margin-bottom:8px">Danger Zone</div>
-      <button class="btn btn-bad btn-s" onclick="resetAll()">Reset All Data</button>
-    </div>
-    <button class="btn btn-p btn-block" style="margin-top:14px" onclick="saveSettings()">Save Settings</button>
-  </div>
+<header class="hdr">
+  <h1>Pazuzu's Wards</h1>
+  <button class="hdr-gear" onclick="toggleSettings()" aria-label="Settings">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+  </button>
+</header>
+
+<main class="main">
+  <section id="pShrine" class="pan on"></section>
+  <section id="pTree" class="pan"></section>
+  <section id="pRitual" class="pan"></section>
+  <section id="pChron" class="pan"></section>
+  <section id="pProg" class="pan"></section>
+</main>
+
+<nav class="nav">
+  <button class="nav-btn on" data-tab="shrine" onclick="go('shrine')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h18M5 16h14M7 12h10M9 8h6M11 4h2"/></svg>
+    Shrine
+  </button>
+  <button class="nav-btn" data-tab="tree" onclick="go('tree')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L3 7v6c0 5 4 9 9 11 5-2 9-6 9-11V7l-9-5z"/></svg>
+    Wards
+  </button>
+  <button class="nav-btn" data-tab="ritual" onclick="go('ritual')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c-2 4-6 7-6 12a6 6 0 0012 0c0-5-4-8-6-12z"/></svg>
+    Ritual
+  </button>
+  <button class="nav-btn" data-tab="chron" onclick="go('chron')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+    Chronicle
+  </button>
+  <button class="nav-btn" data-tab="prog" onclick="go('prog')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h4v-6h4v-4h4v-2h4v-4h2"/></svg>
+    Progress
+  </button>
+</nav>
 </div>
 
-<div class="modal-o" id="mod-o"><div class="modal"><h3 id="mod-t"></h3><p id="mod-b"></p><div class="modal-act" id="mod-a"></div></div></div>
-<div class="toast" id="toast"></div>
-<input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
+<div id="settingsPanel" class="overlay hide"></div>
+<div id="modal" class="modal-wrap hide" onclick="if(event.target===this)closeModal()"></div>
+<div id="toast" class="toast"></div>
+<div id="countdown" class="countdown-wrap hide"></div>
+<div id="sheetBg" class="sheet-bg hide" onclick="closeSheet()"></div>
+<div id="sheet" class="sheet hide"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// SKILLS DATABASE — Kikopup Progressive Reinforcement
-// ═══════════════════════════════════════════════════════
-const SKILLS = [
-  // ── Phase 1: Foundation (Days 1-7) ──
-  {
-    id:'attention', name:'Attention Game', abbr:'AT', phase:1, prereqs:[],
-    video:'https://www.youtube.com/results?search_query=kikopup+eye+contact+training',
-    steps:[
-      {t:'Capture Eye Contact', d:'Wait for Zu to glance at your eyes. The instant she makes eye contact, mark ("yes" or click) and treat. No cue yet — just reward natural glances toward your face.'},
-      {t:'Build Duration', d:'Gradually wait for longer eye contact before marking. Start with 1 second, build to 3. If she breaks contact, simply wait — never repeat or prompt.'},
-      {t:'Mild Distractions', d:'Practice with a toy on the floor or a person nearby. Mark eye contact that happens despite the distraction. Keep sessions to 2-3 minutes.'},
-      {t:'Add Verbal Cue', d:'Once she offers eye contact reliably, say "watch me" just BEFORE she looks. Pair the word with the behavior she already knows. Mark and treat.'},
-      {t:'Proof Everywhere', d:'Practice in different rooms, outdoors on leash, near other dogs at a distance. In new environments, accept shorter duration and rebuild.'}
-    ]
-  },
-  {
-    id:'interrupter', name:'Positive Interrupter', abbr:'PI', phase:1, prereqs:[],
-    video:'https://www.youtube.com/results?search_query=kikopup+positive+interrupter',
-    steps:[
-      {t:'Charge the Sound', d:'Pick a unique sound (kissy noise, whistle, or a specific word). Make the sound then immediately give a high-value treat. Repeat 15-20 times. Zu doesn\'t need to do anything.'},
-      {t:'Test Response', d:'When Zu is mildly distracted, make the sound. She should whip her head toward you. If she doesn\'t, go back to charging. Mark and treat when she orients to you.'},
-      {t:'Use with Distractions', d:'Practice when Zu is sniffing, looking away, etc. Sound, she looks, mark and treat. Never use it to punish or when she\'s over threshold (too scared or excited).'},
-      {t:'Increase Difficulty', d:'Gradually use around more interesting distractions. Always reward generously — this must stay a "jackpot" sound. Never overuse it or it loses power.'}
-    ]
-  },
-  {
-    id:'nomugging', name:'Impulse Control', abbr:'IC', phase:1, prereqs:[],
-    video:'https://www.youtube.com/results?search_query=kikopup+its+yer+choice+impulse+control',
-    steps:[
-      {t:'Closed Fist', d:'Hold a treat in your closed fist. Zu will nose, paw, and lick at it. Wait. The moment she backs off or looks away, mark and treat from your OTHER hand.'},
-      {t:'Open Hand', d:'Place your open hand with treat on the floor. Cover it if she lunges. When she looks away or backs off, mark and reward from the other hand.'},
-      {t:'Treat on Floor', d:'Place a treat on the floor, cover with your hand if she goes for it. Mark and reward from your other hand when she shows restraint. Build to an uncovered treat.'},
-      {t:'Around Food', d:'Build up duration of restraint around visible food. Practice near your plate, low tables, food prep area. Always reward the choice to leave it alone.'}
-    ]
-  },
-  {
-    id:'calmness', name:'Capturing Calmness', abbr:'CC', phase:1, prereqs:[],
-    video:'https://www.youtube.com/results?search_query=kikopup+capturing+calmness',
-    steps:[
-      {t:'Reward Calm Moments', d:'Throughout the day, when Zu naturally lies down or settles, gently mark and toss a treat to her. No cue, no prompting. You\'re reinforcing a state of being.'},
-      {t:'On a Mat', d:'When Zu settles on her bed or mat, calmly reward. Build up to dropping several treats one at a time while she stays settled. Deliver treats slowly and quietly.'},
-      {t:'Build Duration', d:'Gradually space out rewards while Zu stays relaxed on her mat. If she gets up, that\'s fine — no correction. Just reward the next calm settle she offers.'},
-      {t:'Exciting Contexts', d:'Practice mat settling when visitors arrive (start at a distance), in new rooms, or when activity is happening nearby. Lower your criteria in harder contexts.'}
-    ]
-  },
-  {
-    id:'crate', name:'Crate Training', abbr:'CR', phase:1, prereqs:[],
-    video:'https://www.youtube.com/results?search_query=kikopup+crate+training',
-    steps:[
-      {t:'Crate Discovery', d:'Toss treats near and then into the crate. Let Zu explore freely — door stays OPEN. No luring or pushing. End on a good note if she shows any hesitation.'},
-      {t:'Meals Inside', d:'Feed Zu\'s meals inside the crate with the door open. She should enter willingly. If not, place the bowl closer to the opening and move it further in over sessions.'},
-      {t:'Brief Door Closure', d:'While Zu eats inside, gently close the door. Open it BEFORE she finishes eating. Gradually extend how long the door stays closed. Stay nearby and calm.'},
-      {t:'Short Separations', d:'Close door, step away for 10 seconds, return calmly, treat through the door, then open. Build duration very slowly. Never use the crate as punishment.'},
-      {t:'Extended Duration', d:'Build to 30+ minutes with you in another room. Leave a stuffed Kong or safe chew. Keep your departures and arrivals boring and low-key.'}
-    ]
-  },
-  {
-    id:'house', name:'House Training', abbr:'HT', phase:1, prereqs:[],
-    video:'https://www.youtube.com/results?search_query=kikopup+house+training+puppy',
-    steps:[
-      {t:'Frequent Outings', d:'Take Zu out every 1-2 hours, after meals, after naps, and after play. Same spot each time. Wait quietly. When she goes, mark and have a treat party.'},
-      {t:'Learn Her Signals', d:'Watch for sniffing, circling, going to the door. Take her out immediately. Reward every outdoor success. Use baby gates to manage indoor access.'},
-      {t:'Extend Intervals', d:'Gradually increase time between outings as she proves reliable. Continue rewarding outdoor elimination. If accidents happen, just clean up — no punishment ever.'},
-      {t:'Full Freedom', d:'Gradually give Zu access to more rooms as she proves reliable. Occasional treats for going outside maintain the habit long-term.'}
-    ]
-  },
-  // ── Phase 2: Core Skills (Days 7-21) ──
-  {
-    id:'name', name:'Name Recognition', abbr:'NR', phase:2, prereqs:[],
-    video:'https://www.youtube.com/results?search_query=kikopup+name+recognition+dog',
-    steps:[
-      {t:'Name = Treat', d:'Say "Zu" then immediately treat. Repeat 15-20 times per session. She doesn\'t need to do anything yet — just building the association that her name means good things.'},
-      {t:'Name Orientation', d:'Say "Zu" when she\'s slightly distracted. The moment she turns toward you, mark and treat. Practice in quiet environments first.'},
-      {t:'Distance', d:'Say "Zu" from across the room. Mark and treat when she orients. Build up to calling from other rooms in the house.'},
-      {t:'Busy Environments', d:'Practice outdoors and with distractions. Her name should always predict something wonderful. Never use her name for scolding or negative associations.'}
-    ]
-  },
-  {
-    id:'recall', name:'Recall (Come)', abbr:'RC', phase:2, prereqs:['attention'],
-    video:'https://www.youtube.com/results?search_query=kikopup+recall+come+when+called',
-    steps:[
-      {t:'Restrained Recall', d:'Have someone gently hold Zu. Show a treat, back up excitedly, call "Zu, come!" When released, she runs to you — huge reward party. Keep distance short (5-10 feet).'},
-      {t:'Surprise Recalls', d:'When Zu is nearby but not focused on you, call "Zu, come!" in an excited voice. Reward generously when she comes. Practice in different rooms.'},
-      {t:'Long Line Outdoors', d:'Practice in a fenced area or on a 15-30 foot long line. Call when she\'s exploring. Reward with her favorite treats. Never call to end fun or to punish.'},
-      {t:'Around Distractions', d:'Practice near other dogs (at distance), squirrels, people. Start far from distractions and close the gap slowly. Coming to you must always be the BEST option.'},
-      {t:'Proof Reliability', d:'Practice in many environments. Vary rewards between treats, play, and praise. Keep reinforcing randomly for life — this is a safety behavior.'}
-    ]
-  },
-  {
-    id:'sit', name:'Sit', abbr:'SI', phase:2, prereqs:[],
-    video:'https://www.youtube.com/results?search_query=kikopup+teach+sit',
-    steps:[
-      {t:'Lure or Capture', d:'Hold a treat at Zu\'s nose and slowly arc it back over her head. As her bum touches the ground, mark and treat. OR wait for a natural sit and capture it.'},
-      {t:'Add Verbal Cue', d:'Once Zu offers sits reliably with the lure, say "sit" just BEFORE she sits. Fade the lure gradually — smaller hand motion, empty hand, then just the word.'},
-      {t:'Any Position', d:'Practice when you\'re standing, sitting, at different angles. She should respond to the verbal cue regardless of your body position.'},
-      {t:'Add Duration', d:'After she sits, pause before marking. Build from 1 second to 10+. Always release with your release cue BEFORE she decides to get up on her own.'},
-      {t:'Add Distractions', d:'Practice around distractions, starting easy. Use sit functionally: before meals, before going through doors, before leash goes on.'}
-    ]
-  },
-  {
-    id:'release', name:'Release Cue', abbr:'RE', phase:2, prereqs:['sit'],
-    video:'https://www.youtube.com/results?search_query=kikopup+release+cue+free',
-    steps:[
-      {t:'Pair the Word', d:'Ask for sit. Say "free!" (or "break!") and toss a treat so Zu has to move. The release word = permission to move. Practice with very short sits first.'},
-      {t:'Release Before She Breaks', d:'Key principle: always release BEFORE Zu breaks position on her own. This teaches that YOUR word ends the behavior, not her decision to leave.'},
-      {t:'Vary the Reward', d:'Sometimes release to a tossed treat, sometimes to play, sometimes just to freedom. The release cue should mean "you\'re done, go have fun."'},
-      {t:'Use with Everything', d:'Apply your release cue to sit, down, stay, wait, and mat work. Zu learns that all "hold position" cues end with the release word.'}
-    ]
-  },
-  {
-    id:'down', name:'Down', abbr:'DN', phase:2, prereqs:['sit'],
-    video:'https://www.youtube.com/results?search_query=kikopup+teach+down+lie+down',
-    steps:[
-      {t:'Lure from Sit', d:'From a sit, hold a treat at Zu\'s nose and lower it straight down between her paws. Mark and treat the instant elbows and belly touch the floor. Be patient.'},
-      {t:'Lure from Standing', d:'Lower the treat to the floor, then slowly pull it toward you if needed to get her folding into the down. Some dogs need more time with this step.'},
-      {t:'Add Verbal Cue', d:'Once she follows the lure smoothly, say "down" just before the hand motion. Gradually make the hand motion smaller until just the word works.'},
-      {t:'Build Duration', d:'Mark and treat while Zu stays down. Build from 2 seconds to 30+. Combine with your release cue to end the down.'},
-      {t:'Various Surfaces', d:'Practice on different surfaces, in different rooms, then outdoors. Combine with mat work for relaxation training.'}
-    ]
-  },
-  {
-    id:'leaveit', name:'Leave It', abbr:'LI', phase:2, prereqs:['nomugging'],
-    video:'https://www.youtube.com/results?search_query=kikopup+leave+it',
-    steps:[
-      {t:'Two-Treat Method', d:'Show Zu a treat in one hand, close your fist. When she stops trying to get it and looks at you, mark and treat from your OTHER hand. She never gets the forbidden treat.'},
-      {t:'Add the Cue', d:'Say "leave it" before showing the closed fist. Mark and reward from the other hand when she turns away. The leave-it item is never the reward.'},
-      {t:'Floor Items', d:'Place a treat on the floor, cover it if she goes for it. Say "leave it." Reward from your hand when she looks away. Build to leaving uncovered items.'},
-      {t:'On Walks', d:'Practice with objects on the ground outdoors. Start with boring items, build to food on sidewalks. "Leave it" always earns something better from you.'},
-      {t:'High-Value Items', d:'Practice with increasingly tempting things. Always reward with something equal or better. This is different from Drop It — Leave It means "don\'t touch it in the first place."'}
-    ]
-  },
-  {
-    id:'dropit', name:'Drop It', abbr:'DI', phase:2, prereqs:[],
-    video:'https://www.youtube.com/results?search_query=kikopup+drop+it+trade',
-    steps:[
-      {t:'Trade Game', d:'When Zu has a toy, show a high-value treat. When she drops the toy, mark and treat, then give the toy BACK. This teaches: dropping things = getting something great AND keeping your stuff.'},
-      {t:'Add Cue', d:'Say "drop it" just before offering the trade. Over time she\'ll drop on the word alone. Always reward. Never chase or force items from her mouth.'},
-      {t:'Various Objects', d:'Practice with different items: toys, sticks, things she finds. Always trade up. The goal is willing, happy release — not fear of losing things.'},
-      {t:'Quick Response', d:'Build speed — "drop it" should mean instant release. Maintain with high-value rewards. This is a safety behavior, so keep it sharp.'}
-    ]
-  },
-  // ── Phase 3: Life Skills (Days 14-42) ──
-  {
-    id:'leashpressure', name:'Leash Pressure Yields', abbr:'LP', phase:3, prereqs:['attention'],
-    video:'https://www.youtube.com/results?search_query=kikopup+leash+pressure+game',
-    steps:[
-      {t:'Pressure = Treat', d:'With Zu on leash, apply gentle pressure in one direction. The instant she takes a step into the pressure (toward you), mark and treat. Release pressure immediately.'},
-      {t:'All Directions', d:'Practice forward, back, left, right. Zu should yield to any gentle pressure by stepping toward it. Keep it light — this is communication, not force.'},
-      {t:'Moving Together', d:'Use micro-pressure cues to guide Zu while walking. She should respond to very subtle leash signals. Reward frequently for following along with you.'},
-      {t:'Around Distractions', d:'Practice near interesting things. Gentle pressure, Zu yields, mark and treat. This prevents pulling by teaching the leash is a conversation, not a restraint.'}
-    ]
-  },
-  {
-    id:'llwindoor', name:'Loose Leash Walking (Indoor)', abbr:'LI', phase:3, prereqs:['leashpressure','attention'],
-    video:'https://www.youtube.com/results?search_query=kikopup+loose+leash+walking',
-    steps:[
-      {t:'Reward at Side', d:'With Zu on leash indoors, reward her for being at your side. Mark and treat rapidly at first. She learns: being next to you = treats appear.'},
-      {t:'Short Steps', d:'Take 2-3 steps. If she stays at your side with a loose leash, mark and treat. If she pulls, stop completely. Wait for her to look at you, then reward and continue.'},
-      {t:'Walk Through Rooms', d:'Build to walking through your home on a loose leash. Change direction frequently. Make yourself more interesting than the environment.'},
-      {t:'Indoor Distractions', d:'Add toys on the floor, family members moving. Reward Zu for maintaining a loose leash despite temptations. This must be solid before going outside.'}
-    ]
-  },
-  {
-    id:'fetch', name:'Fetch', abbr:'FE', phase:3, prereqs:['dropit'],
-    video:'https://www.youtube.com/results?search_query=kikopup+teach+fetch+retrieve',
-    steps:[
-      {t:'Build Toy Interest', d:'Move a toy on the ground like prey to make it exciting. When Zu grabs it, celebrate. Use a toy she already likes. Keep play sessions short to maintain excitement.'},
-      {t:'Short Tosses', d:'Toss a toy 3-5 feet. When Zu picks it up, call her back. "Drop it," trade for a treat, then throw again. The throw IS the reward for bringing it back.'},
-      {t:'Increase Distance', d:'Gradually throw further. Pattern: throw, fetch, bring back, drop, throw again. If she won\'t return, shorten the distance and rebuild.'},
-      {t:'Fetch as Reward', d:'Use fetch as a reward for other behaviors. Follow Zu\'s enthusiasm — some dogs love fetch, others prefer other games.'}
-    ]
-  },
-  {
-    id:'handling', name:'Handling & Grooming', abbr:'HG', phase:3, prereqs:['calmness'],
-    video:'https://www.youtube.com/results?search_query=kikopup+handling+grooming+cooperative+care',
-    steps:[
-      {t:'Touch = Treat', d:'Briefly touch shoulder, treat. Touch ear, treat. Touch paw, treat. Keep each touch brief and pair with food. If Zu moves away, let her — never hold her still.'},
-      {t:'Longer Handling', d:'Build duration: hold a paw for 1 second, treat. Look in an ear, treat. Lift her lip to see teeth, treat. Always go at Zu\'s pace — never force or restrain.'},
-      {t:'Introduce Tools', d:'Show brush, treat. Touch brush to body, treat. One brush stroke, treat. Let Zu investigate each tool first. Build very gradually.'},
-      {t:'Full Grooming', d:'Build to complete brushing, nail handling, ear cleaning with Zu\'s willing participation. If she moves away, pause and make the next step easier.'},
-      {t:'Vet Prep', d:'Practice vet-like handling: ears, teeth, paws, all-over body touch, standing on a scale. Build comfort with being examined so vet visits are less stressful.'}
-    ]
-  },
-  {
-    id:'llwoutdoor', name:'Loose Leash Walking (Outdoor)', abbr:'LO', phase:3, prereqs:['llwindoor','interrupter'],
-    video:'https://www.youtube.com/results?search_query=kikopup+loose+leash+walking+outside',
-    steps:[
-      {t:'Quiet Area', d:'Start in the least distracting outdoor spot you can find. Very high rate of treat delivery for being at your side. Stop when the leash goes tight.'},
-      {t:'Short Walks', d:'Take very short walks (even just the driveway and back). Reward constantly for loose leash. Quality over distance. End before Zu gets over-stimulated.'},
-      {t:'Neighborhood', d:'Extend distance gradually. Use treats, direction changes, and your positive interrupter. If Zu is over-aroused, increase distance from the trigger or head home.'},
-      {t:'Busy Areas', d:'Practice near busier locations, parks, other dogs at a distance. Reward every check-in and every loose-leash moment. Manage distance from triggers carefully.'},
-      {t:'Relaxed Walks', d:'Build toward comfortable walks with less frequent treating. Alternate between structured heeling and free "go sniff" time — sniffing is enrichment.'}
-    ]
-  },
-  {
-    id:'separation', name:'Separation Training', abbr:'ST', phase:3, prereqs:['crate','calmness'],
-    video:'https://www.youtube.com/results?search_query=kikopup+separation+anxiety+alone+training',
-    steps:[
-      {t:'Brief Out-of-Sight', d:'Step behind a door for 1 second, return calmly. Build to 5, 10, 30 seconds. Keep departures and returns completely boring. Leave a stuffed Kong.'},
-      {t:'Short Departures', d:'Leave for 1-2 minutes. Pick up keys, walk out the front door, come back. No fuss on leaving or returning. Extend time in tiny increments.'},
-      {t:'Build to 15 Minutes', d:'The first 15 minutes is the hardest part for dogs. Build up slowly. Consider filming Zu to watch for stress signals. Go at her pace.'},
-      {t:'Extended Alone Time', d:'Build to 30 min, 1 hour, 2+ hours. Leave enrichment (Kongs, puzzle toys). Establish a calm departure routine. Always return before she becomes distressed.'}
-    ]
-  },
-  {
-    id:'doormanners', name:'Door Manners', abbr:'DM', phase:3, prereqs:['sit','release'],
-    video:'https://www.youtube.com/results?search_query=kikopup+door+manners+wait',
-    steps:[
-      {t:'Sit at Door', d:'Approach a door. Ask for sit. Reach for the handle — if she breaks, remove your hand and re-cue sit. Mark and treat when she holds the sit as you touch the handle.'},
-      {t:'Door Opens, Zu Waits', d:'Sit, then open door a crack. If she stays, mark and treat. If she breaks, close the door and re-cue. Build to a fully open door while she waits.'},
-      {t:'Release Through', d:'Full door open, Zu waits in sit, then your release cue — she goes through. Practice at the front door, back door, car door.'},
-      {t:'Doorbell Protocol', d:'When the doorbell rings, Zu goes to her mat or designated spot instead of rushing the door. Start with quiet knock sounds and build to real visitors.'}
-    ]
-  }
+'use strict';
+
+/* ============================================================
+   SKILLS DATABASE — All 20 Wards
+   ============================================================ */
+const SKILLS=[
+// ── CIRCLE I: FOUNDATION WARDS ──
+{id:'attention',name:'Attention Ward',abbr:'AT',phase:1,prereqs:[],
+ desc:'Teaching Zuzu to offer eye contact voluntarily — the foundation of all communication.',
+ video:'https://www.youtube.com/results?search_query=kikopup+eye+contact+training',
+ steps:[
+  {t:'Capture Eye Contact',d:'Wait for Zuzu to glance at your eyes. Mark and treat instantly. No cue yet — reward natural glances toward your face.',
+   guidance:{vocal:'Mark "yes" the instant eyes meet yours',hand:'Hands still — no luring',position:'Facing Zuzu, relaxed posture'},
+   capture:{type:'observe',successLabel:'Looked',missLabel:null,notes_prompt:'How quickly did she offer eye contact? Duration of glances?'}},
+  {t:'Build Duration',d:'Gradually wait for longer eye contact before marking. Start 1 second, build to 3. If she breaks, just wait — never prompt.',
+   guidance:{vocal:'Delay the "yes" marker slightly each session',hand:'No hand motion',position:'Facing, 2-3 feet away'},
+   capture:{type:'duration',successLabel:'Held gaze',missLabel:'Broke early',notes_prompt:'Longest hold? Average duration?'}},
+  {t:'Mild Distractions',d:'Practice with toy on floor or person nearby. Mark eye contact despite distraction. Keep to 2-3 min sessions.',
+   guidance:{vocal:'"Yes" when she chooses you over distraction',hand:'None — let her choose',position:'Near distraction source'},
+   capture:{type:'reps',successLabel:'Chose me',missLabel:'Distracted',notes_prompt:'What distractions? How did she handle them?'}},
+  {t:'Add Verbal Cue',d:'Say "watch me" just BEFORE she looks. Pair word with the behavior she already knows.',
+   guidance:{vocal:'"Watch me" then mark "yes" when she looks',hand:'Brief point to eyes if needed, then fade',position:'Various distances'},
+   capture:{type:'reps',successLabel:'Responded',missLabel:'No response',notes_prompt:'Latency? Responds without hand signal?'}},
+  {t:'Proof Everywhere',d:'Practice in different rooms, outdoors on leash, near other dogs at distance. Accept shorter duration in new contexts.',
+   guidance:{vocal:'"Watch me" cue',hand:'None needed',position:'New environments'},
+   capture:{type:'reps',successLabel:'Responded',missLabel:'Too distracted',notes_prompt:'Environment? Distance from distractions?'}}
+]},
+{id:'interrupter',name:'Positive Interrupter',abbr:'PI',phase:1,prereqs:[],
+ desc:'A special sound that means "stop what you\'re doing and come get something amazing."',
+ video:'https://www.youtube.com/results?search_query=kikopup+positive+interrupter',
+ steps:[
+  {t:'Charge the Sound',d:'Make a unique sound (kissy noise) then immediately give HIGH-VALUE treat. Repeat 15-20 times. She doesn\'t need to do anything yet.',
+   guidance:{vocal:'Kissy noise (or chosen sound) then immediate treat',hand:'Deliver treat right after sound',position:'Any — she can be doing anything'},
+   capture:{type:'observe',successLabel:'Pair done',missLabel:null,notes_prompt:'Sound chosen? How many pairings? Any head turn yet?'}},
+  {t:'Test Response',d:'When mildly distracted, make the sound. She should whip her head toward you. If not, charge more.',
+   guidance:{vocal:'Interrupter when mildly distracted',hand:'Treat ready',position:'Within a few feet'},
+   capture:{type:'reps',successLabel:'Head whip',missLabel:'No response',notes_prompt:'Response speed? Distraction level?'}},
+  {t:'Use with Distractions',d:'Practice when sniffing, looking away. Sound then mark and treat. Never use over threshold (too scared/excited).',
+   guidance:{vocal:'Interrupter then "yes" then jackpot treat',hand:'None',position:'Various distances'},
+   capture:{type:'reps',successLabel:'Interrupted',missLabel:'Over threshold',notes_prompt:'Distraction level? Response time?'}},
+  {t:'Increase Difficulty',d:'Use around harder distractions. Always reward generously — this is a jackpot sound. Never overuse.',
+   guidance:{vocal:'Same sound — must ALWAYS predict amazing reward',hand:'Jackpot treats (multiple high-value)',position:'Real-world scenarios'},
+   capture:{type:'reps',successLabel:'Jackpot response',missLabel:'Weak/no response',notes_prompt:'Hardest distraction she responded to?'}}
+]},
+{id:'nomugging',name:'Impulse Control',abbr:'IC',phase:1,prereqs:[],
+ desc:'Teaching Zuzu that self-control earns rewards — the It\'s Yer Choice foundation.',
+ video:'https://www.youtube.com/results?search_query=kikopup+its+yer+choice+impulse+control',
+ steps:[
+  {t:'Closed Fist',d:'Hold treat in closed fist. She\'ll nose, paw, lick. Wait. The moment she backs off or looks away, mark and treat from OTHER hand.',
+   guidance:{vocal:'"Yes" when she backs off',hand:'Closed fist with treat — reward from OTHER hand',position:'Sitting in front of Zuzu'},
+   capture:{type:'reps',successLabel:'Backed off',missLabel:'Still mugging',notes_prompt:'Time to first back-off? Getting faster?'}},
+  {t:'Open Hand',d:'Open hand with treat near floor. Cover if she lunges. Mark and reward from other hand when she disengages.',
+   guidance:{vocal:'"Yes" on disengage',hand:'Open palm — cover quickly if she goes for it',position:'Hand low, kneeling'},
+   capture:{type:'reps',successLabel:'Showed restraint',missLabel:'Went for it',notes_prompt:'Open hand duration? Fastest disengage?'}},
+  {t:'Treat on Floor',d:'Place treat on floor, cover if she goes for it. Mark and reward from other hand. Build to uncovered treat.',
+   guidance:{vocal:'"Yes" when she chooses not to take it',hand:'Ready to cover — reward from other hand',position:'Kneeling beside treat'},
+   capture:{type:'reps',successLabel:'Left it',missLabel:'Grabbed it',notes_prompt:'Covered or uncovered? Duration of restraint?'}},
+  {t:'Around Food',d:'Build duration around visible food. Practice near plate, low tables, food prep. Reward the choice to ignore.',
+   guidance:{vocal:'"Yes" for ignoring food',hand:'Treat ready as reward',position:'Near real food situations'},
+   capture:{type:'reps',successLabel:'Ignored food',missLabel:'Went for it',notes_prompt:'What food? How close? How long?'}}
+]},
+{id:'calmness',name:'Capturing Calmness',abbr:'CC',phase:1,prereqs:[],
+ desc:'Rewarding calm states throughout the day — Zuzu learns relaxation pays.',
+ video:'https://www.youtube.com/results?search_query=kikopup+capturing+calmness',
+ steps:[
+  {t:'Reward Calm Moments',d:'When Zuzu naturally lies down or settles, gently mark and toss treat. No cue, no prompting — reinforcing a state of being.',
+   guidance:{vocal:'Quiet, calm "yes"',hand:'Gently toss or place treat — no excitement',position:'Wherever she settles'},
+   capture:{type:'observe',successLabel:'Calm captured',missLabel:null,notes_prompt:'Where did she settle? How long calm before mark?'}},
+  {t:'On a Mat',d:'When she settles on her mat, calmly reward. Drop several treats one at a time while she stays. Deliver slowly and quietly.',
+   guidance:{vocal:'Very quiet marker or none',hand:'Slow, calm treat delivery',position:'Near her mat, calm energy'},
+   capture:{type:'duration',successLabel:'Settled on mat',missLabel:'Got up',notes_prompt:'Duration on mat? Stay after last treat?'}},
+  {t:'Build Duration',d:'Space out rewards while she stays relaxed. If she gets up, no correction — just reward the next calm settle.',
+   guidance:{vocal:'Minimal — quiet presence',hand:'Increasingly spaced treats',position:'Gradually increase distance from mat'},
+   capture:{type:'duration',successLabel:'Stayed settled',missLabel:'Got up',notes_prompt:'Longest duration between treats?'}},
+  {t:'Exciting Contexts',d:'Mat settling when visitors arrive, new rooms, activity. Lower criteria in harder contexts.',
+   guidance:{vocal:'Calm marker when she chooses mat',hand:'Higher value treats in harder contexts',position:'Mat in exciting environments'},
+   capture:{type:'reps',successLabel:'Settled despite activity',missLabel:'Too excited',notes_prompt:'What was happening? Distance from trigger?'}}
+]},
+{id:'crate',name:'Crate Training',abbr:'CR',phase:1,prereqs:[],
+ desc:'Making the crate a safe den — never punishment. Zuzu should walk in voluntarily.',
+ video:'https://www.youtube.com/results?search_query=kikopup+crate+training',
+ steps:[
+  {t:'Crate Discovery',d:'Toss treats near then into crate. Door stays OPEN. No luring or pushing. End on a good note if hesitant.',
+   guidance:{vocal:'None — let curiosity drive',hand:'Toss treats near, then just inside',position:'Sitting near crate, relaxed'},
+   capture:{type:'observe',successLabel:'Approached/entered',missLabel:null,notes_prompt:'How close? Body language?'}},
+  {t:'Meals Inside',d:'Feed meals inside with door open. Enter willingly. If not, place bowl closer to opening and move further in over sessions.',
+   guidance:{vocal:'None',hand:'Bowl progressively further inside',position:'Near crate, not blocking exit'},
+   capture:{type:'observe',successLabel:'Ate inside',missLabel:null,notes_prompt:'How far inside? Relaxed or rushed?'}},
+  {t:'Brief Door Closure',d:'While eating inside, gently close door. Open BEFORE she finishes. Gradually extend. Stay nearby.',
+   guidance:{vocal:'None — calm presence',hand:'Close gently, treat through bars',position:'Right next to crate'},
+   capture:{type:'duration',successLabel:'Calm with door closed',missLabel:'Stressed',notes_prompt:'Duration closed? Any stress signals?'}},
+  {t:'Short Separations',d:'Close door, step away 10 seconds, return calmly, treat, then open. Build slowly. Never punish with crate.',
+   guidance:{vocal:'Calm "good girl" through bars',hand:'Treat through bars on return',position:'Step away, then out of sight'},
+   capture:{type:'duration',successLabel:'Calm while away',missLabel:'Distressed',notes_prompt:'Distance? Duration? Any whining?'}},
+  {t:'Extended Duration',d:'Build to 30+ min with you in another room. Leave Kong or safe chew. Keep departures/arrivals boring.',
+   guidance:{vocal:'Low-key goodbye and hello',hand:'Provide enrichment',position:'Different room — out of sight'},
+   capture:{type:'duration',successLabel:'Settled full duration',missLabel:'Stressed early',notes_prompt:'Total minutes? Enrichment used? Vocalization?'}}
+]},
+{id:'house',name:'House Training',abbr:'HT',phase:1,prereqs:[],
+ desc:'Building reliable potty routine with reward-based outdoor elimination.',
+ video:'https://www.youtube.com/results?search_query=kikopup+house+training+puppy',
+ steps:[
+  {t:'Frequent Outings',d:'Every 1-2 hours, after meals/naps/play. Same spot. Wait quietly. When she goes, mark and treat party.',
+   guidance:{vocal:'"Yes! Good girl!" — big celebration',hand:'Treat party — multiple treats',position:'Same potty spot, standing quietly'},
+   capture:{type:'observe',successLabel:'Went outside',missLabel:null,notes_prompt:'Time since last outing? After meal/nap/play?'}},
+  {t:'Learn Her Signals',d:'Watch for sniffing, circling, going to door. Take out immediately. Reward every outdoor success.',
+   guidance:{vocal:'Praise outdoor success',hand:'Treat every success',position:'Observing from nearby'},
+   capture:{type:'reps',successLabel:'Signalled + success',missLabel:'Accident',notes_prompt:'What signal? How quickly did you respond?'}},
+  {t:'Extend Intervals',d:'Gradually increase time between outings. Continue rewarding outdoor. If accidents, just clean up — no punishment.',
+   guidance:{vocal:'Continue praising',hand:'Continue treating',position:'Normal routine'},
+   capture:{type:'reps',successLabel:'Held it',missLabel:'Accident',notes_prompt:'Hours between outings? Time of day patterns?'}},
+  {t:'Full Freedom',d:'Gradually give access to more rooms. Occasional treats for going outside maintain the habit.',
+   guidance:{vocal:'Intermittent praise',hand:'Occasional treat',position:'Full house access'},
+   capture:{type:'observe',successLabel:'Reliable day',missLabel:null,notes_prompt:'Rooms? Any regression? Days since accident?'}}
+]},
+
+// ── CIRCLE II: CORE WARDS ──
+{id:'name',name:'Name Recognition',abbr:'NR',phase:2,prereqs:[],
+ desc:'Zuzu\'s name should predict wonderful things — never used for scolding.',
+ video:'https://www.youtube.com/results?search_query=kikopup+name+recognition+dog',
+ steps:[
+  {t:'Name = Treat',d:'Say "Zuzu" in a happy tone, then immediately treat. No response needed yet — just building the association.',
+   guidance:{vocal:'Say "Zuzu" clearly then treat',hand:'Deliver treat after name',position:'Any'},
+   capture:{type:'observe',successLabel:'Pair done',missLabel:null,notes_prompt:'How many pairings? Any orientation toward you?'}},
+  {t:'Name Orientation',d:'Say "Zuzu" when she\'s mildly distracted. Mark and treat when she looks toward you.',
+   guidance:{vocal:'"Zuzu" then "yes" when she looks',hand:'Treat ready',position:'Within a few feet'},
+   capture:{type:'reps',successLabel:'Looked',missLabel:'No response',notes_prompt:'Response speed? Distraction level?'}},
+  {t:'Distance',d:'Say her name from across the room. Mark and reward any orientation toward you.',
+   guidance:{vocal:'"Zuzu" from distance',hand:'Show treat or toss toward her',position:'Across the room'},
+   capture:{type:'reps',successLabel:'Oriented',missLabel:'Ignored',notes_prompt:'Distance? Room?'}},
+  {t:'Busy Environments',d:'Use name outdoors and in distracting environments. Reward generously for responses.',
+   guidance:{vocal:'"Zuzu" — happy, clear tone',hand:'High-value treat',position:'Various environments'},
+   capture:{type:'reps',successLabel:'Responded',missLabel:'Too distracted',notes_prompt:'Environment? Distraction level?'}}
+]},
+{id:'recall',name:'Recall',abbr:'RC',phase:2,prereqs:['attention'],
+ desc:'Coming when called — a safety behavior. NEVER call to end fun or to punish.',
+ video:'https://www.youtube.com/results?search_query=kikopup+recall+come+when+called',
+ steps:[
+  {t:'Restrained Recall',d:'Partner holds Zuzu. You call excitedly and run away. Partner releases. Big party when she reaches you.',
+   guidance:{vocal:'"Zuzu, come!" — excited, high pitch',hand:'Open arms, crouch down',position:'Running away from her'},
+   capture:{type:'reps',successLabel:'Came running',missLabel:'Hesitated',notes_prompt:'Speed? Enthusiasm? Distance?'}},
+  {t:'Surprise Recalls',d:'Call unexpectedly in the house. Jackpot reward every time. Make coming to you the best thing ever.',
+   guidance:{vocal:'"Zuzu, come!" — enthusiastic',hand:'Treat party on arrival',position:'Different rooms'},
+   capture:{type:'reps',successLabel:'Came',missLabel:'Ignored',notes_prompt:'Response time? What was she doing?'}},
+  {t:'Long Line Outdoors',d:'Use 15-30 foot line. Call, reward. Never reel her in — let her choose to come. If she doesn\'t, try again closer.',
+   guidance:{vocal:'Same excited recall cue',hand:'Show treat, crouch',position:'Outdoors, long line'},
+   capture:{type:'reps',successLabel:'Came',missLabel:'No response',notes_prompt:'Distance? Distractions?'}},
+  {t:'Around Distractions',d:'Recall near other dogs (at distance), people, squirrels. Start far from distractions, decrease distance over time.',
+   guidance:{vocal:'Recall cue — may need higher pitch',hand:'Highest value treats',position:'Distance from distractions'},
+   capture:{type:'reps',successLabel:'Came despite distraction',missLabel:'Stayed with distraction',notes_prompt:'What distraction? Distance?'}},
+  {t:'Proof Reliability',d:'Various environments, distances, distractions. Continue rewarding recalls for life — this is a safety behavior.',
+   guidance:{vocal:'Standard recall cue',hand:'Always reward',position:'Anywhere'},
+   capture:{type:'reps',successLabel:'Reliable recall',missLabel:'Missed',notes_prompt:'Environment? Toughest scenario?'}}
+]},
+{id:'sit',name:'Sit',abbr:'SI',phase:2,prereqs:[],
+ desc:'A basic position cue. Can be lured or captured from natural sits.',
+ video:'https://www.youtube.com/results?search_query=kikopup+teach+sit',
+ steps:[
+  {t:'Lure or Capture',d:'Arc treat slowly over her head — her butt goes down naturally. Or capture natural sits. Mark the instant she sits.',
+   guidance:{vocal:'"Yes" the instant butt hits floor',hand:'Arc treat from nose upward over head',position:'Standing in front'},
+   capture:{type:'reps',successLabel:'Sat',missLabel:'Missed',notes_prompt:'Lured or captured? Speed?'}},
+  {t:'Add Verbal Cue',d:'Say "sit" just BEFORE she sits (when you\'re confident she will). Word predicts the action.',
+   guidance:{vocal:'Say "sit" THEN lure/wait',hand:'Fade lure to smaller motion',position:'In front'},
+   capture:{type:'reps',successLabel:'Sat on cue',missLabel:'Needed lure',notes_prompt:'Verbal only or still needs hand?'}},
+  {t:'Any Position',d:'Cue from standing, sitting, different angles. She should respond regardless of your body position.',
+   guidance:{vocal:'"Sit" from various postures',hand:'No hand signal',position:'Various angles and postures'},
+   capture:{type:'reps',successLabel:'Sat',missLabel:'Confused',notes_prompt:'Your position? Her starting position?'}},
+  {t:'Add Duration',d:'Gradually delay the mark after she sits. Build to 10-30 second sit-stays.',
+   guidance:{vocal:'"Sit" then delay "yes"',hand:'Palm-out stay signal optional',position:'In front, gradually step back'},
+   capture:{type:'duration',successLabel:'Held sit',missLabel:'Broke early',notes_prompt:'Duration held? Any fidgeting?'}},
+  {t:'Add Distractions',d:'Sit around food, toys, people, outdoors. Lower duration criteria in new contexts.',
+   guidance:{vocal:'"Sit" in distracting environments',hand:'None',position:'Various environments'},
+   capture:{type:'reps',successLabel:'Sat despite distraction',missLabel:'Couldn\'t hold',notes_prompt:'What distraction? Duration achieved?'}}
+]},
+{id:'release',name:'Release Cue',abbr:'RE',phase:2,prereqs:['sit'],
+ desc:'A word that means "you\'re done, you can move now." Essential for all stay behaviors.',
+ video:'https://www.youtube.com/results?search_query=kikopup+release+cue+dog',
+ steps:[
+  {t:'Pair the Word',d:'After a brief sit, say "free!" and toss treat so she must move to get it. Word = permission to move.',
+   guidance:{vocal:'"Free!" (or "break!") then toss treat',hand:'Toss treat away so she moves',position:'In front after sit'},
+   capture:{type:'reps',successLabel:'Moved on cue',missLabel:'Stayed confused',notes_prompt:'Does she move immediately on "free"?'}},
+  {t:'Before She Breaks',d:'Release BEFORE she would break the sit on her own. She learns the word, not just impatience.',
+   guidance:{vocal:'"Free!" before fidgeting starts',hand:'Toss treat or gesture to go',position:'In front'},
+   capture:{type:'reps',successLabel:'Clean release',missLabel:'Broke before cue',notes_prompt:'Timing? Did she wait for the word?'}},
+  {t:'Vary the Reward',d:'Sometimes treat, sometimes "go play," sometimes freedom to sniff. Release = good things.',
+   guidance:{vocal:'"Free!" with different rewards following',hand:'Various — treat, point to toy, gesture',position:'Various situations'},
+   capture:{type:'reps',successLabel:'Responded to release',missLabel:'Confused',notes_prompt:'What reward followed? Did she understand?'}},
+  {t:'Use with Everything',d:'Apply release cue after sit, down, wait at door, etc. It becomes the universal "you\'re done" signal.',
+   guidance:{vocal:'"Free!" after any stay behavior',hand:'Consistent release motion',position:'Any situation requiring a stay'},
+   capture:{type:'reps',successLabel:'Reliable release',missLabel:'Needed help',notes_prompt:'Context used? How well did she generalize?'}}
+]},
+{id:'down',name:'Down',abbr:'DN',phase:2,prereqs:['sit'],
+ desc:'Lying down on cue — useful for settling and stay behaviors.',
+ video:'https://www.youtube.com/results?search_query=kikopup+teach+down+lie+down',
+ steps:[
+  {t:'Lure from Sit',d:'From sit, slowly lower treat between front paws to floor. Mark the instant elbows touch ground.',
+   guidance:{vocal:'"Yes" when elbows hit floor',hand:'Lower treat from nose straight down between paws',position:'In front, kneeling'},
+   capture:{type:'reps',successLabel:'Downed',missLabel:'Stood up',notes_prompt:'Full down or just a crouch? Speed?'}},
+  {t:'Lure from Standing',d:'Lure down without sitting first. Lower treat to floor slowly. Mark full down.',
+   guidance:{vocal:'"Yes" on full down',hand:'Treat from nose to floor',position:'In front'},
+   capture:{type:'reps',successLabel:'Down from stand',missLabel:'Sat instead',notes_prompt:'Does she go straight to down?'}},
+  {t:'Add Verbal Cue',d:'Say "down" before luring. Gradually fade the hand motion. Word becomes the primary cue.',
+   guidance:{vocal:'"Down" then lure then "yes"',hand:'Fade lure to smaller motion',position:'In front'},
+   capture:{type:'reps',successLabel:'Down on cue',missLabel:'Needed full lure',notes_prompt:'Verbal only or hand needed?'}},
+  {t:'Build Duration',d:'Delay mark after she lies down. Build to 30-second down-stay.',
+   guidance:{vocal:'"Down" then delay "yes"',hand:'None',position:'Gradually increase distance'},
+   capture:{type:'duration',successLabel:'Held down',missLabel:'Got up',notes_prompt:'Duration? Relaxed or tense?'}},
+  {t:'Various Surfaces',d:'Practice down on grass, concrete, mat, carpet. Dogs may hesitate on cold/wet/unfamiliar surfaces.',
+   guidance:{vocal:'"Down" on various surfaces',hand:'May need lure on new surfaces',position:'Various locations'},
+   capture:{type:'reps',successLabel:'Downed on surface',missLabel:'Refused',notes_prompt:'What surface? Any hesitation?'}}
+]},
+{id:'leaveit',name:'Leave It',abbr:'LI',phase:2,prereqs:['nomugging'],
+ desc:'Don\'t touch it in the first place. The item is NEVER the reward — always reward from other hand.',
+ video:'https://www.youtube.com/results?search_query=kikopup+leave+it',
+ steps:[
+  {t:'Two-Treat Method',d:'Show treat in one hand, close fist. When she disengages, reward from OTHER hand. The shown treat is never given.',
+   guidance:{vocal:'"Yes" when she looks away from closed fist',hand:'Closed fist one hand, reward from other',position:'In front'},
+   capture:{type:'reps',successLabel:'Left it',missLabel:'Went for it',notes_prompt:'Speed of disengage?'}},
+  {t:'Add the Cue',d:'Say "leave it" before presenting the item. Then mark and reward disengage from other hand.',
+   guidance:{vocal:'"Leave it" then present item then "yes"',hand:'Same two-hand method',position:'In front'},
+   capture:{type:'reps',successLabel:'Left on cue',missLabel:'Went for it',notes_prompt:'Responds to verbal? Latency?'}},
+  {t:'Floor Items',d:'Place items on floor, cover if she goes for them. Mark and reward from other hand for ignoring.',
+   guidance:{vocal:'"Leave it" before floor item',hand:'Ready to cover, reward from pocket/other hand',position:'Kneeling near item'},
+   capture:{type:'reps',successLabel:'Ignored floor item',missLabel:'Went for it',notes_prompt:'What item? Covered or open?'}},
+  {t:'On Walks',d:'Use "leave it" for things on ground during walks. Reward from treat pouch for moving past.',
+   guidance:{vocal:'"Leave it" for sidewalk items',hand:'Treat from pouch',position:'Walking past items'},
+   capture:{type:'reps',successLabel:'Left it on walk',missLabel:'Grabbed/fixated',notes_prompt:'What item? How quickly did she respond?'}},
+  {t:'High-Value Items',d:'Leave it with very tempting items. Always reward with something BETTER than what she left.',
+   guidance:{vocal:'"Leave it" for high-value items',hand:'Jackpot from other hand',position:'Various'},
+   capture:{type:'reps',successLabel:'Left high-value item',missLabel:'Couldn\'t resist',notes_prompt:'What item? Treat value used as reward?'}}
+]},
+{id:'dropit',name:'Drop It',abbr:'DI',phase:2,prereqs:[],
+ desc:'Release what\'s in your mouth. Always trade UP, always give the toy BACK.',
+ video:'https://www.youtube.com/results?search_query=kikopup+drop+it+trade',
+ steps:[
+  {t:'Trade Game',d:'When she has a toy, offer high-value treat near her nose. She drops toy to eat. Give treat then give toy BACK.',
+   guidance:{vocal:'No cue yet — just trade',hand:'Treat near nose, return toy after',position:'Near her with toy'},
+   capture:{type:'reps',successLabel:'Dropped for trade',missLabel:'Held on',notes_prompt:'What toy? Trade willingness?'}},
+  {t:'Add Cue',d:'Say "drop it" just before offering the trade. Pair the word with the action.',
+   guidance:{vocal:'"Drop it" then present treat',hand:'Treat near nose, return toy',position:'Near her'},
+   capture:{type:'reps',successLabel:'Dropped on cue',missLabel:'Needed trade prompt',notes_prompt:'Responds to verbal? Speed?'}},
+  {t:'Various Objects',d:'Practice with different toys, sticks, found items. Always trade UP in value. Always return safe items.',
+   guidance:{vocal:'"Drop it"',hand:'High-value trade',position:'Various'},
+   capture:{type:'reps',successLabel:'Dropped novel item',missLabel:'Held on',notes_prompt:'What object? Trade difficulty?'}},
+  {t:'Quick Response',d:'Build speed of response. She should spit it out immediately on cue. Continue trading for life.',
+   guidance:{vocal:'"Drop it" — expect fast response',hand:'Immediate reward',position:'Any situation'},
+   capture:{type:'reps',successLabel:'Quick drop',missLabel:'Slow/no response',notes_prompt:'Response time? Context?'}}
+]},
+
+// ── CIRCLE III: LIFE WARDS ──
+{id:'leashpressure',name:'Leash Pressure Yields',abbr:'LP',phase:3,prereqs:['attention'],
+ desc:'Teaching Zuzu that leash tension means turn toward handler, not pull harder.',
+ video:'https://www.youtube.com/results?search_query=kikopup+leash+pressure+yields',
+ steps:[
+  {t:'Collar Touch',d:'Touch her collar, treat. Build comfort with collar handling before adding any leash work.',
+   guidance:{vocal:'Quiet "yes" on collar touch',hand:'Touch collar gently then treat',position:'Beside her'},
+   capture:{type:'observe',successLabel:'Accepted touch',missLabel:null,notes_prompt:'Body language during collar touch?'}},
+  {t:'Light Pressure',d:'With leash on, apply very slight tension. The instant she turns toward you or steps toward you, mark and treat.',
+   guidance:{vocal:'"Yes" the instant she yields toward you',hand:'Gentle leash tension — never jerk',position:'Facing her, few feet away'},
+   capture:{type:'reps',successLabel:'Yielded',missLabel:'Pulled against',notes_prompt:'Amount of pressure? Speed of yield?'}},
+  {t:'Following Pressure',d:'Walk slowly, let leash go taut. When she checks in, mark and treat. Build habit of yielding.',
+   guidance:{vocal:'"Yes" for checking in',hand:'Reward at your side',position:'Walking slowly indoors'},
+   capture:{type:'reps',successLabel:'Followed pressure',missLabel:'Pulled',notes_prompt:'Indoors? How many check-ins?'}},
+  {t:'Direction Changes',d:'Change direction. When she follows the leash pressure to come with you, mark and treat.',
+   guidance:{vocal:'"Yes" for direction change follow',hand:'Treat at your side after turn',position:'Walking, changing directions'},
+   capture:{type:'reps',successLabel:'Followed change',missLabel:'Kept going',notes_prompt:'How many direction changes? Response speed?'}}
+]},
+{id:'llwindoor',name:'LLW Indoor',abbr:'LW',phase:3,prereqs:['leashpressure','attention'],
+ desc:'Loose leash walking must be reliable indoors before going outside.',
+ video:'https://www.youtube.com/results?search_query=kikopup+loose+leash+walking+indoor',
+ steps:[
+  {t:'Heel Position Reward',d:'Stand still. When she\'s at your side with loose leash, mark and treat. She learns position = reward.',
+   guidance:{vocal:'"Yes" for being at your side',hand:'Treat at your side/hip level',position:'Standing still'},
+   capture:{type:'reps',successLabel:'At heel',missLabel:'Pulled away',notes_prompt:'How quickly does she offer heel position?'}},
+  {t:'First Steps',d:'Take 2-3 steps. If leash stays loose, mark and treat. If she pulls, stop and wait for slack.',
+   guidance:{vocal:'"Yes" for loose leash steps',hand:'Treat at hip level',position:'Walking slowly'},
+   capture:{type:'reps',successLabel:'Loose leash steps',missLabel:'Pulled',notes_prompt:'How many steps before pulling?'}},
+  {t:'Hallway Walking',d:'Walk down a hallway. Stop when she pulls, reward loose leash. Build to whole hallway without pulling.',
+   guidance:{vocal:'Mark loose leash moments',hand:'Frequent treats at side',position:'Hallway'},
+   capture:{type:'reps',successLabel:'Hallway stretch',missLabel:'Pulled',notes_prompt:'Furthest distance without pull?'}},
+  {t:'Through Rooms',d:'Navigate house with turns. Reward following. Build to walking through multiple rooms on loose leash.',
+   guidance:{vocal:'Mark turns and check-ins',hand:'Treat at side',position:'Through house'},
+   capture:{type:'duration',successLabel:'Room-to-room success',missLabel:'Pulled on turn',notes_prompt:'How many rooms? Toughest transition?'}},
+  {t:'Duration',d:'Longer indoor walks without pulling. Ready for outdoor when reliably loose indoors.',
+   guidance:{vocal:'Intermittent markers',hand:'Variable treat delivery',position:'Throughout house'},
+   capture:{type:'duration',successLabel:'Extended loose leash',missLabel:'Reverted to pulling',notes_prompt:'Duration? Ready for outdoor?'}}
+]},
+{id:'llwoutdoor',name:'LLW Outdoor',abbr:'LO',phase:3,prereqs:['llwindoor','interrupter'],
+ desc:'Outdoor loose leash walking — the real challenge. Start in boring environments.',
+ video:'https://www.youtube.com/results?search_query=kikopup+loose+leash+walking+outdoor',
+ steps:[
+  {t:'Low-Distraction Outdoor',d:'Quiet area, short walks. Reward loose leash constantly. Use interrupter for fixation. Keep it positive.',
+   guidance:{vocal:'Frequent "yes" for loose leash',hand:'Treat every few steps initially',position:'Quiet street or yard'},
+   capture:{type:'reps',successLabel:'Loose leash stretch',missLabel:'Pulled',notes_prompt:'Location? Treat frequency?'}},
+  {t:'Moderate Distractions',d:'Neighborhood walks. Stop for pulls, reward loose leash. Use positive interrupter for sniff fixation.',
+   guidance:{vocal:'Mark loose leash, use interrupter for fixation',hand:'High-value treats',position:'Neighborhood'},
+   capture:{type:'reps',successLabel:'Walked past distraction',missLabel:'Fixated/pulled',notes_prompt:'Distractions encountered?'}},
+  {t:'High Distractions',d:'Near parks, other dogs at distance. Allow sniffing (it\'s enrichment) but reward check-ins and loose leash.',
+   guidance:{vocal:'Mark check-ins near distractions',hand:'Highest value treats',position:'Near but not at parks/dogs'},
+   capture:{type:'reps',successLabel:'Loose leash near dogs',missLabel:'Over threshold',notes_prompt:'Closest distance to distraction?'}},
+  {t:'Long Walks',d:'Full-length walks with mostly loose leash. Intermittent reward to maintain. Sniff breaks are OK and encouraged.',
+   guidance:{vocal:'Intermittent markers',hand:'Variable reward schedule',position:'Regular walking routes'},
+   capture:{type:'duration',successLabel:'Loose walk duration',missLabel:'Needed many corrections',notes_prompt:'Walk duration? Pulling frequency?'}}
+]},
+{id:'fetch',name:'Fetch',abbr:'FE',phase:3,prereqs:['dropit'],
+ desc:'Retrieve and return — builds on drop it. Chase is the reward.',
+ video:'https://www.youtube.com/results?search_query=kikopup+teach+fetch',
+ steps:[
+  {t:'Chase the Toy',d:'Toss toy short distance. Let her chase. If she picks it up, celebrate. No "bring it back" pressure yet.',
+   guidance:{vocal:'Excited voice when she chases',hand:'Short toss, show excitement',position:'Open room or yard'},
+   capture:{type:'observe',successLabel:'Chased it',missLabel:null,notes_prompt:'Interest level? Picked it up?'}},
+  {t:'Bring It Back',d:'When she has the toy, make yourself interesting. Crouch, call her, show treat. Reward any return movement.',
+   guidance:{vocal:'Excited recall, "bring it!"',hand:'Show treat, crouch, open arms',position:'Near her, make yourself the party'},
+   capture:{type:'reps',successLabel:'Brought it back',missLabel:'Kept it / ran off',notes_prompt:'How close did she bring it?'}},
+  {t:'Drop and Throw',d:'Use "drop it" cue, then immediately throw again. The throw IS the reward. She learns drop = more fetch.',
+   guidance:{vocal:'"Drop it" then immediate throw',hand:'Take toy, throw again fast',position:'Open area'},
+   capture:{type:'reps',successLabel:'Drop + return cycle',missLabel:'Didn\'t drop',notes_prompt:'How many cycles? Enthusiasm?'}},
+  {t:'Distance',d:'Longer throws, consistent return. She should reliably chase, grab, return, and drop for another throw.',
+   guidance:{vocal:'"Drop it" then "ready?" then throw',hand:'Longer tosses',position:'Yard or park'},
+   capture:{type:'reps',successLabel:'Full fetch cycle',missLabel:'Incomplete',notes_prompt:'Distance? Consecutive successful fetches?'}}
+]},
+{id:'handling',name:'Handling & Grooming',abbr:'HG',phase:3,prereqs:['calmness'],
+ desc:'Cooperative care — touch = treat. Uses Bucket Game. If she moves away, LET HER.',
+ video:'https://www.youtube.com/results?search_query=kikopup+cooperative+care+handling',
+ steps:[
+  {t:'Touch = Treat',d:'Brief gentle touch anywhere on body, immediately treat. Start with shoulders and back (least sensitive).',
+   guidance:{vocal:'Quiet "yes" on touch acceptance',hand:'Brief touch then treat',position:'Beside her, relaxed'},
+   capture:{type:'observe',successLabel:'Accepted touch',missLabel:null,notes_prompt:'Body part touched? Body language?'}},
+  {t:'Extended Touch',d:'Longer touch, ears, paws, mouth area. If she moves away, STOP. Let her choose to return.',
+   guidance:{vocal:'Quiet marker, calm tone',hand:'Longer touch, various body parts',position:'Beside her on mat'},
+   capture:{type:'duration',successLabel:'Tolerated handling',missLabel:'Moved away',notes_prompt:'Body part? Duration? Any stress signals?'}},
+  {t:'Introduce Tools',d:'Show brush, nail clipper near her. Treat for looking at them. Touch tool to body briefly + treat. Never force.',
+   guidance:{vocal:'Calm marker when she\'s relaxed with tool',hand:'Show tool, touch briefly to body',position:'On mat, at her pace'},
+   capture:{type:'reps',successLabel:'Calm with tool',missLabel:'Moved away from tool',notes_prompt:'Which tool? How close? Duration of acceptance?'}},
+  {t:'Full Grooming Session',d:'Complete grooming at her pace. Take breaks. Use Bucket Game for consent. She can end the session anytime.',
+   guidance:{vocal:'Calm continuous reinforcement',hand:'Gentle grooming with frequent treats',position:'Comfortable position for both'},
+   capture:{type:'duration',successLabel:'Completed grooming',missLabel:'Ended early (that\'s OK)',notes_prompt:'What grooming done? Duration? Stress level?'}}
+]},
+{id:'separation',name:'Separation Training',abbr:'ST',phase:3,prereqs:['crate','calmness'],
+ desc:'Graduated departures. First 15 minutes is hardest. Film to watch for stress signals.',
+ video:'https://www.youtube.com/results?search_query=kikopup+separation+anxiety+training',
+ steps:[
+  {t:'Departure Cue Desensitization',d:'Pick up keys, put on shoes, then sit down. Don\'t leave. Desensitize the cues that predict departure.',
+   guidance:{vocal:'None — act normally',hand:'Handle departure items casually',position:'Moving around house normally'},
+   capture:{type:'observe',successLabel:'Practiced cues',missLabel:null,notes_prompt:'Which cues practiced? Her reaction?'}},
+  {t:'Brief Departures',d:'Leave room 10 seconds, return boring. No dramatic hello. Treat calmly. Build to 1-2 minutes.',
+   guidance:{vocal:'Low-key departure and return',hand:'Treat calmly on return',position:'Out of sight briefly'},
+   capture:{type:'duration',successLabel:'Calm while gone',missLabel:'Vocalized/stressed',notes_prompt:'Duration? Any vocalization?'}},
+  {t:'Longer Departures',d:'Build to 5 minutes out of sight. Leave enrichment. Returns are BORING — save hellos for later.',
+   guidance:{vocal:'Boring departure',hand:'Leave Kong/enrichment',position:'Out of house briefly'},
+   capture:{type:'duration',successLabel:'Calm for duration',missLabel:'Stressed before time up',notes_prompt:'Minutes? Enrichment used? Ate it?'}},
+  {t:'15-Minute Barrier',d:'The hardest barrier. Build past 15 minutes gradually. Most anxious behavior occurs in first 20-40 min.',
+   guidance:{vocal:'Same boring departure',hand:'Enrichment provided',position:'Away from home'},
+   capture:{type:'duration',successLabel:'Passed 15 min calm',missLabel:'Distressed within 15 min',notes_prompt:'Exact duration? Body language on return?'}},
+  {t:'Extended Absence',d:'30+ minutes, then hours. Keep departures/arrivals low-key. Continue providing enrichment. Film to monitor.',
+   guidance:{vocal:'Low-key departures forever',hand:'Enrichment routine',position:'Normal life absences'},
+   capture:{type:'duration',successLabel:'Extended absence OK',missLabel:'Regression',notes_prompt:'Duration? Filming results? Calm level?'}}
+]},
+{id:'doormanners',name:'Door Manners',abbr:'DM',phase:3,prereqs:['sit','release'],
+ desc:'Wait at doorways until released. Prevents bolting — a safety behavior.',
+ video:'https://www.youtube.com/results?search_query=kikopup+door+manners+wait',
+ steps:[
+  {t:'Sit at Door',d:'Approach door, cue sit. Only reach for handle when she sits. If she stands, remove hand from handle.',
+   guidance:{vocal:'"Sit" at door',hand:'Reach for handle only when sitting',position:'At closed door'},
+   capture:{type:'reps',successLabel:'Sat at door',missLabel:'Broke sit',notes_prompt:'How quickly does she sit at the door?'}},
+  {t:'Door Opens, Don\'t Move',d:'Open door a crack. If she moves, close it. Open wider when she stays. Close = no movement, not punishment.',
+   guidance:{vocal:'No cue needed — door opening is the test',hand:'Open door slowly, close if she moves',position:'At door'},
+   capture:{type:'reps',successLabel:'Stayed with door open',missLabel:'Moved toward door',notes_prompt:'How far could you open it? Duration?'}},
+  {t:'Wait for Release',d:'Door fully open, she waits until "free!" before going through. Treat for waiting, release to go through.',
+   guidance:{vocal:'"Free!" to release through door',hand:'None',position:'Door fully open'},
+   capture:{type:'reps',successLabel:'Waited for release',missLabel:'Went through early',notes_prompt:'Duration waited? Any fidgeting?'}},
+  {t:'All Doors',d:'Front door, back door, car door. Generalize the wait behavior to every doorway.',
+   guidance:{vocal:'"Sit" then "free!" at all doors',hand:'Same pattern everywhere',position:'Various doorways'},
+   capture:{type:'reps',successLabel:'Generalized',missLabel:'Forgot at new door',notes_prompt:'Which doors practiced? Any trouble spots?'}}
+]}
 ];
 
-const PHASES = {
-  1:{name:'Foundation', range:'Days 1-7', badge:'b-1', color:'#34D399'},
-  2:{name:'Core Skills', range:'Days 7-21', badge:'b-2', color:'#7C6EF6'},
-  3:{name:'Life Skills', range:'Days 14-42', badge:'b-3', color:'#FBBF24'}
+/* ============================================================
+   TREE LAYOUT — Node positions and edges
+   ============================================================ */
+const TREE_POS={
+  attention:{x:65,y:40},interrupter:{x:190,y:40},nomugging:{x:315,y:40},
+  calmness:{x:65,y:110},crate:{x:190,y:110},house:{x:315,y:110},
+  name:{x:30,y:200},recall:{x:120,y:200},sit:{x:210,y:200},dropit:{x:345,y:200},
+  leashpressure:{x:30,y:270},release:{x:155,y:270},down:{x:250,y:270},leaveit:{x:345,y:270},
+  llwindoor:{x:30,y:350},handling:{x:140,y:350},separation:{x:250,y:350},fetch:{x:345,y:350},
+  llwoutdoor:{x:30,y:430},doormanners:{x:190,y:430}
+};
+const TREE_EDGES=[
+  ['attention','recall'],['attention','leashpressure'],
+  ['interrupter','llwoutdoor'],
+  ['nomugging','leaveit'],
+  ['calmness','handling'],['calmness','separation'],
+  ['crate','separation'],
+  ['sit','release'],['sit','down'],['sit','doormanners'],
+  ['release','doormanners'],
+  ['dropit','fetch'],
+  ['leashpressure','llwindoor'],
+  ['llwindoor','llwoutdoor']
+];
+
+/* ============================================================
+   INSCRIPTIONS (Milestones)
+   ============================================================ */
+const INSCRIPTIONS=[
+  {id:'first_ritual',t:'First Ritual Performed',ic:'flame',check:s=>s.sessions.length>=1},
+  {id:'ten_rituals',t:'Ten Rituals Completed',ic:'flame',check:s=>s.sessions.length>=10},
+  {id:'twentyfive',t:'Twenty-Five Rituals',ic:'star',check:s=>s.sessions.length>=25},
+  {id:'fifty',t:'Fifty Rituals',ic:'star',check:s=>s.sessions.length>=50},
+  {id:'hundred',t:'One Hundred Rituals',ic:'crown',check:s=>s.sessions.length>=100},
+  {id:'vigil_3',t:'3-Day Vigil',ic:'shield',check:s=>calcStreak(s)>=3},
+  {id:'vigil_7',t:'7-Day Vigil',ic:'shield',check:s=>calcStreak(s)>=7},
+  {id:'vigil_14',t:'14-Day Vigil',ic:'shield',check:s=>calcStreak(s)>=14},
+  {id:'vigil_30',t:'30-Day Vigil',ic:'shield',check:s=>calcStreak(s)>=30},
+  {id:'first_alone_30',t:'First 30-Minute Separation',ic:'house',check:s=>s.aloneLogs.some(a=>a.dur>=1800)},
+  {id:'first_alone_60',t:'First Hour Alone',ic:'house',check:s=>s.aloneLogs.some(a=>a.dur>=3600)},
+  {id:'potty_streak_7',t:'7 Days Accident-Free',ic:'leaf',check:s=>pottyStreak(s)>=7}
+];
+
+/* ============================================================
+   BODY LANGUAGE SIGNALS — for tracking
+   ============================================================ */
+const BODY_SIGNALS=[
+  'Lip licking','Yawning','Panting','Pacing','Trembling','Whale eye',
+  'Tucked tail','Raised hackles','Drooling','Scratching','Hiding',
+  'Clingy/velcro','Freezing','Ground sniffing','Turning away','Low posture'
+];
+
+const ENRICHMENT_TYPES=[
+  'Kong','Puzzle toy','Lick mat','Snuffle mat','Scatter feed','Busy box',
+  'Decompression walk','Flirt pole','Chew','Tug','Nose work','Other'
+];
+
+/* ============================================================
+   DATA LAYER
+   ============================================================ */
+const STORE_KEY='pazuzuWards';
+const OLD_KEY='zuTrainer';
+const DEFAULTS={
+  profile:{name:'Zuzu',weight:8.5,rescueDate:'',breed:'Chiweenie',age:'',origin:'Mexico rescue'},
+  settings:{duration:180,threshold:80,evalSessions:3,treatTiers:'',soundEnabled:true,reminders:true},
+  progress:{},
+  sessions:[],
+  milestones:[],
+  pottyLogs:[],
+  aloneLogs:[],
+  enrichmentLogs:[],
+  foodNotes:{kibble:'',highValueTreats:[],medValueTreats:[],lowValueTreats:[],dislikes:[],allergies:[],feedingSchedule:'',notes:''},
+  behaviorNotes:[],
+  aloneTimerState:{running:false,startTime:null,elapsed:0}
 };
 
-// ═══════════════════════════════════════════════════════
-// DATA
-// ═══════════════════════════════════════════════════════
-const SK = 'zuTrainer';
-function defaults(){return{
-  profile:{name:'Zu',weight:8.5,rescueDate:''},
-  settings:{duration:180,threshold:80,evalSessions:3,treatNotes:''},
-  progress:{}, sessions:[], milestones:[],
-  pottyLogs:[], aloneLogs:[]
-}}
+let D;
+
 function load(){
-  try{const r=localStorage.getItem(SK);if(r){const d=JSON.parse(r),df=defaults();return{...df,...d,profile:{...df.profile,...d.profile},settings:{...df.settings,...d.settings}}}}catch(e){}
-  return defaults();
-}
-function save(){try{localStorage.setItem(SK,JSON.stringify(D))}catch(e){}}
-let D=load();
-SKILLS.forEach(s=>{if(!D.progress[s.id])D.progress[s.id]={step:0,unlocked:s.phase===1||s.prereqs.length===0}});
-save();
-
-// ═══════════════════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════════════════
-const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
-function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('vis');setTimeout(()=>e.classList.remove('vis'),2400)}
-function modal(t,b,acts){
-  $('#mod-t').textContent=t;$('#mod-b').textContent=b;
-  const a=$('#mod-a');a.innerHTML='';
-  acts.forEach(x=>{const btn=document.createElement('button');btn.className=`btn ${x.c||'btn-o'} btn-s`;btn.textContent=x.l;btn.onclick=()=>{$('#mod-o').classList.remove('vis');if(x.fn)x.fn()};a.appendChild(btn)});
-  $('#mod-o').classList.add('vis');
-}
-$('#mod-o').onclick=e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('vis')};
-function dk(d){return(d?new Date(d):new Date()).toISOString().split('T')[0]}
-function fmtDate(d){return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
-function fmtTime(d){return new Date(d).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
-function skillSess(id){return D.sessions.filter(s=>s.sid===id).sort((a,b)=>new Date(b.dt)-new Date(a.dt))}
-function rate(s){const t=s.ok+s.no;return t>0?Math.round(s.ok/t*100):0}
-function rollingAvg(id,n){const ss=skillSess(id).slice(0,n||D.settings.evalSessions);if(!ss.length)return null;return Math.round(ss.map(rate).reduce((a,b)=>a+b,0)/ss.length)}
-function streak(){
-  const dates=[...new Set(D.sessions.map(s=>dk(s.dt)))].sort().reverse();
-  if(!dates.length)return 0;let s=0,c=new Date();
-  if(dates[0]!==dk(c)){c.setDate(c.getDate()-1);if(dates[0]!==dk(c))return 0}
-  for(const d of dates){if(d===dk(c)){s++;c.setDate(c.getDate()-1)}else break}
-  return s;
-}
-function unlocked(sk){
-  if(!sk.prereqs.length)return true;
-  return sk.prereqs.every(pid=>{const p=D.progress[pid];return p&&p.step>=1});
-}
-function updateUnlocks(){SKILLS.forEach(s=>{D.progress[s.id].unlocked=unlocked(s)});save()}
-function checkMilestones(){
-  const n=D.sessions.length,defs=[
-    {id:'first',ck:()=>n>=1,t:'First Training Session',ic:'star'},
-    {id:'s10',ck:()=>n>=10,t:'10 Sessions Completed',ic:'star'},
-    {id:'s25',ck:()=>n>=25,t:'25 Sessions Completed',ic:'trophy'},
-    {id:'s50',ck:()=>n>=50,t:'50 Sessions',ic:'trophy'},
-    {id:'s100',ck:()=>n>=100,t:'100 Sessions!',ic:'gem'},
-    {id:'k3',ck:()=>streak()>=3,t:'3-Day Streak',ic:'fire'},
-    {id:'k7',ck:()=>streak()>=7,t:'7-Day Streak',ic:'fire'},
-    {id:'k14',ck:()=>streak()>=14,t:'14-Day Streak!',ic:'fire'},
-    {id:'k30',ck:()=>streak()>=30,t:'30-Day Streak!',ic:'fire'},
-  ];
-  SKILLS.forEach(s=>defs.push({id:'m_'+s.id,ck:()=>D.progress[s.id].step>=s.steps.length,t:s.name+' Mastered!',ic:'check'}));
-  defs.forEach(m=>{if(!D.milestones.find(x=>x.id===m.id)&&m.ck())D.milestones.push({id:m.id,t:m.t,ic:m.ic,dt:new Date().toISOString()})});
-  save();
-}
-function dailyPlan(){
-  const plan=[];
-  SKILLS.forEach(sk=>{
-    const p=D.progress[sk.id];if(!p.unlocked||p.step>=sk.steps.length)return;
-    const ss=skillSess(sk.id),last=ss[0];
-    const days=last?Math.floor((Date.now()-new Date(last.dt))/864e5):999;
-    const avg=rollingAvg(sk.id);
-    plan.push({sk,days,avg,cnt:ss.length});
-  });
-  plan.sort((a,b)=>b.days!==a.days?b.days-a.days:(a.avg!==null?Math.abs(a.avg-D.settings.threshold):100)-(b.avg!==null?Math.abs(b.avg-D.settings.threshold):100));
-  return plan.slice(0,5);
-}
-
-// ═══════════════════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════════════════
-function go(t){
-  $$('.tab').forEach(p=>p.classList.remove('on'));$$('.nav-b').forEach(b=>b.classList.remove('on'));
-  $(`#t-${t}`).classList.add('on');$(`.nav-b[data-t="${t}"]`).classList.add('on');
-  ({home:rHome,skills:rSkills,train:rTrain,log:rLog,prog:rProg})[t]();
-}
-$$('.nav-b').forEach(b=>b.onclick=()=>go(b.dataset.t));
-
-// ═══════════════════════════════════════════════════════
-// HOME TAB
-// ═══════════════════════════════════════════════════════
-function rHome(){
-  const p=D.profile,info=[p.weight?p.weight+' kg':'','mixed rescue'];
-  if(p.rescueDate){const d=Math.floor((Date.now()-new Date(p.rescueDate))/864e5);info.push('home '+d+' days')}
-  const active=SKILLS.filter(s=>D.progress[s.id].unlocked&&D.progress[s.id].step<s.steps.length).length;
-  const plan=dailyPlan();
-  const todayPotty=D.pottyLogs.filter(l=>dk(l.dt)===dk()).length;
-  const todayAlone=D.aloneLogs.filter(l=>dk(l.dt)===dk()).length;
-
-  let h=`<div class="cd prof">
-    <div class="prof-av"><svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36"><path d="M4.5 9.5a2 2 0 0 1 2-2c.3 0 .6.07.87.18A7 7 0 0 1 12 5a7 7 0 0 1 4.63 2.68c.27-.11.57-.18.87-.18a2 2 0 0 1 0 4c-.06 0-.12 0-.18-.01A7 7 0 0 1 12 19a7 7 0 0 1-5.32-7.51c-.06.01-.12.01-.18.01a2 2 0 0 1 0-4z"/></svg></div>
-    <div class="prof-name">${p.name||'Zu'}</div>
-    <div class="prof-sub">${info.filter(Boolean).join(' · ')}</div>
-    <div class="stats"><div class="st"><div class="st-v">${streak()}</div><div class="st-l">Day Streak</div></div><div class="st"><div class="st-v">${D.sessions.length}</div><div class="st-l">Sessions</div></div><div class="st"><div class="st-v">${active}</div><div class="st-l">Active Skills</div></div></div>
-  </div>`;
-
-  // Quick actions
-  h+=`<div class="plan-h">Quick Actions</div><div class="qa-grid">
-    <button class="qa-btn" onclick="go('log');setTimeout(()=>openPottyForm(),50)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Log Potty<div class="log-btn-sub">${todayPotty} today</div></button>
-    <button class="qa-btn" onclick="go('log');setTimeout(()=>openAloneForm(),50)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/></svg>Alone Time<div class="log-btn-sub">${todayAlone} today</div></button>
-  </div>`;
-
-  // Today's plan
-  h+=`<div class="plan-h" style="margin-top:14px">Today's Training Plan</div>`;
-  if(!plan.length) h+='<p style="font-size:.82rem;color:var(--txt3);padding:8px">All skills mastered or locked. Check the Skills tab.</p>';
-  else plan.forEach(p=>{
-    const pr=D.progress[p.sk.id],step=p.sk.steps[pr.step],ph=PHASES[p.sk.phase];
-    const rc=p.avg===null?'var(--txt3)':p.avg>=80?'var(--ok)':p.avg<50?'var(--bad)':'var(--warn)';
-    h+=`<div class="pl-i" onclick="trainFor('${p.sk.id}')"><div class="si" style="background:${ph.color}18;color:${ph.color}">${p.sk.abbr}</div><div class="pl-i-info"><div class="pl-i-name">${p.sk.name}</div><div class="pl-i-step">Step ${pr.step+1}: ${step?step.t:'Done'}</div></div><div class="pl-i-rate" style="color:${rc}">${p.avg!==null?p.avg+'%':'\u2014'}</div></div>`;
-  });
-  $('#t-home').innerHTML=h;
-}
-
-// ═══════════════════════════════════════════════════════
-// SKILLS TAB
-// ═══════════════════════════════════════════════════════
-function rSkills(){
-  let h='';
-  [1,2,3].forEach(phase=>{
-    const pi=PHASES[phase],sks=SKILLS.filter(s=>s.phase===phase);
-    h+=`<div class="ph-sec"><div class="sec-title"><span class="badge ${pi.badge}">Phase ${phase}</span> ${pi.name} <span style="font-weight:400;text-transform:none;color:var(--txt3)">(${pi.range})</span></div>`;
-    sks.forEach(sk=>{
-      const pr=D.progress[sk.id],lk=!pr.unlocked,pct=Math.round(pr.step/sk.steps.length*100),avg=rollingAvg(sk.id);
-      const prereqNames=sk.prereqs.map(pid=>{const s=SKILLS.find(x=>x.id===pid);return s?s.name:'?'});
-      h+=`<div class="cd sk-cd${lk?' lock':''}" id="sk-${sk.id}" onclick="togSkill('${sk.id}')">
-        <div class="sk-top"><div class="si" style="background:${pi.color}18;color:${pi.color}">${sk.abbr}</div>
-        <div class="sk-main"><div class="sk-name">${sk.name}${lk?' <span class="badge b-lock">Locked</span>':''}</div>
-        <div class="sk-meta">Step ${Math.min(pr.step+1,sk.steps.length)} of ${sk.steps.length}${avg!==null?' · '+avg+'% avg':''}</div>
-        ${lk&&prereqNames.length?`<div class="sk-prereq">Requires: ${prereqNames.join(', ')}</div>`:''}</div></div>
-        <div class="pbar" style="margin-top:8px"><div class="fill" style="width:${pct}%"></div></div>
-        <div class="sk-det"><ul class="stp-list">${sk.steps.map((st,i)=>{
-          const cls=i<pr.step?'done':i===pr.step?'cur':'';
-          const jmp=i<pr.step?'go back':i===pr.step?'':'skip here';
-          return `<li class="stp-i ${cls}" onclick="event.stopPropagation();setStep('${sk.id}',${i})"><span class="stp-n">${i<pr.step?'&#10003;':i+1}</span><div class="stp-txt"><strong>${st.t}</strong><br><span>${st.d}</span></div>${jmp?`<span class="stp-jmp">${jmp}</span>`:''}</li>`;
-        }).join('')}</ul>
-        ${sk.video?`<a href="${sk.video}" target="_blank" rel="noopener" class="vid-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>Kikopup Videos</a>`:''}
-        ${!lk?`<button class="btn btn-p btn-s" style="margin-top:10px" onclick="event.stopPropagation();trainFor('${sk.id}')">Train This</button>`:''}
-        </div></div>`;
-    });
-    h+='</div>';
-  });
-  $('#t-skills').innerHTML=h;
-}
-function togSkill(id){const e=$(`#sk-${id}`);if(e)e.classList.toggle('exp')}
-function setStep(id,i){
-  const sk=SKILLS.find(s=>s.id===id),pr=D.progress[id];
-  if(i===pr.step)return;
-  const dir=i>pr.step?'Skip ahead':'Go back',st=sk.steps[i];
-  modal(`${dir} to Step ${i+1}?`,
-    `${sk.name}: Move to "${st.t}"? ${i>pr.step?'Make sure Zu is ready.':'Reinforcing earlier steps is always good.'}`,
-    [{l:'Cancel'},{l:dir,c:i>pr.step?'btn-p':'btn-o',fn:()=>{pr.step=i;save();updateUnlocks();checkMilestones();rSkills();toast(`Now on Step ${i+1}: ${st.t}`)}}]
-  );
-}
-
-// ═══════════════════════════════════════════════════════
-// TRAIN TAB
-// ═══════════════════════════════════════════════════════
-let cur=null, tmI=null, tmOn=false, tmSec=0, selDur=180, selSk=null, sessStart=null;
-function rTrain(){
-  if(cur)return;
-  const g=$('#ss-grid'),avail=SKILLS.filter(s=>D.progress[s.id].unlocked&&D.progress[s.id].step<s.steps.length);
-  g.innerHTML=avail.length?avail.map(sk=>{
-    const ph=PHASES[sk.phase];
-    return `<button class="ss-btn${selSk===sk.id?' sel':''}" onclick="pickSk('${sk.id}')"><div class="si" style="background:${ph.color}18;color:${ph.color}">${sk.abbr}</div>${sk.name}</button>`;
-  }).join(''):'<p style="grid-column:1/-1;color:var(--txt3);font-size:.82rem">No skills available.</p>';
-  $('#btn-go').disabled=!selSk;
-}
-function pickSk(id){selSk=id;rTrain()}
-function trainFor(id){selSk=id;go('train');setTimeout(startSess,60)}
-function startSess(){
-  if(!selSk)return;
-  const sk=SKILLS.find(s=>s.id===selSk),pr=D.progress[sk.id],st=sk.steps[pr.step];
-  if(!st){toast('Skill fully completed!');return}
-  cur={sid:sk.id,ok:0,no:0};sessStart=Date.now();tmSec=selDur;tmOn=false;
-  $('.setup').classList.add('hid');$('#sess').classList.add('vis');
-  $('#instr-txt').textContent=`Step ${pr.step+1}: ${st.t} \u2014 ${st.d}`;
-  $('#r-ok').textContent='0';$('#r-no').textContent='0';$('#s-tot').textContent='0';$('#s-rate').textContent='0%';$('#s-elap').textContent='0:00';
-  $('#sess-notes').value='';updTm();$('#tm-tog').textContent='Start Timer';
-}
-function updTm(){$('#tm-d').textContent=`${Math.floor(tmSec/60)}:${(tmSec%60).toString().padStart(2,'0')}`}
-function updStats(){
-  if(!cur)return;const t=cur.ok+cur.no,r=t>0?Math.round(cur.ok/t*100):0;
-  $('#s-tot').textContent=t;$('#s-rate').textContent=r+'%';
-  const e=Math.floor((Date.now()-sessStart)/1000);$('#s-elap').textContent=`${Math.floor(e/60)}:${(e%60).toString().padStart(2,'0')}`;
-}
-$('#tm-tog').onclick=()=>{
-  if(tmOn){clearInterval(tmI);tmOn=false;$('#tm-tog').textContent='Resume'}
-  else{tmOn=true;$('#tm-tog').textContent='Pause';tmI=setInterval(()=>{tmSec--;updTm();updStats();if(tmSec<=0){clearInterval(tmI);tmOn=false;$('#tm-tog').textContent='Done!';toast('Time\'s up! End session when ready.')}},1000)}
-};
-$('#tm-rst').onclick=()=>{clearInterval(tmI);tmOn=false;tmSec=selDur;updTm();$('#tm-tog').textContent='Start Timer'};
-$('#b-ok').onclick=()=>{if(!cur)return;cur.ok++;$('#r-ok').textContent=cur.ok;updStats()};
-$('#b-no').onclick=()=>{if(!cur)return;cur.no++;$('#r-no').textContent=cur.no;updStats()};
-$('#btn-end').onclick=()=>{
-  if(!cur)return;clearInterval(tmI);tmOn=false;
-  if(cur.ok+cur.no===0){modal('End Session?','No reps recorded. Discard?',[{l:'Keep Training'},{l:'Discard',c:'btn-bad',fn:resetSess}]);return}
-  endSess();
-};
-function endSess(){
-  const s={id:Date.now()+'',sid:cur.sid,dt:new Date().toISOString(),step:D.progress[cur.sid].step,ok:cur.ok,no:cur.no,notes:$('#sess-notes').value.trim(),dur:Math.floor((Date.now()-sessStart)/1000)};
-  D.sessions.push(s);save();updateUnlocks();checkMilestones();
-  const r=rate(s),sk=SKILLS.find(x=>x.id===cur.sid),pr=D.progress[cur.sid];
-  const avg=rollingAvg(cur.sid),ss=skillSess(cur.sid),ev=D.settings.evalSessions,th=D.settings.threshold;
-  if(avg!==null&&ss.length>=ev){
-    if(avg>=th&&pr.step<sk.steps.length-1){
-      modal('Advance to Next Step?',`${sk.name}: ${avg}% avg over ${ev} sessions! Move to Step ${pr.step+2}: "${sk.steps[pr.step+1].t}"?`,
-        [{l:'Stay Here'},{l:'Advance!',c:'btn-ok',fn:()=>{pr.step++;save();updateUnlocks();checkMilestones();toast('Advanced to Step '+(pr.step+1)+'!')}}]);
-    }else if(avg<50&&pr.step>0){
-      modal('Go Back a Step?',`${sk.name}: ${avg}% avg. Consider revisiting Step ${pr.step}: "${sk.steps[pr.step-1].t}".`,
-        [{l:'Stay Here'},{l:'Go Back',c:'btn-o',fn:()=>{pr.step--;save();toast('Back to Step '+(pr.step+1))}}]);
-    }else if(avg>=th&&pr.step===sk.steps.length-1){
-      pr.step=sk.steps.length;save();updateUnlocks();checkMilestones();
-      modal('Skill Complete!',`${sk.name} is mastered! Amazing work with ${D.profile.name||'Zu'}!`,[{l:'Awesome!',c:'btn-p'}]);
+  let raw=localStorage.getItem(STORE_KEY);
+  if(!raw){
+    // Migration from old key
+    const old=localStorage.getItem(OLD_KEY);
+    if(old){
+      try{
+        const od=JSON.parse(old);
+        raw=JSON.stringify(Object.assign({},DEFAULTS,od));
+        localStorage.setItem(STORE_KEY,raw);
+      }catch(e){raw=null}
     }
   }
-  toast(`Session saved! ${r}% success rate`);resetSess();
+  if(raw){
+    try{D=JSON.parse(raw)}catch(e){D=null}
+  }
+  if(!D)D={};
+  // Deep merge defaults
+  for(const k in DEFAULTS){
+    if(!(k in D)){
+      D[k]=JSON.parse(JSON.stringify(DEFAULTS[k]));
+    }else if(typeof DEFAULTS[k]==='object'&&!Array.isArray(DEFAULTS[k])){
+      for(const j in DEFAULTS[k]){
+        if(!(j in D[k]))D[k][j]=DEFAULTS[k][j];
+      }
+    }
+  }
+  // Init skill progress
+  SKILLS.forEach(sk=>{
+    if(!D.progress[sk.id])D.progress[sk.id]={step:0,unlocked:false,startedAt:null,masteredAt:null};
+  });
+  // Unlock phase 1 and no-prereq skills
+  SKILLS.forEach(sk=>{
+    if(sk.phase===1||sk.prereqs.length===0)D.progress[sk.id].unlocked=true;
+  });
+  updateUnlocks();
+  save();
 }
-function resetSess(){cur=null;selSk=null;sessStart=null;clearInterval(tmI);tmOn=false;$('#sess').classList.remove('vis');$('.setup').classList.remove('hid');rTrain()}
-$$('.dur-b').forEach(b=>b.onclick=()=>{selDur=+b.dataset.d;$$('.dur-b').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');if(!cur){tmSec=selDur;updTm()}});
-$('#btn-go').onclick=startSess;
 
-// ═══════════════════════════════════════════════════════
-// LOG TAB — Potty, Alone Time, Quick Logs
-// ═══════════════════════════════════════════════════════
-let pottyPhoto=null, aloneTimer=null, aloneStart=null, aloneElapsed=0;
+function save(){
+  localStorage.setItem(STORE_KEY,JSON.stringify(D));
+}
 
-function rLog(){
-  let h=`<div class="sec-title">Quick Logs</div>`;
+function updateUnlocks(){
+  SKILLS.forEach(sk=>{
+    if(sk.prereqs.length===0||sk.phase===1){D.progress[sk.id].unlocked=true;return}
+    D.progress[sk.id].unlocked=sk.prereqs.every(pid=>D.progress[pid]&&D.progress[pid].step>=1);
+  });
+}
 
-  // Potty form
-  h+=`<div id="potty-section">
-    <button class="log-btn" id="potty-toggle" onclick="openPottyForm()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      <div><div>Log Potty</div><div class="log-btn-sub">Track wake-up and outdoor potty breaks</div></div>
-    </button>
-    <div class="log-form cd" id="potty-form">
-      <h3>Potty Log</h3>
-      <div class="tog-label">Type</div>
-      <div class="tog-row" id="potty-type">
-        <button class="tog" data-v="pee" onclick="togSel(this)">Pee</button>
-        <button class="tog" data-v="poop" onclick="togSel(this)">Poop</button>
-        <button class="tog" data-v="both" onclick="togSel(this)">Both</button>
-      </div>
-      <div class="tog-label">Location</div>
-      <div class="tog-row" id="potty-loc">
-        <button class="tog on" data-v="outside" onclick="togSel(this)">Outside</button>
-        <button class="tog" data-v="inside" onclick="togSel(this)">Inside (accident)</button>
-      </div>
-      <div class="tog-label">Context</div>
-      <div class="tog-row" id="potty-ctx">
-        <button class="tog" data-v="wakeup" onclick="togSel(this)">Wake-up</button>
-        <button class="tog" data-v="aftermeal" onclick="togSel(this)">After Meal</button>
-        <button class="tog" data-v="afterplay" onclick="togSel(this)">After Play</button>
-        <button class="tog" data-v="scheduled" onclick="togSel(this)">Scheduled</button>
-      </div>
-      <div class="tog-label">Photo (optional)</div>
-      <button class="photo-btn" id="photo-btn" onclick="takePhoto()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        Take Photo
-      </button>
-      <img id="photo-preview" class="photo-preview" style="display:none">
-      <textarea id="potty-notes" placeholder="Notes (consistency, color, anything unusual...)" rows="2"></textarea>
-      <button class="btn btn-ok btn-block" style="margin-top:10px" onclick="savePotty()">Save Potty Log</button>
-      <button class="btn btn-o btn-block btn-s" style="margin-top:6px" onclick="closePottyForm()">Cancel</button>
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+const $=id=>document.getElementById(id);
+
+function toast(msg,dur=2500){
+  const t=$('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+let modalCb=null;
+function showModal(title,body,buttons){
+  const m=$('modal');
+  m.innerHTML=`<div class="modal"><h2>${title}</h2><div>${body}</div><div class="modal-btns">${buttons}</div></div>`;
+  m.classList.remove('hide');
+  m.onclick=e=>{if(e.target===m)closeModal()};
+}
+function closeModal(){$('modal').classList.add('hide');modalCb=null}
+
+function confirm2(title,msg,yesText,yesCls){
+  return new Promise(res=>{
+    showModal(title,`<p class="cd-sub">${msg}</p>`,
+      `<button class="btn-s" onclick="closeModal();window._cr(false)">Cancel</button>
+       <button class="${yesCls||'btn-p'}" onclick="closeModal();window._cr(true)">${yesText||'Confirm'}</button>`);
+    window._cr=res;
+  });
+}
+
+function rollingAvg(skillId,step){
+  const n=D.settings.evalSessions||3;
+  const recent=D.sessions.filter(s=>s.sid===skillId&&s.step===step).slice(-n);
+  if(recent.length===0)return -1;
+  const rates=recent.map(s=>s.ok+s.no>0?s.ok/(s.ok+s.no)*100:0);
+  return rates.reduce((a,b)=>a+b,0)/rates.length;
+}
+
+function calcStreak(data){
+  const d=data||D;
+  const days=new Set(d.sessions.map(s=>s.dt.slice(0,10)));
+  let streak=0;
+  const today=new Date();
+  for(let i=0;i<365;i++){
+    const dt=new Date(today);dt.setDate(dt.getDate()-i);
+    const key=dt.toISOString().slice(0,10);
+    if(days.has(key))streak++;
+    else if(i>0)break;
+  }
+  return streak;
+}
+
+function pottyStreak(data){
+  const d=data||D;
+  const accidentDays=new Set(d.pottyLogs.filter(p=>p.loc==='inside').map(p=>p.dt.slice(0,10)));
+  let streak=0;
+  const today=new Date();
+  for(let i=0;i<365;i++){
+    const dt=new Date(today);dt.setDate(dt.getDate()-i);
+    if(!accidentDays.has(dt.toISOString().slice(0,10)))streak++;
+    else break;
+  }
+  return streak;
+}
+
+function dailyPlan(){
+  const active=SKILLS.filter(sk=>D.progress[sk.id].unlocked&&!D.progress[sk.id].masteredAt);
+  // Sort by: least recently trained, then closest to advancement
+  const now=Date.now();
+  active.sort((a,b)=>{
+    const la=D.sessions.filter(s=>s.sid===a.id).slice(-1)[0];
+    const lb=D.sessions.filter(s=>s.sid===b.id).slice(-1)[0];
+    const ta=la?new Date(la.dt).getTime():0;
+    const tb=lb?new Date(lb.dt).getTime():0;
+    return ta-tb;
+  });
+  return active.slice(0,5);
+}
+
+function fmtTime(sec){
+  const m=Math.floor(sec/60);const s=sec%60;
+  return m+':'+(s<10?'0':'')+s;
+}
+
+function fmtDate(iso){
+  if(!iso)return '';
+  const d=new Date(iso);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+function fmtDateTime(iso){
+  if(!iso)return '';
+  const d=new Date(iso);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+
+         d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+
+function skillById(id){return SKILLS.find(s=>s.id===id)}
+
+function nodeStatus(sk){
+  const p=D.progress[sk.id];
+  if(p.masteredAt)return 'mastered';
+  if(!p.unlocked)return 'locked';
+  if(p.step>0||D.sessions.some(s=>s.sid===sk.id))return 'active';
+  return 'available';
+}
+
+/* Audio */
+function playDing(){
+  if(!D.settings.soundEnabled)return;
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator();const g=ctx.createGain();
+    osc.connect(g);g.connect(ctx.destination);
+    osc.type='sine';osc.frequency.value=880;
+    g.gain.setValueAtTime(0.3,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.8);
+    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.8);
+    const o2=ctx.createOscillator();const g2=ctx.createGain();
+    o2.connect(g2);g2.connect(ctx.destination);
+    o2.type='sine';o2.frequency.value=1318.5;
+    g2.gain.setValueAtTime(0.2,ctx.currentTime+0.15);
+    g2.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+1);
+    o2.start(ctx.currentTime+0.15);o2.stop(ctx.currentTime+1);
+  }catch(e){}
+}
+
+function vibrate(ms){try{navigator.vibrate&&navigator.vibrate(ms||200)}catch(e){}}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const TABS=['shrine','tree','ritual','chron','prog'];
+const TAB_IDS={shrine:'pShrine',tree:'pTree',ritual:'pRitual',chron:'pChron',prog:'pProg'};
+const RENDERERS={shrine:rShrine,tree:rTree,ritual:rRitual,chron:rChron,prog:rProg};
+let curTab='shrine';
+
+function go(tab){
+  curTab=tab;
+  TABS.forEach(t=>{
+    const el=$(TAB_IDS[t]);if(el){el.classList.toggle('on',t===tab)}
+    document.querySelectorAll(`.nav-btn[data-tab="${t}"]`).forEach(b=>b.classList.toggle('on',t===tab));
+  });
+  if(RENDERERS[tab])RENDERERS[tab]();
+}
+
+/* ============================================================
+   SVG ICON HELPERS
+   ============================================================ */
+const ICONS={
+  flame:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c-2 4-6 7-6 12a6 6 0 0012 0c0-5-4-8-6-12z"/></svg>',
+  shield:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L3 7v6c0 5 4 9 9 11 5-2 9-6 9-11V7l-9-5z"/></svg>',
+  star:'<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>',
+  crown:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M4 15l4-10 4 6 4-6 4 10"/></svg>',
+  house:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>',
+  leaf:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8C8 10 5.9 16.17 3.82 21.34M17 8A5 5 0 0121 3c-2.5 1-4.5 3-6 6z"/></svg>',
+  circle:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>',
+  pazuzu:'<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 7v6c0 5 4 9 9 11 5-2 9-6 9-11V7l-9-5z"/></svg>',
+  potty:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>',
+  clock:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+  bone:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8a3 3 0 013-3 3 3 0 013 3v0a2 2 0 002 0h0a3 3 0 013-3 3 3 0 013 3 3 3 0 01-3 3 3 3 0 00-3 3v0a3 3 0 013 3 3 3 0 01-3 3 3 3 0 01-3-3v0a2 2 0 00-2 0h0a3 3 0 01-3 3 3 3 0 01-3-3 3 3 0 013-3 3 3 0 003-3v0a3 3 0 01-3-3z"/></svg>',
+  note:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>'
+};
+
+/* ============================================================
+   ALONE TIMER PERSISTENCE
+   ============================================================ */
+let aloneInterval=null;
+
+function updateAlonePill(){
+  const pill=$('alonePill');
+  if(!D.aloneTimerState.running){pill.classList.add('hide');return}
+  pill.classList.remove('hide');
+  const elapsed=Math.floor((Date.now()-D.aloneTimerState.startTime)/1000)+D.aloneTimerState.elapsed;
+  $('alonePillTime').textContent=fmtTime(elapsed);
+}
+
+function startAloneTimer(){
+  D.aloneTimerState={running:true,startTime:Date.now(),elapsed:0};
+  save();
+  aloneInterval=setInterval(()=>{updateAlonePill();if(D.aloneTimerState.running)save()},30000);
+  updateAlonePill();
+  // Update pill every second visually
+  if(window._aloneTick)clearInterval(window._aloneTick);
+  window._aloneTick=setInterval(updateAlonePill,1000);
+  toast('Alone timer started');
+}
+
+function stopAloneTimer(){
+  const elapsed=Math.floor((Date.now()-D.aloneTimerState.startTime)/1000)+D.aloneTimerState.elapsed;
+  D.aloneTimerState={running:false,startTime:null,elapsed:0};
+  save();
+  if(aloneInterval)clearInterval(aloneInterval);
+  if(window._aloneTick)clearInterval(window._aloneTick);
+  updateAlonePill();
+  return elapsed;
+}
+
+function resumeAloneTimer(){
+  if(!D.aloneTimerState.running)return;
+  aloneInterval=setInterval(()=>{updateAlonePill();if(D.aloneTimerState.running)save()},30000);
+  if(window._aloneTick)clearInterval(window._aloneTick);
+  window._aloneTick=setInterval(updateAlonePill,1000);
+  updateAlonePill();
+}
+
+document.addEventListener('visibilitychange',()=>{
+  if(D&&D.aloneTimerState.running)save();
+});
+
+/* ============================================================
+   SHEET (Ward Detail Slide-up)
+   ============================================================ */
+function openSheet(skillId){
+  const sk=skillById(skillId);if(!sk)return;
+  const p=D.progress[sk.id];
+  const status=nodeStatus(sk);
+  const s=$('sheet'),bg=$('sheetBg');
+  let stepsHtml=sk.steps.map((st,i)=>{
+    const cls=i<p.step?'done':i===p.step?'current':'';
+    return `<div class="step-item" onclick="pickStep('${sk.id}',${i})">
+      <div class="step-num ${cls}">${i+1}</div>
+      <div class="step-info"><h4>${st.t}</h4><p>${st.d}</p></div></div>`;
+  }).join('');
+  const prereqNames=sk.prereqs.map(pid=>{const ps=skillById(pid);return ps?ps.name:'?'}).join(', ');
+  s.innerHTML=`<button class="sheet-close" onclick="closeSheet()">x</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div class="si si-${sk.phase} ${status==='mastered'?'si-mastered':''}">${sk.abbr}</div>
+      <div><h2 style="margin:0;font-size:1rem">${sk.name}</h2>
+        <div style="font-size:0.75rem;color:var(--txt2)">Circle ${sk.phase} ${status==='mastered'?'— Ward Sealed':''}</div>
+        ${sk.prereqs.length?`<div class="sk-prereq">Requires: ${prereqNames}</div>`:''}</div>
     </div>
-  </div>`;
+    <p class="cd-sub" style="margin-bottom:12px">${sk.desc}</p>
+    ${p.step<sk.steps.length?renderGuidance(sk.steps[p.step]):''}
+    <div class="sec-h">Steps (${p.step}/${sk.steps.length})</div>
+    <div class="pbar pbar-pri"><div class="pbar-fill" style="width:${p.step/sk.steps.length*100}%"></div></div>
+    <div class="step-list">${stepsHtml}</div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      ${status!=='locked'?`<button class="btn-p" onclick="closeSheet();startTraining('${sk.id}')">Begin Ritual</button>`:''}
+      <a href="${sk.video}" target="_blank" class="btn-s" style="text-decoration:none;text-align:center">Video</a>
+    </div>`;
+  s.classList.remove('hide');bg.classList.remove('hide');
+}
 
-  // Alone time
-  h+=`<div id="alone-section">
-    <button class="log-btn" id="alone-toggle" onclick="openAloneForm()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/></svg>
-      <div><div>Alone Time</div><div class="log-btn-sub">Track crate, pen, or room time</div></div>
-    </button>
-    <div class="log-form cd" id="alone-form">
-      <h3>Alone Time Log</h3>
-      <div class="alone-timer">
-        <div id="alone-status" class="alone-status" style="display:none">RECORDING</div>
-        <div class="timer-d" id="alone-display">0:00</div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
-          <button class="btn btn-p btn-s" id="alone-start-btn" onclick="toggleAlone()">Start Timer</button>
-          <button class="btn btn-o btn-s" onclick="manualAlone()">Enter Manually</button>
-        </div>
-      </div>
-      <div class="tog-label">Location</div>
-      <div class="tog-row" id="alone-loc">
-        <button class="tog on" data-v="crate" onclick="togSel(this)">Crate</button>
-        <button class="tog" data-v="pen" onclick="togSel(this)">Pen / X-pen</button>
-        <button class="tog" data-v="room" onclick="togSel(this)">Room</button>
-      </div>
-      <div class="tog-label">Distraction Provided?</div>
-      <div class="tog-row" id="alone-dist">
-        <button class="tog" data-v="kong" onclick="togSel(this)">Kong</button>
-        <button class="tog" data-v="chew" onclick="togSel(this)">Chew</button>
-        <button class="tog" data-v="puzzle" onclick="togSel(this)">Puzzle Toy</button>
-        <button class="tog" data-v="none" onclick="togSel(this)">None</button>
-      </div>
-      <div class="tog-label">Barking / Whining</div>
-      <div class="tog-row" id="alone-bark">
-        <button class="tog on" data-v="none" onclick="togSel(this)">None</button>
-        <button class="tog" data-v="brief" onclick="togSel(this)">Brief</button>
-        <button class="tog" data-v="some" onclick="togSel(this)">Some</button>
-        <button class="tog" data-v="lots" onclick="togSel(this)">A Lot</button>
-      </div>
-      <div class="tog-label">Overall Calm?</div>
-      <div class="tog-row" id="alone-calm">
-        <button class="tog on" data-v="yes" onclick="togSel(this)">Calm</button>
-        <button class="tog" data-v="mostly" onclick="togSel(this)">Mostly</button>
-        <button class="tog" data-v="no" onclick="togSel(this)">Unsettled</button>
-      </div>
-      <textarea id="alone-notes" placeholder="Notes..." rows="2" style="margin-top:8px"></textarea>
-      <button class="btn btn-p btn-block" style="margin-top:10px" onclick="saveAlone()">Save Alone Time</button>
-      <button class="btn btn-o btn-block btn-s" style="margin-top:6px" onclick="closeAloneForm()">Cancel</button>
+function closeSheet(){$('sheet').classList.add('hide');$('sheetBg').classList.add('hide')}
+
+function renderGuidance(step){
+  if(!step.guidance)return '';
+  const g=step.guidance;
+  let rows='';
+  if(g.vocal)rows+=`<div class="guide-row"><span class="guide-icon">V</span><span>${g.vocal}</span></div>`;
+  if(g.hand)rows+=`<div class="guide-row"><span class="guide-icon">H</span><span>${g.hand}</span></div>`;
+  if(g.position)rows+=`<div class="guide-row"><span class="guide-icon">P</span><span>${g.position}</span></div>`;
+  return `<div class="guide-box">${rows}</div>`;
+}
+
+async function pickStep(skillId,stepIdx){
+  const sk=skillById(skillId);
+  const p=D.progress[sk.id];
+  if(stepIdx===p.step)return;
+  const dir=stepIdx>p.step?'skip ahead':'go back';
+  const ok=await confirm2('Change Step',`${dir} to Step ${stepIdx+1}: "${sk.steps[stepIdx].t}"?`,'Confirm');
+  if(!ok)return;
+  p.step=stepIdx;
+  if(!p.startedAt)p.startedAt=new Date().toISOString();
+  p.masteredAt=null;
+  save();updateUnlocks();openSheet(skillId);
+}
+
+/* ============================================================
+   WHERE IS ZUZU? — First-time flow
+   ============================================================ */
+function showWhereIsZuzu(skillId,cb){
+  const sk=skillById(skillId);
+  let html=`<p class="cd-sub" style="margin-bottom:12px">Where is Zuzu with "${sk.name}"? Pick the step that matches her current ability.</p>
+    <div class="step-list">`;
+  sk.steps.forEach((st,i)=>{
+    html+=`<div class="step-item" onclick="window._wizStep=${i};document.querySelectorAll('#modal .step-num').forEach((n,j)=>{n.className='step-num'+(j===${i}?' current':'')})">
+      <div class="step-num${i===0?' current':''}">${i+1}</div>
+      <div class="step-info"><h4>${st.t}</h4><p>${st.d}</p></div></div>`;
+  });
+  html+=`</div>`;
+  window._wizStep=0;
+  showModal('Where is Zuzu?',html,
+    `<button class="btn-s" onclick="closeModal()">Cancel</button>
+     <button class="btn-p" onclick="closeModal();window._wizCb(window._wizStep)">Start Here</button>`);
+  window._wizCb=cb;
+}
+
+/* ============================================================
+   RENDERERS
+   ============================================================ */
+
+// ── SHRINE (Home) ──
+function rShrine(){
+  const el=$('pShrine');
+  const streak=calcStreak();
+  const totalSess=D.sessions.length;
+  const activeWards=SKILLS.filter(sk=>D.progress[sk.id].unlocked&&!D.progress[sk.id].masteredAt).length;
+  const sealedWards=SKILLS.filter(sk=>D.progress[sk.id].masteredAt).length;
+  const todayPotty=D.pottyLogs.filter(p=>p.dt.slice(0,10)===new Date().toISOString().slice(0,10)).length;
+  const plan=dailyPlan();
+
+  el.innerHTML=`
+    <div class="cd cd-glow" style="text-align:center;padding:20px">
+      <div style="width:64px;height:64px;border-radius:50%;border:3px solid var(--pri);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:1.8rem;color:var(--pri);background:var(--pri-glow)">Z</div>
+      <h3 style="font-size:1.1rem;margin-bottom:4px">${D.profile.name}</h3>
+      <div class="cd-sub">${D.profile.breed||''} ${D.profile.weight?'- '+D.profile.weight+'kg':''}</div>
+      ${D.profile.rescueDate?`<div style="font-size:0.7rem;color:var(--txt3);margin-top:4px">${Math.floor((Date.now()-new Date(D.profile.rescueDate).getTime())/86400000)} days since rescue</div>`:''}
     </div>
-  </div>`;
 
-  // Recent logs
-  h+=`<div class="sec-title" style="margin-top:18px">Recent Logs</div><div id="log-history"></div>`;
-  $('#t-log').innerHTML=h;
-  renderLogHistory();
+    <div class="vigil">${ICONS.flame} <span>${streak}-Day Vigil</span></div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-val">${totalSess}</div><div class="stat-lbl">Rituals</div></div>
+      <div class="stat"><div class="stat-val">${activeWards}</div><div class="stat-lbl">Active</div></div>
+      <div class="stat"><div class="stat-val">${sealedWards}</div><div class="stat-lbl">Sealed</div></div>
+    </div>
+
+    ${plan.length?`<div class="sec-h">The Daily Rite</div>
+    ${plan.map(sk=>{
+      const p=D.progress[sk.id];
+      const pct=p.step/sk.steps.length*100;
+      return `<div class="sk-row" onclick="openSheet('${sk.id}')">
+        <div class="si si-${sk.phase}">${sk.abbr}</div>
+        <div class="sk-info"><h4>${sk.name}</h4>
+          <div class="pbar pbar-pri" style="width:80px"><div class="pbar-fill" style="width:${pct}%"></div></div>
+          <p>Step ${p.step+1}/${sk.steps.length}</p></div>
+        <button class="btn-s btn-sm" onclick="event.stopPropagation();startTraining('${sk.id}')">Train</button>
+      </div>`;
+    }).join('')}`:'<div class="cd"><p class="cd-sub">All wards sealed. Pazuzu\'s Shield is complete.</p></div>'}
+
+    <div class="sec-h">Quick Actions</div>
+    <div class="qa-grid">
+      <button class="qa-btn" onclick="go('chron');setTimeout(showPottyForm,100)">
+        ${ICONS.potty}<span>Log Potty${todayPotty?' ('+todayPotty+')':''}</span></button>
+      <button class="qa-btn" onclick="${D.aloneTimerState.running?'showAloneForm()':'startAloneTimer()'}">
+        ${ICONS.clock}<span>${D.aloneTimerState.running?'Alone Timer':'Start Alone'}</span></button>
+      <button class="qa-btn" onclick="go('chron');setTimeout(showEnrichForm,100)">
+        ${ICONS.bone}<span>Enrichment</span></button>
+      <button class="qa-btn" onclick="go('chron');setTimeout(showBehaviorForm,100)">
+        ${ICONS.note}<span>Behavior Note</span></button>
+    </div>
+
+    ${renderRecentActivity()}`;
 }
 
-function togSel(btn){
-  const row=btn.parentElement;
-  row.querySelectorAll('.tog').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
+function renderRecentActivity(){
+  const items=[];
+  D.sessions.slice(-3).forEach(s=>{const sk=skillById(s.sid);items.push({dt:s.dt,html:`<div class="log-entry">
+    <div class="log-icon" style="background:var(--pri-glow);color:var(--pri)">${sk?sk.abbr:'??'}</div>
+    <div class="log-body"><h4>${sk?sk.name:'Unknown'} Ritual</h4><p>${s.ok}/${s.ok+s.no} success${s.notes?' — '+s.notes.slice(0,40):''}</p></div>
+    <div class="log-time">${fmtDateTime(s.dt)}</div></div>`})});
+  D.pottyLogs.slice(-2).forEach(p=>{items.push({dt:p.dt,html:`<div class="log-entry">
+    <div class="log-icon" style="background:var(--acc-glow);color:var(--acc)">PT</div>
+    <div class="log-body"><h4>Potty — ${p.type}</h4><p>${p.loc} ${p.ctx?'('+p.ctx+')':''}</p></div>
+    <div class="log-time">${fmtDateTime(p.dt)}</div></div>`})});
+  items.sort((a,b)=>new Date(b.dt)-new Date(a.dt));
+  if(!items.length)return '';
+  return `<div class="sec-h">Recent</div>${items.slice(0,5).map(i=>i.html).join('')}`;
 }
-function getTogVal(parentId){const on=$(`#${parentId} .tog.on`);return on?on.dataset.v:''}
 
-function openPottyForm(){$('#potty-form').classList.add('vis');$('#potty-toggle').style.display='none';pottyPhoto=null;$('#photo-preview').style.display='none';$('#photo-btn').classList.remove('has-photo');$('#photo-btn').innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Take Photo'}
-function closePottyForm(){$('#potty-form').classList.remove('vis');$('#potty-toggle').style.display=''}
+// ── WARD TREE ──
+function rTree(){
+  const el=$('pTree');
+  const W=Math.min(380,window.innerWidth-32);
+  const scale=W/380;
+  let svgLines='';
+  TREE_EDGES.forEach(([from,to])=>{
+    const a=TREE_POS[from],b=TREE_POS[to];
+    if(!a||!b)return;
+    const fromSk=skillById(from),toSk=skillById(to);
+    const fromS=nodeStatus(fromSk),toS=nodeStatus(toSk);
+    const color=toS==='locked'?'var(--txt3)':fromS==='mastered'?'var(--pri)':'var(--brd)';
+    svgLines+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${color}" stroke-width="2" stroke-dasharray="${toS==='locked'?'4,4':'none'}"/>`;
+  });
+  let nodes='';
+  SKILLS.forEach(sk=>{
+    const pos=TREE_POS[sk.id];if(!pos)return;
+    const st=nodeStatus(sk);
+    const shortName=sk.name.replace('Capturing ','').replace(' Yields','').replace(' Ward','').replace('Positive ','').replace('Impulse ','').replace('Name ','').replace(' Cue','').split(' ')[0];
+    nodes+=`<div class="tree-node ${st}" style="left:${pos.x-24}px;top:${pos.y-24}px" onclick="openSheet('${sk.id}')">
+      ${sk.abbr}<div class="tree-label">${shortName}</div></div>`;
+  });
 
-function takePhoto(){$('#photo-input').onchange=handlePhoto;$('#photo-input').click()}
-function handlePhoto(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    pottyPhoto=ev.target.result;
-    const img=$('#photo-preview');img.src=pottyPhoto;img.style.display='block';
-    $('#photo-btn').classList.add('has-photo');$('#photo-btn').innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 6 9 17 4 12"/></svg>Photo Added';
-  };
-  // Resize to save localStorage space
-  const img=new Image();const url=URL.createObjectURL(file);
-  img.onload=()=>{
-    const c=document.createElement('canvas');const max=600;
-    let w=img.width,h=img.height;if(w>max||h>max){const r=Math.min(max/w,max/h);w*=r;h*=r}
-    c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
-    pottyPhoto=c.toDataURL('image/jpeg',0.7);
-    $('#photo-preview').src=pottyPhoto;$('#photo-preview').style.display='block';
-    $('#photo-btn').classList.add('has-photo');$('#photo-btn').innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 6 9 17 4 12"/></svg>Photo Added';
-    URL.revokeObjectURL(url);
-  };
-  img.src=url;e.target.value='';
+  el.innerHTML=`
+    <div class="sec-h">Circle I — Foundation</div>
+    <div class="sec-h" style="margin-top:140px">Circle II — Core</div>
+    <div class="sec-h" style="margin-top:140px">Circle III — Life</div>
+    <div class="tree-wrap" style="min-height:480px;transform:scale(${scale});transform-origin:top left;width:${380}px">
+      <svg class="tree-svg" width="380" height="480" viewBox="0 0 380 480">${svgLines}</svg>
+      ${nodes}
+    </div>`;
+}
+
+// ── RITUAL (Training Session) ──
+let sess={active:false,skillId:null,timer:null,timeLeft:0,ok:0,no:0,paused:false,startedAt:null};
+
+function rRitual(){
+  const el=$('pRitual');
+  if(sess.active)return renderActiveSession();
+
+  const available=SKILLS.filter(sk=>D.progress[sk.id].unlocked&&!D.progress[sk.id].masteredAt);
+  el.innerHTML=`
+    <div class="sec-h">Begin a Ritual</div>
+    <p class="cd-sub" style="margin-bottom:12px">Choose a Ward to train:</p>
+    ${available.map(sk=>{
+      const p=D.progress[sk.id];
+      return `<div class="sk-row" onclick="startTraining('${sk.id}')">
+        <div class="si si-${sk.phase}">${sk.abbr}</div>
+        <div class="sk-info"><h4>${sk.name}</h4><p>Step ${p.step+1}/${sk.steps.length}: ${sk.steps[Math.min(p.step,sk.steps.length-1)].t}</p></div>
+      </div>`;
+    }).join('')}
+    ${available.length===0?'<div class="cd"><p class="cd-sub">All wards sealed. You have completed Pazuzu\'s Shield.</p></div>':''}`;
+}
+
+function startTraining(skillId){
+  const sk=skillById(skillId);
+  const p=D.progress[sk.id];
+  if(!p.unlocked){toast('Ward is locked — complete prerequisites first');return}
+  if(p.masteredAt){toast('This Ward is already sealed');return}
+
+  // First time? Show Where is Zuzu?
+  const hasSession=D.sessions.some(s=>s.sid===skillId);
+  if(!hasSession&&!p.startedAt){
+    showWhereIsZuzu(skillId,(stepIdx)=>{
+      p.step=stepIdx;p.startedAt=new Date().toISOString();save();
+      go('ritual');showPreSession(skillId);
+    });
+    return;
+  }
+  go('ritual');showPreSession(skillId);
+}
+
+function showPreSession(skillId){
+  const sk=skillById(skillId);
+  const p=D.progress[sk.id];
+  const step=sk.steps[Math.min(p.step,sk.steps.length-1)];
+  const el=$('pRitual');
+
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div class="si si-${sk.phase}">${sk.abbr}</div>
+      <div><h3 style="margin:0">${sk.name}</h3><div class="cd-sub">Step ${p.step+1}: ${step.t}</div></div>
+    </div>
+    <div class="cd"><p class="cd-sub">${step.d}</p></div>
+    ${renderGuidance(step)}
+    <div class="lbl">Session Duration</div>
+    <div class="tog-row" id="durToggle">
+      ${[60,120,180,300].map(d=>`<button class="tog${d===D.settings.duration?' on':''}" onclick="setDur(${d})">${d/60} min</button>`).join('')}
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn-p" onclick="beginRitual('${skillId}')">Begin Ritual</button>
+    </div>`;
+}
+
+function setDur(d){
+  D.settings.duration=d;save();
+  document.querySelectorAll('#durToggle .tog').forEach(b=>b.classList.toggle('on',parseInt(b.textContent)*60===d));
+}
+
+function beginRitual(skillId){
+  sess={active:true,skillId,timer:null,timeLeft:D.settings.duration,ok:0,no:0,paused:false,startedAt:new Date().toISOString()};
+  // Countdown 3-2-1
+  const cd=$('countdown');cd.classList.remove('hide');
+  let count=3;
+  cd.innerHTML=`<div class="countdown-num">${count}</div>`;
+  const ci=setInterval(()=>{
+    count--;
+    if(count>0){cd.innerHTML=`<div class="countdown-num">${count}</div>`}
+    else{
+      cd.innerHTML=`<div class="countdown-num" style="font-size:3rem">Begin!</div>`;
+      setTimeout(()=>{cd.classList.add('hide');runSession()},500);
+      clearInterval(ci);
+    }
+  },600);
+}
+
+function runSession(){
+  const sk=skillById(sess.skillId);
+  const p=D.progress[sk.id];
+  const step=sk.steps[Math.min(p.step,sk.steps.length-1)];
+  const cap=step.capture||{type:'reps',successLabel:'Success',missLabel:'Miss'};
+
+  sess.timer=setInterval(()=>{
+    if(!sess.paused){
+      sess.timeLeft--;
+      renderSessionTimer();
+      if(sess.timeLeft<=0){endTimer()}
+    }
+  },1000);
+  renderActiveSession();
+}
+
+function renderActiveSession(){
+  const el=$('pRitual');
+  const sk=skillById(sess.skillId);
+  const p=D.progress[sk.id];
+  const step=sk.steps[Math.min(p.step,sk.steps.length-1)];
+  const cap=step.capture||{type:'reps',successLabel:'Success',missLabel:'Miss'};
+  const total=sess.ok+sess.no;
+  const rate=total>0?Math.round(sess.ok/total*100):0;
+
+  let btns='';
+  if(cap.type==='observe'){
+    btns=`<button class="btn-ok" onclick="sessOk()" style="width:100%">${cap.successLabel}</button>`;
+  }else if(cap.type==='duration'){
+    btns=`<button class="btn-ok" onclick="sessOk()">${cap.successLabel}</button>
+           <button class="btn-no" onclick="sessNo()">${cap.missLabel||'Broke'}</button>`;
+  }else{
+    btns=`<button class="btn-ok" onclick="sessOk()">${cap.successLabel}</button>
+           ${cap.missLabel?`<button class="btn-no" onclick="sessNo()">${cap.missLabel}</button>`:''}`;
+  }
+
+  el.innerHTML=`
+    <div style="text-align:center;margin-bottom:8px">
+      <div class="cd-sub">${sk.name} — Step ${p.step+1}</div>
+      <div class="sess-timer" id="sessTimerDisp">${fmtTime(sess.timeLeft)}</div>
+    </div>
+    <details style="margin-bottom:12px"><summary style="font-size:0.8rem;color:var(--txt2);cursor:pointer">Instructions</summary>
+      <p class="cd-sub" style="margin-top:6px">${step.d}</p>
+      ${renderGuidance(step)}
+    </details>
+    <div class="sess-btns">${btns}</div>
+    <div class="sess-count">${sess.ok} success${cap.missLabel?' / '+sess.no+' miss':''} ${total>0?'('+rate+'%)':''}</div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn-s" style="flex:1" onclick="sess.paused=!sess.paused;renderActiveSession()">${sess.paused?'Resume':'Pause'}</button>
+      <button class="btn-s btn-danger" style="flex:1" onclick="endSession()">End Ritual</button>
+    </div>`;
+}
+
+function renderSessionTimer(){
+  const d=document.getElementById('sessTimerDisp');
+  if(d)d.textContent=fmtTime(sess.timeLeft);
+}
+
+function sessOk(){sess.ok++;vibrate(50);renderActiveSession()}
+function sessNo(){sess.no++;vibrate([50,30,50]);renderActiveSession()}
+
+function endTimer(){
+  clearInterval(sess.timer);sess.timer=null;
+  playDing();vibrate(200);
+  endSession();
+}
+
+async function endSession(){
+  if(sess.timer){clearInterval(sess.timer);sess.timer=null}
+  const sk=skillById(sess.skillId);
+  const p=D.progress[sk.id];
+  const step=sk.steps[Math.min(p.step,sk.steps.length-1)];
+  const dur=D.settings.duration-sess.timeLeft;
+
+  // Show notes modal
+  showModal('Ritual Complete',`
+    <div class="sess-count" style="font-size:1rem;margin-bottom:12px">${sess.ok} success${step.capture?.missLabel?' / '+sess.no+' miss':''}</div>
+    <div class="lbl">Notes</div>
+    <textarea id="sessNotes" placeholder="${step.capture?.notes_prompt||'How did it go?'}" rows="3"></textarea>
+  `,`<button class="btn-p" onclick="saveSession()">Save</button>`);
+}
+
+function saveSession(){
+  const sk=skillById(sess.skillId);
+  const p=D.progress[sk.id];
+  const step=sk.steps[Math.min(p.step,sk.steps.length-1)];
+  const notes=document.getElementById('sessNotes')?.value||'';
+  const dur=D.settings.duration-sess.timeLeft;
+
+  D.sessions.push({
+    id:uid(),sid:sess.skillId,dt:sess.startedAt||new Date().toISOString(),
+    step:p.step,ok:sess.ok,no:sess.no,dur,notes,
+    captureType:step.capture?.type||'reps'
+  });
+  if(!p.startedAt)p.startedAt=new Date().toISOString();
+  save();
+  closeModal();
+  checkAdvancement(sess.skillId);
+  checkMilestones();
+  sess={active:false,skillId:null,timer:null,timeLeft:0,ok:0,no:0,paused:false,startedAt:null};
+  go('ritual');
+}
+
+function checkAdvancement(skillId){
+  const sk=skillById(skillId);
+  const p=D.progress[sk.id];
+  if(p.masteredAt)return;
+  const avg=rollingAvg(skillId,p.step);
+  if(avg<0)return;
+
+  if(avg>=D.settings.threshold){
+    if(p.step>=sk.steps.length-1){
+      // Ward sealed!
+      p.masteredAt=new Date().toISOString();
+      p.step=sk.steps.length;
+      save();updateUnlocks();
+      toast('Ward Sealed! '+sk.name+' mastered!');
+      // Check if new wards unlocked
+      SKILLS.forEach(s=>{
+        if(s.prereqs.includes(skillId)&&D.progress[s.id].unlocked){
+          toast(s.name+' is now available!');
+        }
+      });
+    }else{
+      confirm2('Advance Step',`Rolling average: ${Math.round(avg)}%. Ready to advance to Step ${p.step+2}: "${sk.steps[p.step+1].t}"?`,'Advance').then(ok=>{
+        if(ok){p.step++;save();toast('Advanced to step '+(p.step+1))}
+      });
+    }
+  }else if(avg<50&&p.step>0){
+    confirm2('Consider Going Back',`Rolling average: ${Math.round(avg)}%. Consider reinforcing Step ${p.step}: "${sk.steps[p.step-1].t}"? Regression is normal and always good practice.`,'Go Back','btn-s').then(ok=>{
+      if(ok){p.step--;save();toast('Moved back to step '+(p.step+1))}
+    });
+  }
+}
+
+function checkMilestones(){
+  let newMilestones=[];
+  INSCRIPTIONS.forEach(ins=>{
+    if(D.milestones.some(m=>m.id===ins.id))return;
+    if(ins.check(D)){
+      D.milestones.push({id:ins.id,t:ins.t,ic:ins.ic,dt:new Date().toISOString()});
+      newMilestones.push(ins.t);
+    }
+  });
+  // Per-skill mastery inscriptions
+  SKILLS.forEach(sk=>{
+    const mid='ward_'+sk.id;
+    if(D.milestones.some(m=>m.id===mid))return;
+    if(D.progress[sk.id].masteredAt){
+      D.milestones.push({id:mid,t:'Ward of '+sk.name+' Sealed',ic:'shield',dt:D.progress[sk.id].masteredAt});
+      newMilestones.push('Ward of '+sk.name+' Sealed');
+    }
+  });
+  if(newMilestones.length){save();toast('Inscription revealed: '+newMilestones[0])}
+}
+
+// ── CHRONICLE (Log) ──
+function rChron(){
+  const el=$('pChron');
+  el.innerHTML=`
+    <div class="sec-h">Log</div>
+    <div class="qa-grid" style="margin-bottom:16px">
+      <button class="qa-btn" onclick="showPottyForm()">${ICONS.potty}<span>Potty</span></button>
+      <button class="qa-btn" onclick="${D.aloneTimerState.running?'showAloneForm()':'startAloneTimer()'}">
+        ${ICONS.clock}<span>${D.aloneTimerState.running?'Stop Alone':'Start Alone'}</span></button>
+      <button class="qa-btn" onclick="showEnrichForm()">${ICONS.bone}<span>Enrichment</span></button>
+      <button class="qa-btn" onclick="showBehaviorForm()">${ICONS.note}<span>Behavior</span></button>
+    </div>
+    <div class="sec-h">History</div>
+    <div id="chronHistory">${renderChronHistory()}</div>`;
+}
+
+function renderChronHistory(){
+  const items=[];
+  D.sessions.forEach(s=>{const sk=skillById(s.sid);items.push({dt:s.dt,html:`<div class="log-entry">
+    <div class="log-icon" style="background:var(--pri-glow);color:var(--pri)">${sk?sk.abbr:'??'}</div>
+    <div class="log-body"><h4>${sk?sk.name:''} Ritual</h4><p>Step ${s.step+1}: ${s.ok}/${s.ok+s.no} ${s.notes?'— '+s.notes.slice(0,50):''}</p></div>
+    <div class="log-time">${fmtDateTime(s.dt)}</div></div>`})});
+  D.pottyLogs.forEach(p=>{items.push({dt:p.dt,html:`<div class="log-entry">
+    <div class="log-icon" style="background:var(--acc-glow);color:var(--acc)">PT</div>
+    <div class="log-body"><h4>Potty — ${p.type||'?'}</h4><p>${p.loc||''} ${p.ctx?'('+p.ctx+')':''} ${p.surface?'on '+p.surface:''}</p></div>
+    <div class="log-time">${fmtDateTime(p.dt)}</div></div>`})});
+  D.aloneLogs.forEach(a=>{items.push({dt:a.dt,html:`<div class="log-entry">
+    <div class="log-icon" style="background:rgba(199,91,91,0.15);color:var(--bad)">AL</div>
+    <div class="log-body"><h4>Alone — ${fmtTime(a.dur)}</h4><p>${a.loc||''} ${a.calm?'Calm: '+a.calm:''}</p></div>
+    <div class="log-time">${fmtDateTime(a.dt)}</div></div>`})});
+  D.enrichmentLogs.forEach(e=>{items.push({dt:e.dt,html:`<div class="log-entry">
+    <div class="log-icon" style="background:var(--pri-glow);color:var(--warn)">EN</div>
+    <div class="log-body"><h4>Enrichment — ${e.type||'?'}</h4><p>${e.engagement?'Engagement: '+e.engagement:''} ${e.duration?e.duration+' min':''}</p></div>
+    <div class="log-time">${fmtDateTime(e.dt)}</div></div>`})});
+  D.behaviorNotes.forEach(b=>{items.push({dt:b.dt,html:`<div class="log-entry">
+    <div class="log-icon" style="background:rgba(78,205,196,0.1);color:var(--acc)">BN</div>
+    <div class="log-body"><h4>${b.category||'Behavior'}</h4><p>${b.trigger||''} — ${b.intensity||''}</p></div>
+    <div class="log-time">${fmtDateTime(b.dt)}</div></div>`})});
+  items.sort((a,b)=>new Date(b.dt)-new Date(a.dt));
+  return items.length?items.slice(0,30).map(i=>i.html).join(''):'<p class="cd-sub">No entries yet. Start logging!</p>';
+}
+
+// ── LOG FORMS ──
+function showPottyForm(){
+  showModal('Log Potty',`
+    <div class="lbl">Type</div>
+    <div class="tog-row" id="ptType">${['Pee','Poop','Both'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+    <div class="lbl">Location</div>
+    <div class="tog-row" id="ptLoc">${['Outside','Inside'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+    <div class="lbl">Context</div>
+    <div class="tog-row" id="ptCtx">${['Morning','After meal','After nap','After play','Bedtime'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+    <div class="lbl">Surface</div>
+    <div class="tog-row" id="ptSurf">${['Grass','Concrete','Gravel','Pad','Floor'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+    <div class="lbl">Signal Given</div>
+    <div class="tog-row" id="ptSig">${['None','Sniffing','Circling','Door','Whining'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+    <div class="lbl">Photo</div>
+    <input type="file" accept="image/*" capture="environment" id="ptPhoto" style="font-size:0.8rem">
+    <div class="lbl">Notes</div>
+    <textarea id="ptNotes" placeholder="Anything notable?" rows="2"></textarea>
+  `,`<button class="btn-s" onclick="closeModal()">Cancel</button>
+     <button class="btn-p" onclick="savePotty()">Save</button>`);
 }
 
 function savePotty(){
-  const type=getTogVal('potty-type');
-  if(!type){toast('Select pee, poop, or both');return}
-  const log={id:Date.now()+'',dt:new Date().toISOString(),type,loc:getTogVal('potty-loc')||'outside',ctx:getTogVal('potty-ctx')||'',photo:pottyPhoto||'',notes:$('#potty-notes').value.trim()};
-  D.pottyLogs.push(log);save();closePottyForm();renderLogHistory();toast('Potty logged!');$('#potty-notes').value='';
-}
-
-function openAloneForm(){$('#alone-form').classList.add('vis');$('#alone-toggle').style.display='none'}
-function closeAloneForm(){$('#alone-form').classList.remove('vis');$('#alone-toggle').style.display='';if(aloneTimer){clearInterval(aloneTimer);aloneTimer=null}aloneElapsed=0;$('#alone-display').textContent='0:00';$('#alone-status').style.display='none';$('#alone-start-btn').textContent='Start Timer'}
-
-function toggleAlone(){
-  if(aloneTimer){
-    clearInterval(aloneTimer);aloneTimer=null;
-    $('#alone-status').style.display='none';$('#alone-start-btn').textContent='Start Timer';
+  const getTogVal=(id)=>{const el=document.querySelector(`#${id} .tog.on`);return el?el.textContent.toLowerCase():''};
+  const entry={
+    id:uid(),dt:new Date().toISOString(),
+    type:getTogVal('ptType'),loc:getTogVal('ptLoc'),ctx:getTogVal('ptCtx'),
+    surface:getTogVal('ptSurf'),signalGiven:getTogVal('ptSig'),
+    notes:document.getElementById('ptNotes')?.value||'',photo:''
+  };
+  const fileInput=document.getElementById('ptPhoto');
+  if(fileInput?.files?.[0]){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const c=document.createElement('canvas');
+        const max=600;let w=img.width,h=img.height;
+        if(w>max||h>max){const r=Math.min(max/w,max/h);w*=r;h*=r}
+        c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+        entry.photo=c.toDataURL('image/jpeg',0.7);
+        D.pottyLogs.push(entry);save();closeModal();toast('Potty logged');
+        if(curTab==='chron')rChron();
+      };img.src=e.target.result;
+    };reader.readAsDataURL(fileInput.files[0]);
   }else{
-    aloneStart=Date.now()-aloneElapsed*1000;aloneTimer=setInterval(()=>{
-      aloneElapsed=Math.floor((Date.now()-aloneStart)/1000);
-      const m=Math.floor(aloneElapsed/60),s=aloneElapsed%60;
-      $('#alone-display').textContent=`${m}:${s.toString().padStart(2,'0')}`;
-    },1000);
-    $('#alone-status').style.display='';$('#alone-start-btn').textContent='Stop Timer';
+    D.pottyLogs.push(entry);save();closeModal();toast('Potty logged');
+    if(curTab==='chron')rChron();
   }
 }
-function manualAlone(){
-  const mins=prompt('How many minutes was Zu alone?');
-  if(mins&&!isNaN(+mins)){aloneElapsed=Math.round(+mins*60);const m=Math.floor(aloneElapsed/60),s=aloneElapsed%60;$('#alone-display').textContent=`${m}:${s.toString().padStart(2,'0')}`}
-}
-function saveAlone(){
-  if(aloneElapsed<1){toast('Record or enter a duration first');return}
-  if(aloneTimer){clearInterval(aloneTimer);aloneTimer=null}
-  const log={id:Date.now()+'',dt:new Date().toISOString(),dur:aloneElapsed,loc:getTogVal('alone-loc')||'crate',dist:getTogVal('alone-dist')||'none',bark:getTogVal('alone-bark')||'none',calm:getTogVal('alone-calm')||'yes',notes:$('#alone-notes').value.trim()};
-  D.aloneLogs.push(log);save();closeAloneForm();renderLogHistory();toast('Alone time logged!');$('#alone-notes').value='';aloneElapsed=0;$('#alone-display').textContent='0:00';$('#alone-status').style.display='none';$('#alone-start-btn').textContent='Start Timer';
-}
 
-function renderLogHistory(){
-  const el=$('#log-history');if(!el)return;
-  const all=[
-    ...D.pottyLogs.map(l=>({...l,kind:'potty'})),
-    ...D.aloneLogs.map(l=>({...l,kind:'alone'})),
-    ...D.sessions.map(l=>({...l,kind:'session',dt:l.dt}))
-  ].sort((a,b)=>new Date(b.dt)-new Date(a.dt)).slice(0,25);
-  if(!all.length){el.innerHTML='<p style="font-size:.82rem;color:var(--txt3)">No logs yet. Start tracking!</p>';return}
-  el.innerHTML=all.map(l=>{
-    if(l.kind==='potty'){
-      const typeLabel={pee:'Pee',poop:'Poop',both:'Pee + Poop'}[l.type]||l.type;
-      const locLabel=l.loc==='inside'?'Inside (accident)':'Outside';
-      return `<div class="cd log-entry"><div class="le-icon" style="background:rgba(52,211,153,.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="le-body"><div class="le-title">${typeLabel} \u2014 ${locLabel}</div><div class="le-meta">${fmtDate(l.dt)} ${fmtTime(l.dt)}${l.ctx?' \u00B7 '+l.ctx:''}${l.notes?' \u00B7 '+l.notes:''}</div></div>${l.photo?`<img class="le-thumb" src="${l.photo}" onclick="window.open(this.src)">`:''}</div>`;
-    }else if(l.kind==='alone'){
-      const m=Math.floor(l.dur/60),s=l.dur%60;
-      return `<div class="cd log-entry"><div class="le-icon" style="background:rgba(124,110,246,.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="le-body"><div class="le-title">Alone \u2014 ${l.loc} \u00B7 ${m}m${s?s+'s':''}</div><div class="le-meta">${fmtDate(l.dt)} ${fmtTime(l.dt)} \u00B7 Barking: ${l.bark} \u00B7 Calm: ${l.calm}${l.dist&&l.dist!=='none'?' \u00B7 '+l.dist:''}${l.notes?' \u00B7 '+l.notes:''}</div></div></div>`;
-    }else{
-      const sk=SKILLS.find(x=>x.id===l.sid);const r=rate(l);
-      const rc=r>=80?'var(--ok)':r<50?'var(--bad)':'var(--warn)';
-      return `<div class="cd log-entry"><div class="le-icon" style="background:rgba(124,110,246,.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></div><div class="le-body"><div class="le-title">${sk?sk.name:'Training'} <span style="color:${rc};font-size:.82rem">${r}%</span></div><div class="le-meta">${fmtDate(l.dt)} ${fmtTime(l.dt)} \u00B7 ${l.ok+l.no} reps${l.notes?' \u00B7 '+l.notes:''}</div></div></div>`;
-    }
-  }).join('');
-}
-
-// ═══════════════════════════════════════════════════════
-// PROGRESS TAB
-// ═══════════════════════════════════════════════════════
-function rProg(){
-  // Heatmap
-  const today=new Date(),days=56,sd={};
-  [...D.sessions,...D.pottyLogs,...D.aloneLogs].forEach(s=>{const k=dk(s.dt);sd[k]=(sd[k]||0)+1});
-  let hm='';for(let i=days-1;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);const k=dk(d),c=sd[k]||0;
-    const lv=c===0?'':c<=1?'l1':c<=3?'l2':c<=5?'l3':'l4';
-    hm+=`<div class="hm-d ${lv}" title="${fmtDate(d)}: ${c} entries"></div>`;
+function showAloneForm(){
+  if(D.aloneTimerState.running){
+    const elapsed=stopAloneTimer();
+    showModal('Log Alone Time',`
+      <div style="text-align:center;margin-bottom:12px"><div class="stat-val">${fmtTime(elapsed)}</div><div class="cd-sub">Duration</div></div>
+      <div class="lbl">Location</div>
+      <div class="tog-row" id="alLoc">${['Crate','Room','House','Yard'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+      <div class="lbl">Your Distance</div>
+      <div class="tog-row" id="alDist">${['Door','Room','Floor','Out'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+      <div class="lbl">Departure Reaction</div>
+      <div class="tog-row" id="alDepart">${['Calm','Noticed','Whined','Barked','Panicked'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+      <div class="lbl">Arrival Reaction</div>
+      <div class="tog-row" id="alArrive">${['Calm','Excited','Frantic','Ignored'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+      <div class="lbl">Vocalization</div>
+      <div class="tog-row" id="alVocal">${['None','Whining','Barking','Howling','Crying'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+      <div class="lbl">Body Language Signals</div>
+      <div class="tog-row" id="alBody">${BODY_SIGNALS.map(s=>`<button class="tog tog-acc" onclick="togMulti(this)">${s}</button>`).join('')}</div>
+      <div class="lbl">Enrichment Used</div>
+      <div class="tog-row" id="alEnrich">${['None','Kong','Puzzle','Chew','Lick mat'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+      <div class="lbl">Ate Enrichment?</div>
+      <div class="tog-row" id="alAte">${['Yes','Partially','No'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+      <div class="lbl">Overall Calm?</div>
+      <div class="tog-row" id="alCalm">${['Yes','Mostly','No'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+      <div class="lbl">Notes</div>
+      <textarea id="alNotes" placeholder="Any observations?" rows="2"></textarea>
+    `,`<button class="btn-s" onclick="closeModal()">Cancel</button>
+       <button class="btn-p" onclick="saveAlone(${elapsed})">Save</button>`);
+  }else{
+    startAloneTimer();
   }
-  let h=`<div class="cd" style="padding:14px;overflow-x:auto"><div class="sec-title">Activity (8 weeks)</div><div class="hmap">${hm}</div><div class="hm-labels"><span>8 weeks ago</span><span>Today</span></div></div>`;
+}
 
-  // Milestones
-  h+=`<div class="cd"><div class="sec-title">Milestones</div>`;
-  if(!D.milestones.length) h+='<p style="font-size:.82rem;color:var(--txt3)">Complete sessions to earn milestones!</p>';
-  else D.milestones.slice().reverse().forEach(m=>{h+=`<div class="ms-i"><div class="ms-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="ms-txt">${m.t}</div><div class="ms-dt">${fmtDate(m.dt)}</div></div>`});
-  h+=`</div>`;
-
-  // Session history
-  h+=`<div class="cd"><div class="sec-title">Session History</div>`;
-  const sess=D.sessions.slice().reverse().slice(0,30);
-  if(!sess.length) h+='<p style="font-size:.82rem;color:var(--txt3)">No sessions yet.</p>';
-  else sess.forEach(s=>{
-    const sk=SKILLS.find(x=>x.id===s.sid),r=rate(s);
-    const rc=r>=80?'var(--ok)':r<50?'var(--bad)':'var(--warn)';
-    const dur=s.dur?`${Math.floor(s.dur/60)}:${(s.dur%60).toString().padStart(2,'0')}`:'';
-    h+=`<div class="cd hi-item"><div class="hi-top"><span class="hi-name">${sk?sk.name:'?'}</span><span class="hi-rate" style="color:${rc}">${r}%</span></div><div class="hi-meta">${fmtDate(s.dt)} \u00B7 Step ${s.step+1} \u00B7 ${s.ok+s.no} reps${dur?' \u00B7 '+dur:''}</div>${s.notes?`<div class="hi-note">"${s.notes}"</div>`:''}</div>`;
+function saveAlone(elapsed){
+  const gv=(id)=>{const el=document.querySelector(`#${id} .tog.on`);return el?el.textContent.toLowerCase():''};
+  const bodyLangs=Array.from(document.querySelectorAll('#alBody .tog.on')).map(b=>b.textContent);
+  D.aloneLogs.push({
+    id:uid(),dt:new Date().toISOString(),dur:elapsed,
+    loc:gv('alLoc'),dist:gv('alDist'),
+    departureReaction:gv('alDepart'),arrivalReaction:gv('alArrive'),
+    vocalization:gv('alVocal'),bodyLanguage:bodyLangs,
+    enrichmentUsed:gv('alEnrich'),ate:gv('alAte'),calm:gv('alCalm'),
+    destructive:false,eliminatedInside:false,departureCuesPracticed:false,
+    notes:document.getElementById('alNotes')?.value||''
   });
-  h+=`</div>`;
-  $('#t-prog').innerHTML=h;
+  save();closeModal();toast('Alone time logged');
+  if(curTab==='chron')rChron();
 }
 
-// ═══════════════════════════════════════════════════════
-// SETTINGS
-// ═══════════════════════════════════════════════════════
-function openSettings(){
-  $('#s-name').value=D.profile.name||'Zu';$('#s-wt').value=D.profile.weight||8.5;
-  $('#s-rdate').value=D.profile.rescueDate||'';$('#s-dur').value=D.settings.duration;
-  $('#s-thresh').value=D.settings.threshold;$('#s-eval').value=D.settings.evalSessions;
-  $('#s-treats').value=D.settings.treatNotes||'';$('#sett-o').classList.add('vis');
+function showEnrichForm(){
+  showModal('Log Enrichment',`
+    <div class="lbl">Type</div>
+    <div class="tog-row" id="enType">${ENRICHMENT_TYPES.map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+    <div class="lbl">Duration (minutes)</div>
+    <input type="number" id="enDur" placeholder="Minutes engaged" min="0">
+    <div class="lbl">Engagement</div>
+    <div class="tog-row" id="enEng">${['High','Medium','Low','Refused'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+    <div class="lbl">Notes</div>
+    <textarea id="enNotes" placeholder="How did she interact with it?" rows="2"></textarea>
+  `,`<button class="btn-s" onclick="closeModal()">Cancel</button>
+     <button class="btn-p" onclick="saveEnrich()">Save</button>`);
 }
-function closeSettings(){$('#sett-o').classList.remove('vis')}
+
+function saveEnrich(){
+  const gv=(id)=>{const el=document.querySelector(`#${id} .tog.on`);return el?el.textContent:''};
+  D.enrichmentLogs.push({
+    id:uid(),dt:new Date().toISOString(),
+    type:gv('enType'),duration:parseInt(document.getElementById('enDur')?.value)||0,
+    engagement:gv('enEng').toLowerCase(),notes:document.getElementById('enNotes')?.value||''
+  });
+  save();closeModal();toast('Enrichment logged');
+  if(curTab==='chron')rChron();
+}
+
+function showBehaviorForm(){
+  showModal('Log Behavior',`
+    <div class="lbl">Category</div>
+    <div class="tog-row" id="bhCat">${['Reactivity','Fear','Excitement','Resource guarding','Aggression','Positive social','Other'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+    <div class="lbl">Trigger</div>
+    <input type="text" id="bhTrigger" placeholder="What caused it?">
+    <div class="lbl">Intensity</div>
+    <div class="tog-row" id="bhInt">${['Mild','Moderate','Severe'].map(t=>`<button class="tog" onclick="togSingle(this)">${t}</button>`).join('')}</div>
+    <div class="lbl">Body Language Signals</div>
+    <div class="tog-row" id="bhBody">${BODY_SIGNALS.map(s=>`<button class="tog tog-acc" onclick="togMulti(this)">${s}</button>`).join('')}</div>
+    <div class="lbl">Your Response</div>
+    <textarea id="bhResp" placeholder="What did you do?" rows="2"></textarea>
+    <div class="lbl">Outcome</div>
+    <textarea id="bhOut" placeholder="How did it resolve?" rows="2"></textarea>
+  `,`<button class="btn-s" onclick="closeModal()">Cancel</button>
+     <button class="btn-p" onclick="saveBehavior()">Save</button>`);
+}
+
+function saveBehavior(){
+  const gv=(id)=>{const el=document.querySelector(`#${id} .tog.on`);return el?el.textContent:''};
+  const bodyLangs=Array.from(document.querySelectorAll('#bhBody .tog.on')).map(b=>b.textContent);
+  D.behaviorNotes.push({
+    id:uid(),dt:new Date().toISOString(),
+    category:gv('bhCat'),trigger:document.getElementById('bhTrigger')?.value||'',
+    intensity:gv('bhInt').toLowerCase(),bodyLanguage:bodyLangs,
+    response:document.getElementById('bhResp')?.value||'',
+    outcome:document.getElementById('bhOut')?.value||'',notes:''
+  });
+  save();closeModal();toast('Behavior logged');
+  if(curTab==='chron')rChron();
+}
+
+// Toggle helpers
+function togSingle(el){
+  el.parentElement.querySelectorAll('.tog').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+}
+function togMulti(el){el.classList.toggle('on')}
+
+// ── PROGRESS ──
+function rProg(){
+  const el=$('pProg');
+  const streak=calcStreak();
+
+  el.innerHTML=`
+    <div class="sec-h">Activity</div>
+    ${renderHeatmap()}
+
+    <div class="sec-h">Inscriptions</div>
+    ${D.milestones.length?D.milestones.slice().reverse().map(m=>`<div class="log-entry">
+      <div class="log-icon" style="background:var(--pri-glow);color:var(--pri)">${ICONS[m.ic]||ICONS.shield}</div>
+      <div class="log-body"><h4>${m.t}</h4></div>
+      <div class="log-time">${fmtDate(m.dt)}</div></div>`).join('')
+    :'<p class="cd-sub">No inscriptions yet. Complete rituals to reveal them.</p>'}
+
+    ${D.aloneLogs.length?`<div class="sec-h">Separation Progress</div>${renderSepChart()}`:''}
+
+    <div class="sec-h">Ward Progress</div>
+    ${SKILLS.map(sk=>{
+      const p=D.progress[sk.id];
+      const pct=p.masteredAt?100:p.step/sk.steps.length*100;
+      return `<div style="display:flex;align-items:center;gap:10px;margin:6px 0">
+        <div class="si si-${sk.phase}" style="width:32px;height:32px;font-size:0.6rem">${sk.abbr}</div>
+        <div style="flex:1"><div style="font-size:0.78rem;margin-bottom:2px">${sk.name}</div>
+          <div class="pbar pbar-${p.masteredAt?'ok':'pri'}"><div class="pbar-fill" style="width:${pct}%"></div></div></div>
+        <div style="font-size:0.7rem;color:var(--txt3)">${p.masteredAt?'Sealed':p.step+'/'+sk.steps.length}</div></div>`;
+    }).join('')}`;
+}
+
+function renderHeatmap(){
+  const today=new Date();
+  const days=56; // 8 weeks
+  const sessMap={};
+  D.sessions.forEach(s=>{const k=s.dt.slice(0,10);sessMap[k]=(sessMap[k]||0)+1});
+  D.pottyLogs.forEach(p=>{const k=p.dt.slice(0,10);sessMap[k]=(sessMap[k]||0)+0.3});
+  D.aloneLogs.forEach(a=>{const k=a.dt.slice(0,10);sessMap[k]=(sessMap[k]||0)+0.5});
+
+  let cols='';
+  for(let w=7;w>=0;w--){
+    let cells='';
+    for(let d=0;d<7;d++){
+      const dt=new Date(today);dt.setDate(dt.getDate()-(w*7+(6-d)));
+      const k=dt.toISOString().slice(0,10);
+      const v=sessMap[k]||0;
+      const cls=v>=4?'hm-4':v>=2?'hm-3':v>=1?'hm-2':v>0?'hm-1':'';
+      cells+=`<div class="hm-cell ${cls}" title="${k}: ${Math.round(v)} activities"></div>`;
+    }
+    cols+=`<div class="hm-col">${cells}</div>`;
+  }
+  return `<div class="hm-wrap"><div class="hm-grid">${cols}</div></div>`;
+}
+
+function renderSepChart(){
+  const logs=D.aloneLogs.slice(-20);
+  if(!logs.length)return '';
+  const maxDur=Math.max(...logs.map(l=>l.dur),1);
+  const barW=Math.max(8,Math.floor(300/logs.length)-2);
+  let bars=logs.map(l=>{
+    const h=Math.max(2,Math.round(l.dur/maxDur*80));
+    const color=l.calm==='yes'?'var(--ok)':l.calm==='mostly'?'var(--warn)':'var(--bad)';
+    return `<div style="width:${barW}px;display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="height:80px;display:flex;align-items:flex-end"><div style="width:${barW}px;height:${h}px;background:${color};border-radius:2px"></div></div>
+      <div style="font-size:0.5rem;color:var(--txt3)">${fmtTime(l.dur)}</div></div>`;
+  }).join('');
+  return `<div style="display:flex;gap:2px;overflow-x:auto;padding:8px 0">${bars}</div>`;
+}
+
+// ── SETTINGS ──
+function toggleSettings(){
+  const p=$('settingsPanel');
+  if(!p.classList.contains('hide')){p.classList.add('hide');return}
+  p.innerHTML=`
+    <div class="hdr" style="margin-bottom:8px">
+      <h2 style="font-size:1rem;color:var(--pri)">Settings</h2>
+      <button class="btn-icon" onclick="toggleSettings()">x</button>
+    </div>
+
+    <div class="sec-h">Zuzu's Profile</div>
+    <div class="lbl">Name</div><input id="sName" value="${D.profile.name}">
+    <div class="lbl">Weight (kg)</div><input id="sWeight" type="number" value="${D.profile.weight}">
+    <div class="lbl">Breed</div><input id="sBreed" value="${D.profile.breed||''}">
+    <div class="lbl">Rescue Date</div><input id="sRescue" type="date" value="${D.profile.rescueDate||''}">
+
+    <div class="sec-h">Training</div>
+    <div class="lbl">Default Duration</div>
+    <div class="tog-row">${[60,120,180,300].map(d=>`<button class="tog${d===D.settings.duration?' on':''}" onclick="togSingle(this);D.settings.duration=${d};save()">${d/60} min</button>`).join('')}</div>
+    <div class="lbl">Advancement Threshold (%)</div><input id="sThresh" type="number" value="${D.settings.threshold}" min="50" max="100">
+    <div class="lbl">Evaluation Sessions</div><input id="sEval" type="number" value="${D.settings.evalSessions}" min="1" max="10">
+    <div class="lbl">Sound</div>
+    <div class="tog-row"><button class="tog${D.settings.soundEnabled?' on':''}" onclick="D.settings.soundEnabled=!D.settings.soundEnabled;save();togSingle(this)">Enabled</button></div>
+
+    <div class="sec-h">Zuzu's Palate</div>
+    <div class="lbl">High-Value Treats</div><input id="sHigh" value="${(D.foodNotes.highValueTreats||[]).join(', ')}" placeholder="Chicken, cheese, liver...">
+    <div class="lbl">Medium-Value Treats</div><input id="sMed" value="${(D.foodNotes.medValueTreats||[]).join(', ')}" placeholder="Training treats, dried meat...">
+    <div class="lbl">Low-Value Treats</div><input id="sLow" value="${(D.foodNotes.lowValueTreats||[]).join(', ')}" placeholder="Kibble, biscuits...">
+    <div class="lbl">Dislikes</div><input id="sDislike" value="${(D.foodNotes.dislikes||[]).join(', ')}" placeholder="Foods she refuses...">
+    <div class="lbl">Current Kibble</div><input id="sKibble" value="${D.foodNotes.kibble||''}">
+
+    <div class="sec-h">Data</div>
+    <div style="display:flex;gap:10px;margin:12px 0">
+      <button class="btn-s" style="flex:1" onclick="exportData()">Export JSON</button>
+      <label class="btn-s" style="flex:1;text-align:center;cursor:pointer">Import<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
+    </div>
+    <button class="btn-s btn-danger" style="width:100%;margin-top:8px" onclick="resetData()">Reset All Data</button>
+
+    <div style="margin-top:24px">
+      <button class="btn-p" onclick="saveSettings()">Save Settings</button>
+    </div>`;
+  p.classList.remove('hide');
+}
+
 function saveSettings(){
-  D.profile.name=$('#s-name').value.trim()||'Zu';D.profile.weight=parseFloat($('#s-wt').value)||8.5;
-  D.profile.rescueDate=$('#s-rdate').value;D.settings.duration=parseInt($('#s-dur').value)||180;
-  D.settings.threshold=parseInt($('#s-thresh').value)||80;D.settings.evalSessions=parseInt($('#s-eval').value)||3;
-  D.settings.treatNotes=$('#s-treats').value;selDur=D.settings.duration;
-  save();closeSettings();toast('Settings saved!');go('home');
+  D.profile.name=document.getElementById('sName')?.value||'Zuzu';
+  D.profile.weight=parseFloat(document.getElementById('sWeight')?.value)||8.5;
+  D.profile.breed=document.getElementById('sBreed')?.value||'';
+  D.profile.rescueDate=document.getElementById('sRescue')?.value||'';
+  D.settings.threshold=parseInt(document.getElementById('sThresh')?.value)||80;
+  D.settings.evalSessions=parseInt(document.getElementById('sEval')?.value)||3;
+  // Food
+  const split=v=>(v||'').split(',').map(s=>s.trim()).filter(Boolean);
+  D.foodNotes.highValueTreats=split(document.getElementById('sHigh')?.value);
+  D.foodNotes.medValueTreats=split(document.getElementById('sMed')?.value);
+  D.foodNotes.lowValueTreats=split(document.getElementById('sLow')?.value);
+  D.foodNotes.dislikes=split(document.getElementById('sDislike')?.value);
+  D.foodNotes.kibble=document.getElementById('sKibble')?.value||'';
+  save();toggleSettings();toast('Settings saved');go(curTab);
 }
+
 function exportData(){
   const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`zu-backup-${dk()}.json`;a.click();URL.revokeObjectURL(a.href);toast('Exported!');
-}
-$('#imp-f').onchange=e=>{
-  const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.sessions||d.progress){modal('Import?','Replace all data?',[{l:'Cancel'},{l:'Import',c:'btn-p',fn:()=>{D={...defaults(),...d};save();toast('Imported!');go('home')}}])}else toast('Invalid file')}catch(err){toast('Read error')}};
-  r.readAsText(f);e.target.value='';
-};
-function resetAll(){
-  modal('Reset Everything?','Permanently delete ALL data including training sessions, potty logs, and alone time records. Cannot be undone.',[{l:'Cancel'},{l:'Reset',c:'btn-bad',fn:()=>{
-    localStorage.removeItem(SK);D=defaults();SKILLS.forEach(s=>{D.progress[s.id]={step:0,unlocked:s.phase===1||s.prereqs.length===0}});save();toast('All data reset');go('home');
-  }}]);
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='pazuzu-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();toast('Data exported');
 }
 
-// ═══════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════
-updateUnlocks();checkMilestones();rHome();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+function importData(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const imported=JSON.parse(e.target.result);
+      if(imported.sessions||imported.progress){
+        D=Object.assign(D,imported);save();load();
+        toast('Data imported');go(curTab);
+      }else{toast('Invalid backup file')}
+    }catch(err){toast('Error reading file')}
+  };reader.readAsText(file);
+}
+
+async function resetData(){
+  const ok=await confirm2('Reset All Data','This will permanently delete all training data, logs, and settings. This cannot be undone.','Reset Everything','btn-s btn-danger');
+  if(!ok)return;
+  localStorage.removeItem(STORE_KEY);load();
+  toggleSettings();go('shrine');toast('All data reset');
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+load();
+resumeAloneTimer();
+go('shrine');
+
+// Auto-export reminder (every 7 days)
+(function(){
+  const lastExport=localStorage.getItem('pazuzu_lastExportReminder');
+  const now=Date.now();
+  if(!lastExport||now-parseInt(lastExport)>7*86400000){
+    if(D.sessions.length>0){
+      setTimeout(()=>toast('Reminder: Export your data backup (Settings > Export)'),3000);
+      localStorage.setItem('pazuzu_lastExportReminder',now.toString());
+    }
+  }
+})();
 </script>
 </body>
 </html>
