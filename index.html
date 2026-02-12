@@ -6,1472 +6,1128 @@
 <meta name="theme-color" content="#6C63FF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Zu's Dog Trainer</title>
+<title>Zu's Trainer</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-192.svg">
 <style>
-/* ===== CSS Variables / Theme ===== */
 :root {
-  --primary: #6C63FF;
-  --primary-light: #8B85FF;
-  --primary-dark: #4F46E5;
-  --accent: #FF6B9D;
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --bg: #0F0F1A;
-  --bg-card: #1A1A2E;
-  --bg-card-hover: #222240;
-  --bg-input: #252540;
-  --text: #E8E8F0;
-  --text-muted: #8888A0;
-  --text-dim: #555570;
-  --border: #2A2A45;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 4px 20px rgba(0,0,0,0.3);
-  --transition: 0.2s ease;
+  --pri: #7C6EF6;
+  --pri-glow: rgba(124,110,246,0.25);
+  --acc: #F472B6;
+  --ok: #34D399;
+  --warn: #FBBF24;
+  --bad: #F87171;
+  --bg: #0B0B14;
+  --card: #151524;
+  --card2: #1C1C32;
+  --input: #1E1E36;
+  --txt: #EAEAF2;
+  --txt2: #9090AC;
+  --txt3: #55556E;
+  --brd: #262644;
+  --r: 14px;
+  --rs: 10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--txt);min-height:100dvh;overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:contain;line-height:1.45;
+}
+button{cursor:pointer;border:none;font:inherit;color:inherit;background:none;-webkit-user-select:none;user-select:none}
+input,textarea,select{font:inherit;color:var(--txt);background:var(--input);border:1px solid var(--brd);border-radius:var(--rs);padding:11px 14px;outline:none;width:100%}
+input:focus,textarea:focus,select:focus{border-color:var(--pri)}
+textarea{resize:vertical;min-height:56px}
+
+/* Layout */
+.app{display:flex;flex-direction:column;min-height:100dvh;max-width:430px;margin:0 auto;position:relative}
+.hdr{padding:14px 18px 6px;display:flex;align-items:center;justify-content:space-between}
+.hdr h1{font-size:1.15rem;font-weight:700;color:var(--pri)}
+.hdr-gear{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--txt3);transition:color .15s}
+.hdr-gear:active{color:var(--pri)}
+.hdr-gear svg{width:20px;height:20px}
+.tabs{flex:1;padding:6px 14px 90px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.tab{display:none;animation:fadeUp .18s ease}
+.tab.on{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Bottom nav */
+.nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
+  background:rgba(11,11,20,.96);backdrop-filter:blur(12px);border-top:1px solid var(--brd);
+  display:flex;padding:4px 0;padding-bottom:max(4px,env(safe-area-inset-bottom));z-index:100;
+}
+.nav-b{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 2px;
+  font-size:.6rem;font-weight:600;letter-spacing:.02em;color:var(--txt3);transition:color .12s;min-height:54px;
+}
+.nav-b svg{width:22px;height:22px;stroke-width:1.8}
+.nav-b.on{color:var(--pri)}
+
+/* Cards & common */
+.cd{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:10px;border:1px solid var(--brd)}
+.cd2{background:var(--card2);border-radius:var(--rs);padding:12px}
+.sec-title{font-size:.78rem;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:12px 22px;border-radius:var(--rs);font-weight:600;font-size:.88rem;
+  transition:transform .1s,opacity .15s;min-height:46px;
+}
+.btn:active{transform:scale(.96)}
+.btn-p{background:var(--pri);color:#fff}
+.btn-ok{background:var(--ok);color:#fff}
+.btn-bad{background:var(--bad);color:#fff}
+.btn-o{border:1.5px solid var(--brd);color:var(--txt2)}
+.btn-o:active,.btn-o.sel{border-color:var(--pri);color:var(--pri);background:rgba(124,110,246,.08)}
+.btn-s{padding:8px 16px;font-size:.8rem;min-height:38px}
+.btn-block{width:100%}
+.btn:disabled{opacity:.35;pointer-events:none}
+
+/* Progress bar */
+.pbar{height:5px;background:var(--input);border-radius:3px;overflow:hidden}
+.pbar .fill{height:100%;border-radius:3px;transition:width .4s ease;background:linear-gradient(90deg,var(--pri),var(--acc))}
+
+/* Badge */
+.badge{display:inline-block;padding:3px 10px;border-radius:16px;font-size:.68rem;font-weight:600}
+.b-1{background:rgba(52,211,153,.12);color:var(--ok)}
+.b-2{background:rgba(124,110,246,.12);color:var(--pri)}
+.b-3{background:rgba(251,191,36,.12);color:var(--warn)}
+.b-lock{background:rgba(85,85,110,.15);color:var(--txt3)}
+
+/* Skill icon (letter-based) */
+.si{
+  width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:800;letter-spacing:.5px;flex-shrink:0;
 }
 
-/* ===== Reset & Base ===== */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100dvh;
-  overflow-x: hidden;
-  -webkit-tap-highlight-color: transparent;
+/* ── DASHBOARD ── */
+.prof{text-align:center;padding:18px 14px}
+.prof-av{width:68px;height:68px;border-radius:50%;margin:0 auto 10px;background:linear-gradient(135deg,var(--pri),var(--acc));display:flex;align-items:center;justify-content:center}
+.prof-av svg{width:36px;height:36px;fill:#fff}
+.prof-name{font-size:1.3rem;font-weight:700}
+.prof-sub{font-size:.78rem;color:var(--txt2);margin-top:2px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.st{text-align:center;padding:12px 6px;background:var(--input);border-radius:var(--rs)}
+.st-v{font-size:1.35rem;font-weight:700;color:var(--pri)}
+.st-l{font-size:.65rem;color:var(--txt2);margin-top:2px}
+.plan-h{font-size:.82rem;color:var(--txt2);margin-bottom:8px;font-weight:600}
+.pl-i{
+  display:flex;align-items:center;gap:11px;padding:13px 12px;background:var(--input);
+  border-radius:var(--rs);margin-bottom:7px;transition:transform .1s;min-height:58px;
 }
+.pl-i:active{transform:scale(.98)}
+.pl-i .si{width:36px;height:36px;font-size:.65rem}
+.pl-i-info{flex:1;min-width:0}
+.pl-i-name{font-size:.84rem;font-weight:600}
+.pl-i-step{font-size:.72rem;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-i-rate{font-size:.8rem;font-weight:700;flex-shrink:0}
 
-button { cursor: pointer; border: none; font: inherit; color: inherit; background: none; }
-input, textarea, select { font: inherit; color: var(--text); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; outline: none; width: 100%; }
-input:focus, textarea:focus, select:focus { border-color: var(--primary); }
-textarea { resize: vertical; min-height: 60px; }
-
-/* ===== Layout ===== */
-.app { display: flex; flex-direction: column; min-height: 100dvh; max-width: 500px; margin: 0 auto; }
-.app-header { padding: 16px 20px 8px; display: flex; align-items: center; gap: 10px; }
-.app-header h1 { font-size: 1.3rem; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.tab-content { flex: 1; padding: 8px 16px 100px; overflow-y: auto; }
-.tab-panel { display: none; animation: fadeIn 0.2s ease; }
-.tab-panel.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ===== Bottom Nav ===== */
-.bottom-nav {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 500px;
-  background: rgba(15,15,26,0.95); backdrop-filter: blur(10px);
-  border-top: 1px solid var(--border);
-  display: flex; padding: 6px 0; padding-bottom: max(6px, env(safe-area-inset-bottom));
-  z-index: 100;
+/* Quick action buttons */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.qa-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  padding:18px 10px;background:var(--input);border-radius:var(--rs);
+  font-size:.78rem;font-weight:600;color:var(--txt2);transition:transform .1s;min-height:80px;
 }
-.nav-btn {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 8px 4px; font-size: 0.65rem; color: var(--text-dim); transition: color var(--transition);
+.qa-btn:active{transform:scale(.96);background:var(--card2)}
+.qa-btn svg{width:28px;height:28px;stroke-width:1.6}
+
+/* ── SKILLS ── */
+.ph-sec{margin-bottom:18px}
+.sk-cd{padding:13px;margin-bottom:7px;cursor:pointer;transition:background .12s}
+.sk-cd:active{background:var(--card2)}
+.sk-cd.lock{opacity:.4;pointer-events:none}
+.sk-top{display:flex;align-items:center;gap:11px}
+.sk-main{flex:1;min-width:0}
+.sk-name{font-weight:600;font-size:.92rem}
+.sk-meta{font-size:.72rem;color:var(--txt2);margin-top:2px}
+.sk-prereq{font-size:.7rem;color:var(--acc);margin-top:3px}
+.sk-det{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--brd)}
+.sk-cd.exp .sk-det{display:block}
+.stp-list{list-style:none}
+.stp-i{display:flex;gap:10px;padding:10px 6px;border-bottom:1px solid rgba(38,38,68,.5);border-radius:6px;cursor:pointer;transition:background .12s}
+.stp-i:last-child{border-bottom:none}
+.stp-i:active{background:rgba(124,110,246,.08)}
+.stp-n{
+  width:28px;height:28px;border-radius:50%;background:var(--input);display:flex;align-items:center;
+  justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;color:var(--txt3);transition:all .15s;
 }
-.nav-btn svg { width: 22px; height: 22px; }
-.nav-btn.active { color: var(--primary); }
-.nav-btn.active svg { filter: drop-shadow(0 0 6px rgba(108,99,255,0.4)); }
+.stp-i.cur .stp-n{background:var(--pri);color:#fff;box-shadow:0 0 10px var(--pri-glow)}
+.stp-i.done .stp-n{background:var(--ok);color:#fff}
+.stp-txt{flex:1;line-height:1.4}
+.stp-txt strong{font-size:.84rem}
+.stp-txt span{color:var(--txt2);font-size:.78rem}
+.stp-jmp{font-size:.68rem;color:var(--pri);align-self:center;opacity:.5;white-space:nowrap}
+.stp-i.cur .stp-jmp{display:none}
+.vid-link{display:inline-flex;align-items:center;gap:5px;color:var(--acc);font-size:.78rem;margin-top:10px;text-decoration:none}
+.vid-link:active{text-decoration:underline}
 
-/* ===== Cards ===== */
-.card {
-  background: var(--bg-card); border-radius: var(--radius); padding: 16px;
-  margin-bottom: 12px; border: 1px solid var(--border); transition: background var(--transition);
+/* ── TRAIN ── */
+.ss-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:14px 0}
+.ss-btn{
+  padding:15px 8px;background:var(--input);border-radius:var(--rs);text-align:center;
+  font-size:.78rem;font-weight:600;transition:all .1s;border:2px solid transparent;min-height:68px;
 }
-.card:hover { background: var(--bg-card-hover); }
-.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.card-title { font-size: 1rem; font-weight: 600; }
-.card-subtitle { font-size: 0.8rem; color: var(--text-muted); }
-
-/* ===== Buttons ===== */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;
-  transition: all var(--transition);
+.ss-btn:active{transform:scale(.96)}
+.ss-btn.sel{border-color:var(--pri);background:rgba(124,110,246,.1)}
+.ss-btn .si{margin:0 auto 5px;width:32px;height:32px;font-size:.6rem}
+.sess{display:none}.sess.vis{display:block}
+.setup.hid{display:none}
+.timer-d{font-size:2.8rem;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:2px;text-align:center}
+.timer-l{font-size:.78rem;color:var(--txt2);text-align:center;margin-top:3px}
+.timer-c{display:flex;gap:8px;justify-content:center;margin-top:10px}
+.rep-area{text-align:center;padding:16px}
+.rep-v{font-size:2.2rem;font-weight:700}
+.rep-l{font-size:.75rem;color:var(--txt2)}
+.rep-btns{display:flex;gap:14px;justify-content:center;margin-top:14px}
+.rep-b{
+  width:88px;height:88px;border-radius:50%;font-size:1.8rem;display:flex;align-items:center;
+  justify-content:center;transition:transform .08s,background .12s;
 }
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-light); transform: translateY(-1px); }
-.btn-success { background: var(--success); color: #fff; }
-.btn-success:hover { opacity: 0.9; }
-.btn-danger { background: var(--danger); color: #fff; }
-.btn-danger:hover { opacity: 0.9; }
-.btn-outline { border: 1px solid var(--border); color: var(--text-muted); }
-.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
-.btn-sm { padding: 6px 14px; font-size: 0.8rem; }
-.btn-block { width: 100%; }
-.btn:disabled { opacity: 0.4; pointer-events: none; }
+.rep-b:active{transform:scale(.88)}
+.rep-b.ok{background:rgba(52,211,153,.12);color:var(--ok);border:2.5px solid var(--ok)}
+.rep-b.ok:active{background:rgba(52,211,153,.35)}
+.rep-b.no{background:rgba(248,113,113,.12);color:var(--bad);border:2.5px solid var(--bad)}
+.rep-b.no:active{background:rgba(248,113,113,.35)}
 
-/* ===== Progress Bar ===== */
-.progress-bar { height: 6px; background: var(--bg-input); border-radius: 3px; overflow: hidden; }
-.progress-bar .fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; background: linear-gradient(90deg, var(--primary), var(--accent)); }
-
-/* ===== Badge ===== */
-.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
-.badge-phase1 { background: rgba(16,185,129,0.15); color: var(--success); }
-.badge-phase2 { background: rgba(108,99,255,0.15); color: var(--primary); }
-.badge-phase3 { background: rgba(245,158,11,0.15); color: var(--warning); }
-.badge-phase4 { background: rgba(255,107,157,0.15); color: var(--accent); }
-.badge-locked { background: rgba(85,85,112,0.2); color: var(--text-dim); }
-
-/* ===== Dashboard ===== */
-.profile-card { text-align: center; padding: 20px; }
-.profile-avatar {
-  width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 12px;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  display: flex; align-items: center; justify-content: center; font-size: 2rem;
+/* ── LOG TAB ── */
+.log-btn{
+  display:flex;align-items:center;gap:12px;padding:16px 14px;background:var(--input);
+  border-radius:var(--rs);margin-bottom:8px;font-size:.88rem;font-weight:600;
+  transition:transform .1s;min-height:60px;width:100%;text-align:left;
 }
-.profile-name { font-size: 1.4rem; font-weight: 700; }
-.profile-info { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
-.stat-box { text-align: center; padding: 12px 8px; background: var(--bg-input); border-radius: var(--radius-sm); }
-.stat-value { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
-.stat-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+.log-btn:active{transform:scale(.97);background:var(--card2)}
+.log-btn svg{width:26px;height:26px;flex-shrink:0}
+.log-btn-sub{font-size:.72rem;color:var(--txt2);font-weight:400;margin-top:1px}
 
-.daily-plan { margin-top: 8px; }
-.daily-plan h3 { font-size: 0.9rem; margin-bottom: 10px; color: var(--text-muted); }
-.plan-item {
-  display: flex; align-items: center; gap: 12px; padding: 12px;
-  background: var(--bg-input); border-radius: var(--radius-sm); margin-bottom: 8px;
-  cursor: pointer; transition: all var(--transition);
+.log-form{display:none;padding:14px}.log-form.vis{display:block}
+.log-form h3{font-size:.95rem;margin-bottom:12px}
+.tog-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.tog{
+  padding:10px 16px;border-radius:20px;font-size:.8rem;font-weight:600;
+  background:var(--input);color:var(--txt2);border:1.5px solid var(--brd);transition:all .12s;
 }
-.plan-item:hover { background: var(--bg-card-hover); }
-.plan-item .skill-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
-.plan-item .skill-info { flex: 1; min-width: 0; }
-.plan-item .skill-name { font-size: 0.85rem; font-weight: 600; }
-.plan-item .skill-step { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.plan-item .skill-rate { font-size: 0.8rem; font-weight: 600; }
-
-/* ===== Skills Library ===== */
-.phase-section { margin-bottom: 20px; }
-.phase-header { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
-.skill-card {
-  padding: 14px; margin-bottom: 8px; cursor: pointer; transition: all var(--transition);
+.tog:active,.tog.on{border-color:var(--pri);color:var(--pri);background:rgba(124,110,246,.1)}
+.tog-label{font-size:.75rem;color:var(--txt2);margin-bottom:6px;font-weight:600}
+.photo-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;
+  border:2px dashed var(--brd);border-radius:var(--rs);color:var(--txt3);font-size:.82rem;
+  margin-bottom:12px;min-height:52px;transition:all .12s;
 }
-.skill-card.locked { opacity: 0.45; pointer-events: none; }
-.skill-card-top { display: flex; align-items: center; gap: 12px; }
-.skill-card .skill-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
-.skill-card .skill-main { flex: 1; min-width: 0; }
-.skill-card .skill-name { font-weight: 600; font-size: 0.95rem; }
-.skill-card .skill-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
-.skill-card .progress-bar { margin-top: 8px; }
+.photo-btn:active{border-color:var(--pri);color:var(--pri)}
+.photo-btn.has-photo{border-color:var(--ok);color:var(--ok);border-style:solid}
+.photo-preview{width:100%;max-height:200px;object-fit:cover;border-radius:var(--rs);margin-bottom:10px}
 
-.skill-detail { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
-.skill-card.expanded .skill-detail { display: block; }
-.step-list { list-style: none; }
-.step-item { display: flex; gap: 10px; padding: 8px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(42,42,69,0.5); }
-.step-item:last-child { border-bottom: none; }
-.step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-input); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; color: var(--text-dim); }
-.step-item.current .step-num { background: var(--primary); color: #fff; }
-.step-item.completed .step-num { background: var(--success); color: #fff; }
-.step-text { flex: 1; line-height: 1.4; }
-.video-link { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-size: 0.8rem; margin-top: 10px; text-decoration: none; }
-.video-link:hover { text-decoration: underline; }
+/* Alone time tracker */
+.alone-timer{text-align:center;padding:20px 14px}
+.alone-timer .timer-d{font-size:3rem}
+.alone-status{display:inline-block;padding:4px 14px;border-radius:16px;font-size:.75rem;font-weight:700;margin-bottom:8px}
+.alone-status.recording{background:rgba(248,113,113,.15);color:var(--bad);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
-/* ===== Training Session ===== */
-.session-setup { text-align: center; }
-.skill-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
-.skill-select-btn {
-  padding: 14px 10px; background: var(--bg-input); border-radius: var(--radius-sm); text-align: center;
-  font-size: 0.8rem; font-weight: 600; transition: all var(--transition); border: 2px solid transparent;
+/* Log history */
+.log-entry{padding:11px;margin-bottom:6px;display:flex;align-items:flex-start;gap:10px}
+.log-entry .le-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.log-entry .le-icon svg{width:18px;height:18px}
+.le-body{flex:1;min-width:0}
+.le-title{font-size:.84rem;font-weight:600}
+.le-meta{font-size:.72rem;color:var(--txt2);margin-top:2px}
+.le-thumb{width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0}
+
+/* ── PROGRESS ── */
+.hmap{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.hm-d{aspect-ratio:1;border-radius:3px;background:var(--input)}
+.hm-d.l1{background:rgba(124,110,246,.2)}.hm-d.l2{background:rgba(124,110,246,.4)}
+.hm-d.l3{background:rgba(124,110,246,.6)}.hm-d.l4{background:rgba(124,110,246,.85)}
+.hm-labels{display:flex;justify-content:space-between;margin-top:5px;font-size:.62rem;color:var(--txt3)}
+.ms-i{display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:5px;background:var(--input);border-radius:var(--rs)}
+.ms-ico{width:28px;height:28px;border-radius:50%;background:var(--pri-glow);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ms-ico svg{width:14px;height:14px;stroke:var(--pri)}
+.ms-txt{font-size:.82rem;flex:1}.ms-dt{font-size:.68rem;color:var(--txt3)}
+.hi-item{padding:11px;margin-bottom:5px}
+.hi-top{display:flex;justify-content:space-between;align-items:center}
+.hi-name{font-weight:600;font-size:.88rem}.hi-rate{font-weight:700;font-size:.84rem}
+.hi-meta{font-size:.72rem;color:var(--txt2);margin-top:3px}
+.hi-note{font-size:.78rem;color:var(--txt2);margin-top:5px;font-style:italic}
+
+/* ── SETTINGS PANEL ── */
+.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.settings-overlay.vis{display:flex}
+.settings-panel{
+  background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:20px 18px 30px;
+  max-width:430px;width:100%;max-height:85dvh;overflow-y:auto;animation:slideUp .2s ease;
 }
-.skill-select-btn:hover { border-color: var(--primary); }
-.skill-select-btn.selected { border-color: var(--primary); background: rgba(108,99,255,0.1); }
-.skill-select-btn .skill-emoji { font-size: 1.3rem; display: block; margin-bottom: 4px; }
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.settings-panel h2{font-size:1rem;margin-bottom:16px}
+.s-group{margin-bottom:18px}
+.s-group h3{font-size:.76rem;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.s-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--brd)}
+.s-row:last-child{border-bottom:none}
+.s-row label{font-size:.88rem}
+.s-row input[type=number]{width:72px;text-align:center}
+.s-row input[type=date]{width:150px}
+.s-row input[type=text]{width:150px}
 
-.session-active { display: none; }
-.session-active.visible { display: block; }
-.session-setup.hidden { display: none; }
+/* Modal */
+.modal-o{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-o.vis{display:flex}
+.modal{background:var(--card);border-radius:var(--r);padding:22px;max-width:360px;width:100%;border:1px solid var(--brd);animation:fadeUp .18s ease}
+.modal h3{margin-bottom:10px;font-size:1rem}
+.modal p{font-size:.88rem;color:var(--txt2);margin-bottom:16px;line-height:1.5}
+.modal-act{display:flex;gap:8px;justify-content:flex-end}
 
-.session-timer {
-  text-align: center; padding: 20px; margin-bottom: 16px;
+/* Toast */
+.toast{
+  position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+  background:var(--card);border:1px solid var(--brd);padding:11px 20px;border-radius:var(--r);
+  font-size:.84rem;z-index:400;opacity:0;transition:opacity .25s;pointer-events:none;
 }
-.timer-display { font-size: 3rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 2px; }
-.timer-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
-.timer-controls { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
-
-.session-instructions { padding: 14px; margin-bottom: 12px; }
-.session-instructions h3 { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
-.session-instructions p { font-size: 0.9rem; line-height: 1.5; }
-
-.rep-tracker { text-align: center; padding: 20px; }
-.rep-count { font-size: 2.5rem; font-weight: 700; }
-.rep-label { font-size: 0.8rem; color: var(--text-muted); }
-.rep-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
-.rep-btn {
-  width: 80px; height: 80px; border-radius: 50%; font-size: 1.8rem; display: flex;
-  align-items: center; justify-content: center; transition: all var(--transition);
-}
-.rep-btn.success-btn { background: rgba(16,185,129,0.15); color: var(--success); border: 2px solid var(--success); }
-.rep-btn.success-btn:hover { background: rgba(16,185,129,0.3); }
-.rep-btn.fail-btn { background: rgba(239,68,68,0.15); color: var(--danger); border: 2px solid var(--danger); }
-.rep-btn.fail-btn:hover { background: rgba(239,68,68,0.3); }
-.rep-btn:active { transform: scale(0.92); }
-
-.session-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
-
-.session-notes { margin: 12px 0; }
-.session-notes label { font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px; }
-
-.end-session-area { margin-top: 16px; }
-
-/* ===== Progress Tab ===== */
-.heatmap-container { padding: 14px; overflow-x: auto; }
-.heatmap-container h3 { font-size: 0.9rem; margin-bottom: 12px; }
-.heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.heatmap-day {
-  aspect-ratio: 1; border-radius: 3px; background: var(--bg-input); position: relative;
-}
-.heatmap-day.level-1 { background: rgba(108,99,255,0.2); }
-.heatmap-day.level-2 { background: rgba(108,99,255,0.4); }
-.heatmap-day.level-3 { background: rgba(108,99,255,0.6); }
-.heatmap-day.level-4 { background: rgba(108,99,255,0.9); }
-.heatmap-day.future { background: transparent; border: 1px solid var(--border); opacity: 0.3; }
-.heatmap-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.65rem; color: var(--text-dim); }
-
-.milestone-list { margin-top: 8px; }
-.milestone-item {
-  display: flex; align-items: center; gap: 10px; padding: 10px; margin-bottom: 6px;
-  background: var(--bg-input); border-radius: var(--radius-sm);
-}
-.milestone-icon { font-size: 1.3rem; }
-.milestone-text { font-size: 0.85rem; flex: 1; }
-.milestone-date { font-size: 0.7rem; color: var(--text-dim); }
-
-.history-list { margin-top: 8px; }
-.history-item { padding: 12px; margin-bottom: 6px; }
-.history-top { display: flex; justify-content: space-between; align-items: center; }
-.history-skill { font-weight: 600; font-size: 0.9rem; }
-.history-rate { font-weight: 600; font-size: 0.85rem; }
-.history-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
-.history-notes { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; font-style: italic; }
-
-/* ===== Settings ===== */
-.setting-group { margin-bottom: 20px; }
-.setting-group h3 { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
-.setting-row:last-child { border-bottom: none; }
-.setting-label { font-size: 0.9rem; }
-.setting-value { display: flex; align-items: center; gap: 8px; }
-.setting-value input[type="number"] { width: 70px; text-align: center; }
-.setting-value input[type="date"] { width: 150px; }
-.setting-value input[type="text"] { width: 150px; }
-
-.danger-zone { margin-top: 30px; padding: 16px; border: 1px solid var(--danger); border-radius: var(--radius); }
-.danger-zone h3 { color: var(--danger); margin-bottom: 12px; }
-
-/* ===== Modal ===== */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200;
-  display: none; align-items: center; justify-content: center; padding: 20px;
-}
-.modal-overlay.visible { display: flex; }
-.modal {
-  background: var(--bg-card); border-radius: var(--radius); padding: 24px;
-  max-width: 400px; width: 100%; border: 1px solid var(--border); animation: fadeIn 0.2s ease;
-}
-.modal h3 { margin-bottom: 12px; }
-.modal p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
-.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-
-/* ===== Toast ===== */
-.toast {
-  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
-  background: var(--bg-card); border: 1px solid var(--border); padding: 12px 20px;
-  border-radius: var(--radius); font-size: 0.85rem; z-index: 300;
-  opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
-}
-.toast.visible { opacity: 1; }
-
-/* ===== Responsive ===== */
-@media (min-width: 500px) {
-  .skill-select-grid { grid-template-columns: 1fr 1fr 1fr; }
-}
+.toast.vis{opacity:1}
 </style>
 </head>
 <body>
-
 <div class="app">
-  <header class="app-header">
-    <h1>Zu's Kikopup Trainer</h1>
+  <header class="hdr">
+    <h1>Zu's Trainer</h1>
+    <button class="hdr-gear" onclick="openSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </header>
-
-  <!-- ===== TAB: Dashboard ===== -->
-  <div class="tab-content">
-    <div id="tab-dashboard" class="tab-panel active">
-      <div class="card profile-card">
-        <div class="profile-avatar">🐕</div>
-        <div class="profile-name" id="dash-name">Zu</div>
-        <div class="profile-info" id="dash-info">8.5 kg mixed rescue</div>
-        <div class="stats-grid">
-          <div class="stat-box">
-            <div class="stat-value" id="stat-streak">0</div>
-            <div class="stat-label">Day Streak</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-value" id="stat-sessions">0</div>
-            <div class="stat-label">Sessions</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-value" id="stat-skills">0</div>
-            <div class="stat-label">Skills Active</div>
+  <div class="tabs">
+    <!-- HOME -->
+    <div id="t-home" class="tab on"></div>
+    <!-- SKILLS -->
+    <div id="t-skills" class="tab"></div>
+    <!-- TRAIN -->
+    <div id="t-train" class="tab">
+      <div class="setup" id="setup">
+        <h2 style="text-align:center;margin-bottom:2px">Start Training</h2>
+        <p style="color:var(--txt2);font-size:.82rem;text-align:center;margin-bottom:12px">Pick a skill to practice</p>
+        <div class="ss-grid" id="ss-grid"></div>
+        <div style="margin:12px 0">
+          <div class="tog-label">Session Duration</div>
+          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+            <button class="btn btn-o btn-s dur-b" data-d="60">1 min</button>
+            <button class="btn btn-o btn-s dur-b" data-d="120">2 min</button>
+            <button class="btn btn-o btn-s dur-b sel" data-d="180">3 min</button>
+            <button class="btn btn-o btn-s dur-b" data-d="300">5 min</button>
           </div>
         </div>
+        <button class="btn btn-p btn-block" id="btn-go" disabled>Begin Session</button>
       </div>
-      <div class="daily-plan">
-        <h3>Today's Training Plan</h3>
-        <div id="daily-plan-list"></div>
-      </div>
-    </div>
-
-    <!-- ===== TAB: Skills Library ===== -->
-    <div id="tab-skills" class="tab-panel">
-      <div id="skills-list"></div>
-    </div>
-
-    <!-- ===== TAB: Train ===== -->
-    <div id="tab-train" class="tab-panel">
-      <div class="session-setup" id="session-setup">
-        <h2 style="margin-bottom:4px;">Start Training</h2>
-        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">Choose a skill to practice</p>
-        <div class="skill-select-grid" id="skill-select-grid"></div>
-        <div style="margin:16px 0;">
-          <label style="font-size:0.8rem;color:var(--text-muted);display:block;margin-bottom:4px;">Session Duration</label>
-          <div style="display:flex;gap:8px;justify-content:center;">
-            <button class="btn btn-outline btn-sm duration-btn" data-dur="60">1 min</button>
-            <button class="btn btn-outline btn-sm duration-btn selected" data-dur="120">2 min</button>
-            <button class="btn btn-outline btn-sm duration-btn" data-dur="180">3 min</button>
-            <button class="btn btn-outline btn-sm duration-btn" data-dur="300">5 min</button>
+      <div class="sess" id="sess">
+        <div class="cd" style="text-align:center;padding:18px">
+          <div class="timer-d" id="tm-d">3:00</div>
+          <div class="timer-l">Session Time</div>
+          <div class="timer-c">
+            <button class="btn btn-o btn-s" id="tm-tog">Start Timer</button>
+            <button class="btn btn-o btn-s" id="tm-rst">Reset</button>
           </div>
         </div>
-        <button class="btn btn-primary btn-block" id="btn-start-session" disabled>Begin Session</button>
-      </div>
-
-      <div class="session-active" id="session-active">
-        <div class="card session-timer">
-          <div class="timer-display" id="timer-display">2:00</div>
-          <div class="timer-label">Session Time</div>
-          <div class="timer-controls">
-            <button class="btn btn-outline btn-sm" id="btn-timer-toggle">Start Timer</button>
-            <button class="btn btn-outline btn-sm" id="btn-timer-reset">Reset</button>
+        <div class="cd" id="sess-instr">
+          <div style="font-size:.76rem;color:var(--txt2);margin-bottom:4px;font-weight:600">CURRENT STEP</div>
+          <p id="instr-txt" style="font-size:.88rem;line-height:1.5"></p>
+        </div>
+        <div class="cd rep-area">
+          <div style="display:flex;justify-content:center;gap:28px">
+            <div><div class="rep-v" id="r-ok" style="color:var(--ok)">0</div><div class="rep-l">Success</div></div>
+            <div><div class="rep-v" id="r-no" style="color:var(--bad)">0</div><div class="rep-l">Missed</div></div>
+          </div>
+          <div class="rep-btns">
+            <button class="rep-b no" id="b-no">&#10007;</button>
+            <button class="rep-b ok" id="b-ok">&#10003;</button>
+          </div>
+          <div class="stats" style="margin-top:14px">
+            <div class="st"><div class="st-v" id="s-tot">0</div><div class="st-l">Total</div></div>
+            <div class="st"><div class="st-v" id="s-rate">0%</div><div class="st-l">Rate</div></div>
+            <div class="st"><div class="st-v" id="s-elap">0:00</div><div class="st-l">Elapsed</div></div>
           </div>
         </div>
-
-        <div class="card session-instructions" id="session-instructions">
-          <h3>Current Step</h3>
-          <p id="step-instruction-text"></p>
+        <div style="margin:10px 0">
+          <div class="tog-label">Notes</div>
+          <textarea id="sess-notes" placeholder="How did Zu do? Observations..."></textarea>
         </div>
-
-        <div class="card rep-tracker">
-          <div style="display:flex;justify-content:center;gap:30px;">
-            <div><div class="rep-count" id="rep-success" style="color:var(--success)">0</div><div class="rep-label">Success</div></div>
-            <div><div class="rep-count" id="rep-fail" style="color:var(--danger)">0</div><div class="rep-label">Missed</div></div>
-          </div>
-          <div class="rep-buttons">
-            <button class="rep-btn fail-btn" id="btn-rep-fail" title="Miss">✗</button>
-            <button class="rep-btn success-btn" id="btn-rep-success" title="Success">✓</button>
-          </div>
-          <div class="session-stats" style="margin-top:16px;">
-            <div class="stat-box"><div class="stat-value" id="session-total">0</div><div class="stat-label">Total Reps</div></div>
-            <div class="stat-box"><div class="stat-value" id="session-rate">0%</div><div class="stat-label">Success Rate</div></div>
-            <div class="stat-box"><div class="stat-value" id="session-elapsed">0:00</div><div class="stat-label">Elapsed</div></div>
-          </div>
-        </div>
-
-        <div class="session-notes">
-          <label>Session Notes</label>
-          <textarea id="session-notes-input" placeholder="How did Zu do? Any observations..."></textarea>
-        </div>
-
-        <div class="end-session-area">
-          <button class="btn btn-danger btn-block" id="btn-end-session">End Session</button>
-        </div>
+        <button class="btn btn-bad btn-block" id="btn-end">End Session</button>
       </div>
     </div>
-
-    <!-- ===== TAB: Progress ===== -->
-    <div id="tab-progress" class="tab-panel">
-      <div class="card heatmap-container">
-        <h3>Training Activity</h3>
-        <div class="heatmap" id="heatmap"></div>
-        <div class="heatmap-labels"><span>8 weeks ago</span><span>Today</span></div>
-      </div>
-      <div class="card">
-        <h3 style="font-size:0.9rem;margin-bottom:10px;">Milestones</h3>
-        <div class="milestone-list" id="milestone-list">
-          <p style="font-size:0.85rem;color:var(--text-dim);">Complete training sessions to earn milestones!</p>
-        </div>
-      </div>
-      <div class="card">
-        <h3 style="font-size:0.9rem;margin-bottom:10px;">Session History</h3>
-        <div class="history-list" id="history-list">
-          <p style="font-size:0.85rem;color:var(--text-dim);">No sessions yet. Start training!</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== TAB: Settings ===== -->
-    <div id="tab-settings" class="tab-panel">
-      <div class="card">
-        <div class="setting-group">
-          <h3>Zu's Profile</h3>
-          <div class="setting-row">
-            <span class="setting-label">Name</span>
-            <div class="setting-value"><input type="text" id="set-name" value="Zu"></div>
-          </div>
-          <div class="setting-row">
-            <span class="setting-label">Weight (kg)</span>
-            <div class="setting-value"><input type="number" id="set-weight" value="8.5" step="0.1"></div>
-          </div>
-          <div class="setting-row">
-            <span class="setting-label">Rescue Date</span>
-            <div class="setting-value"><input type="date" id="set-rescue-date"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="setting-group">
-          <h3>Training Defaults</h3>
-          <div class="setting-row">
-            <span class="setting-label">Default Duration (sec)</span>
-            <div class="setting-value"><input type="number" id="set-duration" value="120" min="30" max="600" step="30"></div>
-          </div>
-          <div class="setting-row">
-            <span class="setting-label">Target Reps / Session</span>
-            <div class="setting-value"><input type="number" id="set-target-reps" value="10" min="1" max="50"></div>
-          </div>
-          <div class="setting-row">
-            <span class="setting-label">Auto-advance Threshold (%)</span>
-            <div class="setting-value"><input type="number" id="set-threshold" value="80" min="50" max="100"></div>
-          </div>
-          <div class="setting-row">
-            <span class="setting-label">Sessions to Evaluate</span>
-            <div class="setting-value"><input type="number" id="set-eval-sessions" value="3" min="1" max="10"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="setting-group">
-          <h3>Treat Value Tiers</h3>
-          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;">Notes on treat hierarchy for training</p>
-          <textarea id="set-treat-notes" rows="4" placeholder="e.g., Low: kibble, Medium: cheese, High: chicken..."></textarea>
-        </div>
-      </div>
-      <div class="card">
-        <div class="setting-group">
-          <h3>Data</h3>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btn-outline btn-sm" id="btn-export">Export Data</button>
-            <button class="btn btn-outline btn-sm" id="btn-import">Import Data</button>
-          </div>
-          <input type="file" id="import-file" accept=".json" style="display:none;">
-        </div>
-      </div>
-      <div class="danger-zone">
-        <h3>Danger Zone</h3>
-        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">This will permanently delete all training data.</p>
-        <button class="btn btn-danger btn-sm" id="btn-reset">Reset All Data</button>
-      </div>
-      <button class="btn btn-primary btn-block" id="btn-save-settings" style="margin-top:16px;">Save Settings</button>
-    </div>
+    <!-- LOG -->
+    <div id="t-log" class="tab"></div>
+    <!-- PROGRESS -->
+    <div id="t-prog" class="tab"></div>
   </div>
-
-  <!-- ===== Bottom Navigation ===== -->
-  <nav class="bottom-nav">
-    <button class="nav-btn active" data-tab="dashboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Home
+  <nav class="nav">
+    <button class="nav-b on" data-t="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
     </button>
-    <button class="nav-btn" data-tab="skills">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-      Skills
+    <button class="nav-b" data-t="skills">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Skills
     </button>
-    <button class="nav-btn" data-tab="train">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-      Train
+    <button class="nav-b" data-t="train">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>Train
     </button>
-    <button class="nav-btn" data-tab="progress">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Progress
+    <button class="nav-b" data-t="log">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Log
     </button>
-    <button class="nav-btn" data-tab="settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Settings
+    <button class="nav-b" data-t="prog">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Progress
     </button>
   </nav>
 </div>
 
-<!-- ===== Modal ===== -->
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal" id="modal">
-    <h3 id="modal-title"></h3>
-    <p id="modal-body"></p>
-    <div class="modal-actions" id="modal-actions"></div>
+<!-- Settings panel -->
+<div class="settings-overlay" id="sett-o" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-panel" id="sett-p">
+    <h2>Settings</h2>
+    <div class="s-group"><h3>Zu's Profile</h3>
+      <div class="s-row"><label>Name</label><input type="text" id="s-name" value="Zu"></div>
+      <div class="s-row"><label>Weight (kg)</label><input type="number" id="s-wt" value="8.5" step="0.1"></div>
+      <div class="s-row"><label>Rescue Date</label><input type="date" id="s-rdate"></div>
+    </div>
+    <div class="s-group"><h3>Training</h3>
+      <div class="s-row"><label>Default Duration (sec)</label><input type="number" id="s-dur" value="180" min="30" max="600" step="30"></div>
+      <div class="s-row"><label>Advance Threshold (%)</label><input type="number" id="s-thresh" value="80" min="50" max="100"></div>
+      <div class="s-row"><label>Sessions to Evaluate</label><input type="number" id="s-eval" value="3" min="1" max="10"></div>
+    </div>
+    <div class="s-group"><h3>Treat Tiers</h3>
+      <textarea id="s-treats" rows="3" placeholder="Low: kibble&#10;Medium: cheese&#10;High: chicken..."></textarea>
+    </div>
+    <div class="s-group"><h3>Data</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-o btn-s" onclick="exportData()">Export</button>
+        <button class="btn btn-o btn-s" onclick="$('#imp-f').click()">Import</button>
+      </div>
+      <input type="file" id="imp-f" accept=".json" style="display:none">
+    </div>
+    <div style="border:1px solid var(--bad);border-radius:var(--rs);padding:14px;margin-top:12px">
+      <div style="font-size:.82rem;color:var(--bad);font-weight:700;margin-bottom:8px">Danger Zone</div>
+      <button class="btn btn-bad btn-s" onclick="resetAll()">Reset All Data</button>
+    </div>
+    <button class="btn btn-p btn-block" style="margin-top:14px" onclick="saveSettings()">Save Settings</button>
   </div>
 </div>
 
-<!-- ===== Toast ===== -->
+<div class="modal-o" id="mod-o"><div class="modal"><h3 id="mod-t"></h3><p id="mod-b"></p><div class="modal-act" id="mod-a"></div></div></div>
 <div class="toast" id="toast"></div>
+<input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
 
 <script>
-// ============================================================
-// SKILLS DATABASE - Kikopup Progressive Reinforcement Training
-// ============================================================
-const SKILLS_DB = [
-  // Phase 1: Foundation
+// ═══════════════════════════════════════════════════════
+// SKILLS DATABASE — Kikopup Progressive Reinforcement
+// ═══════════════════════════════════════════════════════
+const SKILLS = [
+  // ── Phase 1: Foundation (Days 1-7) ──
   {
-    id: 'attention', name: 'Attention Game', emoji: '👀', phase: 1,
-    prereqs: [],
-    video: 'https://www.youtube.com/watch?v=uSFkKsh_jlA',
-    steps: [
-      { title: 'Mark & Reward Eye Contact', desc: 'Wait for Zu to look at your eyes. The instant she makes eye contact, mark (click or "yes") and treat. No cue needed yet - just capture natural glances.' },
-      { title: 'Increase Duration', desc: 'Gradually wait for longer eye contact before marking. Start with 1 second, build to 3 seconds. If Zu breaks contact, just wait - don\'t repeat or prompt.' },
-      { title: 'Add Distractions', desc: 'Practice with mild distractions (toy on floor, person nearby). Mark eye contact that occurs despite distractions. Keep sessions short (1-2 min).' },
-      { title: 'Add Cue', desc: 'Say "watch me" or Zu\'s name, then mark eye contact. Pair the verbal cue with the behavior she\'s already offering reliably.' },
-      { title: 'Proof in New Environments', desc: 'Practice in different rooms, outdoors on leash, near other dogs at distance. Lower criteria in new environments (accept shorter duration).' }
+    id:'attention', name:'Attention Game', abbr:'AT', phase:1, prereqs:[],
+    video:'https://www.youtube.com/results?search_query=kikopup+eye+contact+training',
+    steps:[
+      {t:'Capture Eye Contact', d:'Wait for Zu to glance at your eyes. The instant she makes eye contact, mark ("yes" or click) and treat. No cue yet — just reward natural glances toward your face.'},
+      {t:'Build Duration', d:'Gradually wait for longer eye contact before marking. Start with 1 second, build to 3. If she breaks contact, simply wait — never repeat or prompt.'},
+      {t:'Mild Distractions', d:'Practice with a toy on the floor or a person nearby. Mark eye contact that happens despite the distraction. Keep sessions to 2-3 minutes.'},
+      {t:'Add Verbal Cue', d:'Once she offers eye contact reliably, say "watch me" just BEFORE she looks. Pair the word with the behavior she already knows. Mark and treat.'},
+      {t:'Proof Everywhere', d:'Practice in different rooms, outdoors on leash, near other dogs at a distance. In new environments, accept shorter duration and rebuild.'}
     ]
   },
   {
-    id: 'interrupter', name: 'Positive Interrupter', emoji: '🔔', phase: 1,
-    prereqs: [],
-    video: 'https://www.youtube.com/watch?v=TBvPaqMZyo8',
-    steps: [
-      { title: 'Charge the Sound', desc: 'Choose a unique sound (kissy noise, whistle, specific word). Make the sound → immediately give a high-value treat. Repeat 10-20 times. Zu doesn\'t need to do anything.' },
-      { title: 'Test the Response', desc: 'When Zu is mildly distracted, make the sound. She should whip her head toward you. If not, go back to charging. Mark & treat when she orients to you.' },
-      { title: 'Use with Mild Distractions', desc: 'Practice when Zu is sniffing something, looking away, etc. Sound → she looks → mark & treat. Never use it for punishment or when she\'s over threshold.' },
-      { title: 'Increase Distraction Level', desc: 'Gradually use around more interesting distractions. Always reward generously - this needs to remain a "jackpot" sound. Never overuse it.' }
+    id:'interrupter', name:'Positive Interrupter', abbr:'PI', phase:1, prereqs:[],
+    video:'https://www.youtube.com/results?search_query=kikopup+positive+interrupter',
+    steps:[
+      {t:'Charge the Sound', d:'Pick a unique sound (kissy noise, whistle, or a specific word). Make the sound then immediately give a high-value treat. Repeat 15-20 times. Zu doesn\'t need to do anything.'},
+      {t:'Test Response', d:'When Zu is mildly distracted, make the sound. She should whip her head toward you. If she doesn\'t, go back to charging. Mark and treat when she orients to you.'},
+      {t:'Use with Distractions', d:'Practice when Zu is sniffing, looking away, etc. Sound, she looks, mark and treat. Never use it to punish or when she\'s over threshold (too scared or excited).'},
+      {t:'Increase Difficulty', d:'Gradually use around more interesting distractions. Always reward generously — this must stay a "jackpot" sound. Never overuse it or it loses power.'}
     ]
   },
   {
-    id: 'nomugging', name: 'No Mugging', emoji: '🤚', phase: 1,
-    prereqs: [],
-    video: 'https://www.youtube.com/watch?v=PZngak0ChcI',
-    steps: [
-      { title: 'Closed Fist Exercise', desc: 'Hold a treat in your closed fist. Zu will nose, paw, lick your hand. Wait. The moment she backs away or looks away from your hand, mark & treat from the OTHER hand.' },
-      { title: 'Open Hand on Floor', desc: 'Place your open hand with treat on the floor. Cover if she goes for it. When she looks away or backs off, mark & treat from other hand.' },
-      { title: 'Treat on the Floor', desc: 'Place a treat on the floor, cover with your hand if she goes for it. Mark & reward from the other hand when she shows restraint. Build to uncovered treats.' },
-      { title: 'Extended Duration', desc: 'Build up time Zu can show restraint around visible food. Practice with food on low tables, your plate, etc. Always reward the choice to leave it.' }
+    id:'nomugging', name:'Impulse Control', abbr:'IC', phase:1, prereqs:[],
+    video:'https://www.youtube.com/results?search_query=kikopup+its+yer+choice+impulse+control',
+    steps:[
+      {t:'Closed Fist', d:'Hold a treat in your closed fist. Zu will nose, paw, and lick at it. Wait. The moment she backs off or looks away, mark and treat from your OTHER hand.'},
+      {t:'Open Hand', d:'Place your open hand with treat on the floor. Cover it if she lunges. When she looks away or backs off, mark and reward from the other hand.'},
+      {t:'Treat on Floor', d:'Place a treat on the floor, cover with your hand if she goes for it. Mark and reward from your other hand when she shows restraint. Build to an uncovered treat.'},
+      {t:'Around Food', d:'Build up duration of restraint around visible food. Practice near your plate, low tables, food prep area. Always reward the choice to leave it alone.'}
     ]
   },
   {
-    id: 'calmness', name: 'Capturing Calmness', emoji: '😌', phase: 1,
-    prereqs: [],
-    video: 'https://www.youtube.com/watch?v=wesm2OpE_2c',
-    steps: [
-      { title: 'Reward Calm Moments', desc: 'Throughout the day, when Zu naturally lies down or is calm, gently mark and toss a treat to her. No cue, no prompting. You\'re reinforcing a state of being, not a behavior.' },
-      { title: 'On a Mat/Bed', desc: 'When Zu settles on her bed or mat, calmly reward. Build up to rewarding multiple times while she stays settled. Deliver treats slowly and calmly.' },
-      { title: 'Duration on Mat', desc: 'Gradually increase time between rewards while Zu stays relaxed on her mat. If she gets up, just wait - no correction. Reward the next calm settle.' },
-      { title: 'Calm in Exciting Contexts', desc: 'Practice mat settling when visitors arrive (at distance), in new rooms, or when activity is happening. Start with easy contexts and build up.' }
+    id:'calmness', name:'Capturing Calmness', abbr:'CC', phase:1, prereqs:[],
+    video:'https://www.youtube.com/results?search_query=kikopup+capturing+calmness',
+    steps:[
+      {t:'Reward Calm Moments', d:'Throughout the day, when Zu naturally lies down or settles, gently mark and toss a treat to her. No cue, no prompting. You\'re reinforcing a state of being.'},
+      {t:'On a Mat', d:'When Zu settles on her bed or mat, calmly reward. Build up to dropping several treats one at a time while she stays settled. Deliver treats slowly and quietly.'},
+      {t:'Build Duration', d:'Gradually space out rewards while Zu stays relaxed on her mat. If she gets up, that\'s fine — no correction. Just reward the next calm settle she offers.'},
+      {t:'Exciting Contexts', d:'Practice mat settling when visitors arrive (start at a distance), in new rooms, or when activity is happening nearby. Lower your criteria in harder contexts.'}
     ]
   },
   {
-    id: 'crate', name: 'Crate Training', emoji: '🏠', phase: 1,
-    prereqs: [],
-    video: 'https://www.youtube.com/watch?v=dUzF4Pb3JBo',
-    steps: [
-      { title: 'Crate = Treats', desc: 'Toss treats near, then into the crate. Let Zu explore freely. Door stays OPEN. No luring, no pushing. End on a good note if she shows hesitation.' },
-      { title: 'Eating Meals Inside', desc: 'Feed Zu\'s meals inside the crate with door open. She should go in willingly. If she won\'t, move the bowl closer gradually over sessions.' },
-      { title: 'Brief Door Closure', desc: 'While Zu eats, gently close door. Open BEFORE she finishes. Gradually extend time door stays closed (seconds at a time). Stay nearby.' },
-      { title: 'Short Separations', desc: 'Close door, step away briefly (10 sec), return calmly, treat & open. Build duration very slowly. Never use the crate as punishment.' },
-      { title: 'Extended Crate Time', desc: 'Build to 30+ minutes with you in another room. Leave a stuffed Kong or safe chew. Keep departures and arrivals low-key.' }
+    id:'crate', name:'Crate Training', abbr:'CR', phase:1, prereqs:[],
+    video:'https://www.youtube.com/results?search_query=kikopup+crate+training',
+    steps:[
+      {t:'Crate Discovery', d:'Toss treats near and then into the crate. Let Zu explore freely — door stays OPEN. No luring or pushing. End on a good note if she shows any hesitation.'},
+      {t:'Meals Inside', d:'Feed Zu\'s meals inside the crate with the door open. She should enter willingly. If not, place the bowl closer to the opening and move it further in over sessions.'},
+      {t:'Brief Door Closure', d:'While Zu eats inside, gently close the door. Open it BEFORE she finishes eating. Gradually extend how long the door stays closed. Stay nearby and calm.'},
+      {t:'Short Separations', d:'Close door, step away for 10 seconds, return calmly, treat through the door, then open. Build duration very slowly. Never use the crate as punishment.'},
+      {t:'Extended Duration', d:'Build to 30+ minutes with you in another room. Leave a stuffed Kong or safe chew. Keep your departures and arrivals boring and low-key.'}
     ]
   },
   {
-    id: 'house', name: 'House Training', emoji: '🏡', phase: 1,
-    prereqs: [],
-    video: 'https://www.youtube.com/watch?v=QEtOLAiGJOA',
-    steps: [
-      { title: 'Frequent Outings', desc: 'Take Zu out every 1-2 hours, after meals, naps, and play. Go to the same spot. Wait quietly. When she goes, mark & throw a treat party!' },
-      { title: 'Learn the Signals', desc: 'Watch for sniffing, circling, going to the door. Immediately take her out. Reward every outdoor success. Manage indoor access (close doors, use gates).' },
-      { title: 'Extend Intervals', desc: 'Gradually increase time between outings as Zu shows reliability. Continue rewarding outdoor elimination. If accidents happen, just clean up - no punishment.' },
-      { title: 'Full House Access', desc: 'Gradually give Zu more freedom in the house as she proves reliable. Continue occasional rewards for going outside to maintain the habit.' }
+    id:'house', name:'House Training', abbr:'HT', phase:1, prereqs:[],
+    video:'https://www.youtube.com/results?search_query=kikopup+house+training+puppy',
+    steps:[
+      {t:'Frequent Outings', d:'Take Zu out every 1-2 hours, after meals, after naps, and after play. Same spot each time. Wait quietly. When she goes, mark and have a treat party.'},
+      {t:'Learn Her Signals', d:'Watch for sniffing, circling, going to the door. Take her out immediately. Reward every outdoor success. Use baby gates to manage indoor access.'},
+      {t:'Extend Intervals', d:'Gradually increase time between outings as she proves reliable. Continue rewarding outdoor elimination. If accidents happen, just clean up — no punishment ever.'},
+      {t:'Full Freedom', d:'Gradually give Zu access to more rooms as she proves reliable. Occasional treats for going outside maintain the habit long-term.'}
     ]
   },
-  // Phase 2: Core Skills
+  // ── Phase 2: Core Skills (Days 7-21) ──
   {
-    id: 'recall', name: 'Recall (Come)', emoji: '📣', phase: 2,
-    prereqs: ['attention'],
-    video: 'https://www.youtube.com/watch?v=P8yy5_waikk',
-    steps: [
-      { title: 'Restrained Recall Game', desc: 'Have someone gently hold Zu. Show a treat, back up excitedly, call "Zu, come!" When released, she runs to you → huge reward party. Keep distance short (5-10 feet).' },
-      { title: 'Surprise Recalls Indoors', desc: 'When Zu is nearby but not focused on you, call "Zu, come!" in a happy voice. Reward generously when she comes. Practice in different rooms.' },
-      { title: 'Outdoor on Long Line', desc: 'Practice in fenced area or on a long line (15-30 ft). Call when Zu is exploring. Reward with her favorite treats. Never call to punish or end fun.' },
-      { title: 'Add Distractions', desc: 'Practice around other dogs (at distance), squirrels, people. Start far from distractions. Always make coming to you the BEST option. Use high-value treats.' },
-      { title: 'Proof Reliability', desc: 'Practice in many environments. Vary rewards (treats, play, praise). Randomly reinforce to maintain reliability. Keep it a lifelong rewarding behavior.' }
+    id:'name', name:'Name Recognition', abbr:'NR', phase:2, prereqs:[],
+    video:'https://www.youtube.com/results?search_query=kikopup+name+recognition+dog',
+    steps:[
+      {t:'Name = Treat', d:'Say "Zu" then immediately treat. Repeat 15-20 times per session. She doesn\'t need to do anything yet — just building the association that her name means good things.'},
+      {t:'Name Orientation', d:'Say "Zu" when she\'s slightly distracted. The moment she turns toward you, mark and treat. Practice in quiet environments first.'},
+      {t:'Distance', d:'Say "Zu" from across the room. Mark and treat when she orients. Build up to calling from other rooms in the house.'},
+      {t:'Busy Environments', d:'Practice outdoors and with distractions. Her name should always predict something wonderful. Never use her name for scolding or negative associations.'}
     ]
   },
   {
-    id: 'name', name: 'Name Recognition', emoji: '📛', phase: 2,
-    prereqs: [],
-    video: 'https://www.youtube.com/watch?v=sSgZX06PklQ',
-    steps: [
-      { title: 'Name = Treat', desc: 'Say "Zu" → immediately treat. Repeat 15-20 times per session. She doesn\'t need to do anything specific yet. Just building the association name = good things.' },
-      { title: 'Name → Orientation', desc: 'Say "Zu" when she\'s slightly distracted. The moment she orients toward you, mark & treat. Practice in low-distraction environments first.' },
-      { title: 'Name with Distance', desc: 'Say "Zu" from across the room. Mark & treat when she orients. Build to calling from other rooms.' },
-      { title: 'Name in Busy Environments', desc: 'Practice outdoors and with distractions. Her name should always predict something wonderful. Never use her name for scolding.' }
+    id:'recall', name:'Recall (Come)', abbr:'RC', phase:2, prereqs:['attention'],
+    video:'https://www.youtube.com/results?search_query=kikopup+recall+come+when+called',
+    steps:[
+      {t:'Restrained Recall', d:'Have someone gently hold Zu. Show a treat, back up excitedly, call "Zu, come!" When released, she runs to you — huge reward party. Keep distance short (5-10 feet).'},
+      {t:'Surprise Recalls', d:'When Zu is nearby but not focused on you, call "Zu, come!" in an excited voice. Reward generously when she comes. Practice in different rooms.'},
+      {t:'Long Line Outdoors', d:'Practice in a fenced area or on a 15-30 foot long line. Call when she\'s exploring. Reward with her favorite treats. Never call to end fun or to punish.'},
+      {t:'Around Distractions', d:'Practice near other dogs (at distance), squirrels, people. Start far from distractions and close the gap slowly. Coming to you must always be the BEST option.'},
+      {t:'Proof Reliability', d:'Practice in many environments. Vary rewards between treats, play, and praise. Keep reinforcing randomly for life — this is a safety behavior.'}
     ]
   },
   {
-    id: 'sit', name: 'Sit', emoji: '🦮', phase: 2,
-    prereqs: [],
-    video: 'https://www.youtube.com/watch?v=FBTavnZCd6M',
-    steps: [
-      { title: 'Capture or Lure', desc: 'Either wait for Zu to sit naturally and mark it, or hold a treat above her nose and slowly move it back over her head. As her bum touches the ground, mark & treat.' },
-      { title: 'Add Verbal Cue', desc: 'Once Zu is offering sits reliably, say "sit" just BEFORE she sits. Mark & treat. Repeat until the word predicts the action.' },
-      { title: 'Sit in Different Positions', desc: 'Practice sit when you\'re standing, sitting, at different angles to Zu. She should respond to the verbal cue regardless of your body position.' },
-      { title: 'Sit with Duration', desc: 'Ask for sit, then slowly build duration before marking. Start with 2 seconds, build to 10+. Release with your release cue before she breaks.' },
-      { title: 'Sit with Distractions', desc: 'Practice around distractions. Start easy and build. Ask for sit before meals, before going through doors, before putting leash on (making it functional).' }
+    id:'sit', name:'Sit', abbr:'SI', phase:2, prereqs:[],
+    video:'https://www.youtube.com/results?search_query=kikopup+teach+sit',
+    steps:[
+      {t:'Lure or Capture', d:'Hold a treat at Zu\'s nose and slowly arc it back over her head. As her bum touches the ground, mark and treat. OR wait for a natural sit and capture it.'},
+      {t:'Add Verbal Cue', d:'Once Zu offers sits reliably with the lure, say "sit" just BEFORE she sits. Fade the lure gradually — smaller hand motion, empty hand, then just the word.'},
+      {t:'Any Position', d:'Practice when you\'re standing, sitting, at different angles. She should respond to the verbal cue regardless of your body position.'},
+      {t:'Add Duration', d:'After she sits, pause before marking. Build from 1 second to 10+. Always release with your release cue BEFORE she decides to get up on her own.'},
+      {t:'Add Distractions', d:'Practice around distractions, starting easy. Use sit functionally: before meals, before going through doors, before leash goes on.'}
     ]
   },
   {
-    id: 'release', name: 'Release Cue', emoji: '🟢', phase: 2,
-    prereqs: ['sit'],
-    video: 'https://www.youtube.com/watch?v=YKENEAM4jRY',
-    steps: [
-      { title: 'Pair Release Word', desc: 'Ask for a sit. Say "free!" (or "okay!" / "break!") and toss a treat away so Zu moves. The release word = permission to move. Practice with very short sits.' },
-      { title: 'Release Before She Breaks', desc: 'Key principle: always release BEFORE Zu breaks position on her own. This builds understanding that YOUR word ends the behavior, not her decision.' },
-      { title: 'Vary What Follows Release', desc: 'Sometimes release to a treat, sometimes to play, sometimes just to freedom. Make the release cue meaningful in different contexts.' },
-      { title: 'Use with All Stationary Cues', desc: 'Apply the release cue to sit, down, stay, wait, mat work. Zu learns that all "stay in position" cues end with the release word.' }
+    id:'release', name:'Release Cue', abbr:'RE', phase:2, prereqs:['sit'],
+    video:'https://www.youtube.com/results?search_query=kikopup+release+cue+free',
+    steps:[
+      {t:'Pair the Word', d:'Ask for sit. Say "free!" (or "break!") and toss a treat so Zu has to move. The release word = permission to move. Practice with very short sits first.'},
+      {t:'Release Before She Breaks', d:'Key principle: always release BEFORE Zu breaks position on her own. This teaches that YOUR word ends the behavior, not her decision to leave.'},
+      {t:'Vary the Reward', d:'Sometimes release to a tossed treat, sometimes to play, sometimes just to freedom. The release cue should mean "you\'re done, go have fun."'},
+      {t:'Use with Everything', d:'Apply your release cue to sit, down, stay, wait, and mat work. Zu learns that all "hold position" cues end with the release word.'}
     ]
   },
   {
-    id: 'down', name: 'Down', emoji: '⬇️', phase: 2,
-    prereqs: ['sit'],
-    video: 'https://www.youtube.com/watch?v=YKENEAM4jRY',
-    steps: [
-      { title: 'Lure from Sit', desc: 'From a sit, hold a treat at Zu\'s nose and slowly lower it straight down to the floor between her paws. Mark & treat the instant her belly touches the floor.' },
-      { title: 'Lure from Standing', desc: 'Lure down from a standing position. Lower the treat to the floor, then slowly pull it toward you if needed. Be patient - this can take time.' },
-      { title: 'Add Verbal Cue', desc: 'Once Zu follows the lure smoothly, add "down" just before the lure motion. Fade the lure gradually (smaller hand motion, empty hand, then just the word).' },
-      { title: 'Down with Duration', desc: 'Build duration in the down position. Mark & treat while Zu stays down. Build from 2 seconds to 30+ seconds.' },
-      { title: 'Down in Various Contexts', desc: 'Practice on different surfaces, in different rooms, outdoors. Combine with mat work for relaxation training.' }
+    id:'down', name:'Down', abbr:'DN', phase:2, prereqs:['sit'],
+    video:'https://www.youtube.com/results?search_query=kikopup+teach+down+lie+down',
+    steps:[
+      {t:'Lure from Sit', d:'From a sit, hold a treat at Zu\'s nose and lower it straight down between her paws. Mark and treat the instant elbows and belly touch the floor. Be patient.'},
+      {t:'Lure from Standing', d:'Lower the treat to the floor, then slowly pull it toward you if needed to get her folding into the down. Some dogs need more time with this step.'},
+      {t:'Add Verbal Cue', d:'Once she follows the lure smoothly, say "down" just before the hand motion. Gradually make the hand motion smaller until just the word works.'},
+      {t:'Build Duration', d:'Mark and treat while Zu stays down. Build from 2 seconds to 30+. Combine with your release cue to end the down.'},
+      {t:'Various Surfaces', d:'Practice on different surfaces, in different rooms, then outdoors. Combine with mat work for relaxation training.'}
     ]
   },
   {
-    id: 'leaveit', name: 'Leave It', emoji: '⛔', phase: 2,
-    prereqs: ['nomugging'],
-    video: 'https://www.youtube.com/watch?v=R1TS5nA7z6Q',
-    steps: [
-      { title: 'Two-Treat Method', desc: 'Show Zu a treat in one hand, close your fist. When she stops trying to get it (backs away, looks at you), mark & treat from the OTHER hand. She never gets the "leave it" treat.' },
-      { title: 'Add "Leave It" Cue', desc: 'Say "leave it" before presenting the closed fist. Mark & reward from other hand when she turns away. The forbidden item is never the reward.' },
-      { title: 'Leave It on the Floor', desc: 'Place a treat on the floor, cover with your hand/foot if needed. Say "leave it." Reward from your other hand when she looks away. Build to uncovered items.' },
-      { title: 'Leave It on Walks', desc: 'Practice with objects on the ground during walks. Start with low-interest items. Say "leave it," reward for turning away. Build to food on sidewalks, etc.' },
-      { title: 'Leave It with High-Value Items', desc: 'Practice with increasingly tempting items. Always reward with something equally good or better from you. "Leave it" means "turn away and I\'ll make it worth your while."' }
+    id:'leaveit', name:'Leave It', abbr:'LI', phase:2, prereqs:['nomugging'],
+    video:'https://www.youtube.com/results?search_query=kikopup+leave+it',
+    steps:[
+      {t:'Two-Treat Method', d:'Show Zu a treat in one hand, close your fist. When she stops trying to get it and looks at you, mark and treat from your OTHER hand. She never gets the forbidden treat.'},
+      {t:'Add the Cue', d:'Say "leave it" before showing the closed fist. Mark and reward from the other hand when she turns away. The leave-it item is never the reward.'},
+      {t:'Floor Items', d:'Place a treat on the floor, cover it if she goes for it. Say "leave it." Reward from your hand when she looks away. Build to leaving uncovered items.'},
+      {t:'On Walks', d:'Practice with objects on the ground outdoors. Start with boring items, build to food on sidewalks. "Leave it" always earns something better from you.'},
+      {t:'High-Value Items', d:'Practice with increasingly tempting things. Always reward with something equal or better. This is different from Drop It — Leave It means "don\'t touch it in the first place."'}
     ]
   },
   {
-    id: 'dropit', name: 'Drop It', emoji: '🎾', phase: 2,
-    prereqs: [],
-    video: 'https://www.youtube.com/watch?v=ndTiVOCNY4M',
-    steps: [
-      { title: 'Trade Game', desc: 'When Zu has a toy, show a high-value treat. When she drops the toy to take the treat, mark & treat, then give the toy BACK. Drop it = you get something better AND your toy back.' },
-      { title: 'Add "Drop It" Cue', desc: 'Say "drop it" just before offering the trade. Over time, she\'ll drop on the verbal cue alone. Always reward. Never chase or force items away.' },
-      { title: 'Drop Various Objects', desc: 'Practice with different items (toys, sticks, things she finds). Always trade for something high-value. The goal is voluntary release, not fear of losing things.' },
-      { title: 'Quick Drop Response', desc: 'Build speed of response. Say "drop it" and she should release immediately. Maintain with high-value rewards. This is a safety behavior - keep it well-practiced.' }
+    id:'dropit', name:'Drop It', abbr:'DI', phase:2, prereqs:[],
+    video:'https://www.youtube.com/results?search_query=kikopup+drop+it+trade',
+    steps:[
+      {t:'Trade Game', d:'When Zu has a toy, show a high-value treat. When she drops the toy, mark and treat, then give the toy BACK. This teaches: dropping things = getting something great AND keeping your stuff.'},
+      {t:'Add Cue', d:'Say "drop it" just before offering the trade. Over time she\'ll drop on the word alone. Always reward. Never chase or force items from her mouth.'},
+      {t:'Various Objects', d:'Practice with different items: toys, sticks, things she finds. Always trade up. The goal is willing, happy release — not fear of losing things.'},
+      {t:'Quick Response', d:'Build speed — "drop it" should mean instant release. Maintain with high-value rewards. This is a safety behavior, so keep it sharp.'}
     ]
   },
-  // Phase 3: Life Skills
+  // ── Phase 3: Life Skills (Days 14-42) ──
   {
-    id: 'leashpressure', name: 'Leash Pressure Game', emoji: '🔗', phase: 3,
-    prereqs: ['attention'],
-    video: 'https://www.youtube.com/watch?v=iKG89GRqJPM',
-    steps: [
-      { title: 'Leash Pressure = Treat', desc: 'With Zu on leash, apply gentle pressure in any direction. The instant she takes a step in the direction of pressure, mark & treat. Release pressure immediately.' },
-      { title: 'Follow Pressure in All Directions', desc: 'Practice pressure forward, back, left, right. Zu should yield to any gentle pressure by stepping toward it. Keep it very light - this is about communication, not force.' },
-      { title: 'Moving Together', desc: 'Use micro-pressure cues to guide Zu while walking. She should respond to very subtle leash communication. Reward frequently for following along.' },
-      { title: 'Leash Pressure Around Distractions', desc: 'Practice near distractions. Gentle pressure → Zu yields → mark & treat. This prevents pulling and teaches leash = communication tool.' }
-    ]
-  },
-  {
-    id: 'llwindoor', name: 'Loose Leash Walking (Indoor)', emoji: '🏢', phase: 3,
-    prereqs: ['leashpressure', 'attention'],
-    video: 'https://www.youtube.com/watch?v=sFgtqgiAKoQ',
-    steps: [
-      { title: 'Reward at Your Side', desc: 'With Zu on leash indoors, reward her for being at your side (either side). Mark & treat rapidly at first. She learns: "next to human = treats happen."' },
-      { title: 'Take a Few Steps', desc: 'Take 2-3 steps, if Zu stays at your side with loose leash, mark & treat. If she pulls ahead, stop. Wait for her to return to your side or look at you, then reward.' },
-      { title: 'Walk Through Rooms', desc: 'Build to walking through your home on a loose leash. Change directions frequently. Reward Zu for choosing to stay with you. Make yourself more interesting than the environment.' },
-      { title: 'Add Indoor Distractions', desc: 'Practice with toys on the floor, family members moving around. Reward Zu for maintaining loose leash despite distractions. Vary your pace.' }
+    id:'leashpressure', name:'Leash Pressure Yields', abbr:'LP', phase:3, prereqs:['attention'],
+    video:'https://www.youtube.com/results?search_query=kikopup+leash+pressure+game',
+    steps:[
+      {t:'Pressure = Treat', d:'With Zu on leash, apply gentle pressure in one direction. The instant she takes a step into the pressure (toward you), mark and treat. Release pressure immediately.'},
+      {t:'All Directions', d:'Practice forward, back, left, right. Zu should yield to any gentle pressure by stepping toward it. Keep it light — this is communication, not force.'},
+      {t:'Moving Together', d:'Use micro-pressure cues to guide Zu while walking. She should respond to very subtle leash signals. Reward frequently for following along with you.'},
+      {t:'Around Distractions', d:'Practice near interesting things. Gentle pressure, Zu yields, mark and treat. This prevents pulling by teaching the leash is a conversation, not a restraint.'}
     ]
   },
   {
-    id: 'fetch', name: 'Fetch', emoji: '🎯', phase: 3,
-    prereqs: ['dropit'],
-    video: 'https://www.youtube.com/watch?v=D-uUzzOmBns',
-    steps: [
-      { title: 'Build Toy Drive', desc: 'Make a toy exciting by moving it on the ground like prey. When Zu grabs it, celebrate! Use a toy she already likes. Short play sessions to keep excitement high.' },
-      { title: 'Short Tosses + Trade', desc: 'Toss toy 3-5 feet. When Zu picks it up, call her back. Use "drop it" and trade for a treat, then throw again. The throw IS the reward for bringing it back.' },
-      { title: 'Increase Distance', desc: 'Gradually increase throw distance. Keep the game pattern: throw → fetch → bring back → drop → throw again. If she doesn\'t bring it back, shorten the distance.' },
-      { title: 'Fetch as Life Reward', desc: 'Use fetch as a reward for other behaviors. Build endurance. Some dogs love fetch, others are more casual - follow Zu\'s enthusiasm level.' }
+    id:'llwindoor', name:'Loose Leash Walking (Indoor)', abbr:'LI', phase:3, prereqs:['leashpressure','attention'],
+    video:'https://www.youtube.com/results?search_query=kikopup+loose+leash+walking',
+    steps:[
+      {t:'Reward at Side', d:'With Zu on leash indoors, reward her for being at your side. Mark and treat rapidly at first. She learns: being next to you = treats appear.'},
+      {t:'Short Steps', d:'Take 2-3 steps. If she stays at your side with a loose leash, mark and treat. If she pulls, stop completely. Wait for her to look at you, then reward and continue.'},
+      {t:'Walk Through Rooms', d:'Build to walking through your home on a loose leash. Change direction frequently. Make yourself more interesting than the environment.'},
+      {t:'Indoor Distractions', d:'Add toys on the floor, family members moving. Reward Zu for maintaining a loose leash despite temptations. This must be solid before going outside.'}
     ]
   },
   {
-    id: 'handling', name: 'Handling & Grooming', emoji: '✋', phase: 3,
-    prereqs: ['calmness'],
-    video: 'https://www.youtube.com/watch?v=AElTViRKFlA',
-    steps: [
-      { title: 'Touch = Treat', desc: 'Briefly touch Zu\'s shoulder → treat. Touch ear → treat. Touch paw → treat. Keep touches brief and pair each with food. Let her move away if she wants.' },
-      { title: 'Longer Handling', desc: 'Build duration of touch. Hold paw for 1 sec → treat. Look in ear → treat. Lift lip to see teeth → treat. Go at Zu\'s pace - never restrain.' },
-      { title: 'Grooming Tools', desc: 'Show brush → treat. Touch brush to body → treat. One brush stroke → treat. Build very gradually. Let Zu investigate tools first.' },
-      { title: 'Full Grooming Sessions', desc: 'Build to brushing, nail handling, ear cleaning with cooperative participation. If Zu moves away, pause and make it easier. Use Chirag Patel\'s bucket game for consent.' },
-      { title: 'Vet Prep Handling', desc: 'Practice vet-like handling: look in ears, check teeth, hold paws, touch all over body. Practice standing on a scale. Build comfort with being examined.' }
+    id:'fetch', name:'Fetch', abbr:'FE', phase:3, prereqs:['dropit'],
+    video:'https://www.youtube.com/results?search_query=kikopup+teach+fetch+retrieve',
+    steps:[
+      {t:'Build Toy Interest', d:'Move a toy on the ground like prey to make it exciting. When Zu grabs it, celebrate. Use a toy she already likes. Keep play sessions short to maintain excitement.'},
+      {t:'Short Tosses', d:'Toss a toy 3-5 feet. When Zu picks it up, call her back. "Drop it," trade for a treat, then throw again. The throw IS the reward for bringing it back.'},
+      {t:'Increase Distance', d:'Gradually throw further. Pattern: throw, fetch, bring back, drop, throw again. If she won\'t return, shorten the distance and rebuild.'},
+      {t:'Fetch as Reward', d:'Use fetch as a reward for other behaviors. Follow Zu\'s enthusiasm — some dogs love fetch, others prefer other games.'}
     ]
   },
   {
-    id: 'llwoutdoor', name: 'Loose Leash Walking (Outdoor)', emoji: '🌳', phase: 3,
-    prereqs: ['llwindoor', 'interrupter'],
-    video: 'https://www.youtube.com/watch?v=sFgtqgiAKoQ',
-    steps: [
-      { title: 'Front Yard / Quiet Area', desc: 'Start in the least distracting outdoor area. Very high rate of reinforcement for being at your side. Stop when leash gets tight - wait for Zu to check in.' },
-      { title: 'Short Walks, High Reward', desc: 'Take very short walks (even just to the end of the driveway). Reward constantly for loose leash. Quality over distance. End before Zu gets over-stimulated.' },
-      { title: 'Neighborhood Walks', desc: 'Extend distance gradually. Use treats, direction changes, and your positive interrupter. If Zu is over-aroused, increase distance from triggers or go home and try again later.' },
-      { title: 'Busy Environment Walks', desc: 'Practice near busier areas, parks, other dogs at distance. Manage distance from triggers. Reward all check-ins and loose leash moments.' },
-      { title: 'Relaxed Walking', desc: 'Build to comfortable walks with less frequent reinforcement. Let Zu sniff (it\'s enrichment!). Alternate between structured walking and free sniffing time.' }
+    id:'handling', name:'Handling & Grooming', abbr:'HG', phase:3, prereqs:['calmness'],
+    video:'https://www.youtube.com/results?search_query=kikopup+handling+grooming+cooperative+care',
+    steps:[
+      {t:'Touch = Treat', d:'Briefly touch shoulder, treat. Touch ear, treat. Touch paw, treat. Keep each touch brief and pair with food. If Zu moves away, let her — never hold her still.'},
+      {t:'Longer Handling', d:'Build duration: hold a paw for 1 second, treat. Look in an ear, treat. Lift her lip to see teeth, treat. Always go at Zu\'s pace — never force or restrain.'},
+      {t:'Introduce Tools', d:'Show brush, treat. Touch brush to body, treat. One brush stroke, treat. Let Zu investigate each tool first. Build very gradually.'},
+      {t:'Full Grooming', d:'Build to complete brushing, nail handling, ear cleaning with Zu\'s willing participation. If she moves away, pause and make the next step easier.'},
+      {t:'Vet Prep', d:'Practice vet-like handling: ears, teeth, paws, all-over body touch, standing on a scale. Build comfort with being examined so vet visits are less stressful.'}
     ]
   },
   {
-    id: 'separation', name: 'Separation Training', emoji: '👋', phase: 3,
-    prereqs: ['crate', 'calmness'],
-    video: 'https://www.youtube.com/watch?v=HWT9DI7hMfo',
-    steps: [
-      { title: 'Brief Out-of-Sight', desc: 'Step behind a door for 1 second, return calmly. Gradually increase to 5, 10, 30 seconds. Keep departures and returns boring. Leave a stuffed Kong.' },
-      { title: 'Short Departures', desc: 'Leave for 1-2 minutes. Pick up keys, go through front door, return. Don\'t make a fuss when leaving or returning. Gradually extend time.' },
-      { title: 'Build to 15 Minutes', desc: 'The hardest part of alone time is the first 15 minutes. Build up in small increments. Watch for signs of distress (consider filming). Go at Zu\'s pace.' },
-      { title: 'Extended Alone Time', desc: 'Build to 30 min, then 1 hour, then 2+ hours. Leave enrichment (Kongs, puzzles). Establish a departure routine that Zu finds relaxing. Always return before she\'s distressed.' }
+    id:'llwoutdoor', name:'Loose Leash Walking (Outdoor)', abbr:'LO', phase:3, prereqs:['llwindoor','interrupter'],
+    video:'https://www.youtube.com/results?search_query=kikopup+loose+leash+walking+outside',
+    steps:[
+      {t:'Quiet Area', d:'Start in the least distracting outdoor spot you can find. Very high rate of treat delivery for being at your side. Stop when the leash goes tight.'},
+      {t:'Short Walks', d:'Take very short walks (even just the driveway and back). Reward constantly for loose leash. Quality over distance. End before Zu gets over-stimulated.'},
+      {t:'Neighborhood', d:'Extend distance gradually. Use treats, direction changes, and your positive interrupter. If Zu is over-aroused, increase distance from the trigger or head home.'},
+      {t:'Busy Areas', d:'Practice near busier locations, parks, other dogs at a distance. Reward every check-in and every loose-leash moment. Manage distance from triggers carefully.'},
+      {t:'Relaxed Walks', d:'Build toward comfortable walks with less frequent treating. Alternate between structured heeling and free "go sniff" time — sniffing is enrichment.'}
     ]
   },
   {
-    id: 'doormanners', name: 'Door Manners', emoji: '🚪', phase: 3,
-    prereqs: ['sit', 'release'],
-    video: 'https://www.youtube.com/watch?v=K8I84t-BYHY',
-    steps: [
-      { title: 'Sit at Door', desc: 'Approach door. Ask for sit. Reach for handle - if Zu breaks, restart. When she holds sit as you touch the handle, mark & treat. Build in tiny steps.' },
-      { title: 'Door Opens, Zu Waits', desc: 'Sit → open door a crack. If she stays, mark & treat. If she breaks, close door, re-cue sit. Build to fully open door while she waits.' },
-      { title: 'Release Through Doorway', desc: 'Full door open, Zu waits in sit, then release cue → she goes through. Practice at front door, back door, car door.' },
-      { title: 'Doorbell/Knock Protocol', desc: 'When doorbell rings, Zu goes to mat or designated spot instead of rushing the door. Start with knocking sounds while practicing, build to actual visitors.' }
+    id:'separation', name:'Separation Training', abbr:'ST', phase:3, prereqs:['crate','calmness'],
+    video:'https://www.youtube.com/results?search_query=kikopup+separation+anxiety+alone+training',
+    steps:[
+      {t:'Brief Out-of-Sight', d:'Step behind a door for 1 second, return calmly. Build to 5, 10, 30 seconds. Keep departures and returns completely boring. Leave a stuffed Kong.'},
+      {t:'Short Departures', d:'Leave for 1-2 minutes. Pick up keys, walk out the front door, come back. No fuss on leaving or returning. Extend time in tiny increments.'},
+      {t:'Build to 15 Minutes', d:'The first 15 minutes is the hardest part for dogs. Build up slowly. Consider filming Zu to watch for stress signals. Go at her pace.'},
+      {t:'Extended Alone Time', d:'Build to 30 min, 1 hour, 2+ hours. Leave enrichment (Kongs, puzzle toys). Establish a calm departure routine. Always return before she becomes distressed.'}
+    ]
+  },
+  {
+    id:'doormanners', name:'Door Manners', abbr:'DM', phase:3, prereqs:['sit','release'],
+    video:'https://www.youtube.com/results?search_query=kikopup+door+manners+wait',
+    steps:[
+      {t:'Sit at Door', d:'Approach a door. Ask for sit. Reach for the handle — if she breaks, remove your hand and re-cue sit. Mark and treat when she holds the sit as you touch the handle.'},
+      {t:'Door Opens, Zu Waits', d:'Sit, then open door a crack. If she stays, mark and treat. If she breaks, close the door and re-cue. Build to a fully open door while she waits.'},
+      {t:'Release Through', d:'Full door open, Zu waits in sit, then your release cue — she goes through. Practice at the front door, back door, car door.'},
+      {t:'Doorbell Protocol', d:'When the doorbell rings, Zu goes to her mat or designated spot instead of rushing the door. Start with quiet knock sounds and build to real visitors.'}
     ]
   }
 ];
 
-// Phase metadata
 const PHASES = {
-  1: { name: 'Foundation', range: 'Days 1-7', badge: 'badge-phase1', color: '#10B981' },
-  2: { name: 'Core Skills', range: 'Days 7-21', badge: 'badge-phase2', color: '#6C63FF' },
-  3: { name: 'Life Skills', range: 'Days 14-42', badge: 'badge-phase3', color: '#F59E0B' },
-  4: { name: 'Generalization', range: 'Ongoing', badge: 'badge-phase4', color: '#FF6B9D' }
+  1:{name:'Foundation', range:'Days 1-7', badge:'b-1', color:'#34D399'},
+  2:{name:'Core Skills', range:'Days 7-21', badge:'b-2', color:'#7C6EF6'},
+  3:{name:'Life Skills', range:'Days 14-42', badge:'b-3', color:'#FBBF24'}
 };
 
-// ============================================================
-// DATA LAYER - localStorage persistence
-// ============================================================
-const STORAGE_KEY = 'zuTrainer';
-
-function getDefaultData() {
-  return {
-    profile: { name: 'Zu', weight: 8.5, rescueDate: '' },
-    settings: { duration: 120, targetReps: 10, threshold: 80, evalSessions: 3, treatNotes: '' },
-    skillProgress: {},  // { [skillId]: { currentStep: 0, unlocked: true } }
-    sessions: [],       // { id, skillId, date, step, successes, failures, notes, duration }
-    milestones: []      // { id, text, date, emoji }
-  };
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const SK = 'zuTrainer';
+function defaults(){return{
+  profile:{name:'Zu',weight:8.5,rescueDate:''},
+  settings:{duration:180,threshold:80,evalSessions:3,treatNotes:''},
+  progress:{}, sessions:[], milestones:[],
+  pottyLogs:[], aloneLogs:[]
+}}
+function load(){
+  try{const r=localStorage.getItem(SK);if(r){const d=JSON.parse(r),df=defaults();return{...df,...d,profile:{...df.profile,...d.profile},settings:{...df.settings,...d.settings}}}}catch(e){}
+  return defaults();
 }
+function save(){try{localStorage.setItem(SK,JSON.stringify(D))}catch(e){}}
+let D=load();
+SKILLS.forEach(s=>{if(!D.progress[s.id])D.progress[s.id]={step:0,unlocked:s.phase===1||s.prereqs.length===0}});
+save();
 
-function loadData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const d = JSON.parse(raw);
-      // Ensure all keys exist (migration safety)
-      const def = getDefaultData();
-      return { ...def, ...d, profile: { ...def.profile, ...d.profile }, settings: { ...def.settings, ...d.settings } };
-    }
-  } catch(e) { console.error('Load error', e); }
-  return getDefaultData();
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('vis');setTimeout(()=>e.classList.remove('vis'),2400)}
+function modal(t,b,acts){
+  $('#mod-t').textContent=t;$('#mod-b').textContent=b;
+  const a=$('#mod-a');a.innerHTML='';
+  acts.forEach(x=>{const btn=document.createElement('button');btn.className=`btn ${x.c||'btn-o'} btn-s`;btn.textContent=x.l;btn.onclick=()=>{$('#mod-o').classList.remove('vis');if(x.fn)x.fn()};a.appendChild(btn)});
+  $('#mod-o').classList.add('vis');
 }
-
-function saveData(data) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
-  catch(e) { console.error('Save error', e); }
+$('#mod-o').onclick=e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('vis')};
+function dk(d){return(d?new Date(d):new Date()).toISOString().split('T')[0]}
+function fmtDate(d){return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+function fmtTime(d){return new Date(d).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
+function skillSess(id){return D.sessions.filter(s=>s.sid===id).sort((a,b)=>new Date(b.dt)-new Date(a.dt))}
+function rate(s){const t=s.ok+s.no;return t>0?Math.round(s.ok/t*100):0}
+function rollingAvg(id,n){const ss=skillSess(id).slice(0,n||D.settings.evalSessions);if(!ss.length)return null;return Math.round(ss.map(rate).reduce((a,b)=>a+b,0)/ss.length)}
+function streak(){
+  const dates=[...new Set(D.sessions.map(s=>dk(s.dt)))].sort().reverse();
+  if(!dates.length)return 0;let s=0,c=new Date();
+  if(dates[0]!==dk(c)){c.setDate(c.getDate()-1);if(dates[0]!==dk(c))return 0}
+  for(const d of dates){if(d===dk(c)){s++;c.setDate(c.getDate()-1)}else break}
+  return s;
 }
-
-let APP = loadData();
-
-// Initialize skill progress for any new skills
-SKILLS_DB.forEach(skill => {
-  if (!APP.skillProgress[skill.id]) {
-    // Phase 1 skills + skills with no prereqs are auto-unlocked
-    const unlocked = skill.phase === 1 || skill.prereqs.length === 0;
-    APP.skillProgress[skill.id] = { currentStep: 0, unlocked };
-  }
-});
-saveData(APP);
-
-// ============================================================
-// UTILITY FUNCTIONS
-// ============================================================
-function $(sel) { return document.querySelector(sel); }
-function $$(sel) { return document.querySelectorAll(sel); }
-
-function toast(msg) {
-  const el = $('#toast');
-  el.textContent = msg;
-  el.classList.add('visible');
-  setTimeout(() => el.classList.remove('visible'), 2500);
+function unlocked(sk){
+  if(!sk.prereqs.length)return true;
+  return sk.prereqs.every(pid=>{const p=D.progress[pid];return p&&p.step>=1});
 }
-
-function showModal(title, body, actions) {
-  $('#modal-title').textContent = title;
-  $('#modal-body').textContent = body;
-  const actEl = $('#modal-actions');
-  actEl.innerHTML = '';
-  actions.forEach(a => {
-    const btn = document.createElement('button');
-    btn.className = `btn ${a.cls || 'btn-outline'} btn-sm`;
-    btn.textContent = a.label;
-    btn.onclick = () => { $('#modal-overlay').classList.remove('visible'); if (a.action) a.action(); };
-    actEl.appendChild(btn);
-  });
-  $('#modal-overlay').classList.add('visible');
-}
-
-function formatDate(d) {
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function dateKey(d) {
-  const dt = d ? new Date(d) : new Date();
-  return dt.toISOString().split('T')[0];
-}
-
-function getSkillSessions(skillId) {
-  return APP.sessions.filter(s => s.skillId === skillId).sort((a, b) => new Date(b.date) - new Date(a.date));
-}
-
-function getSuccessRate(session) {
-  const total = session.successes + session.failures;
-  return total > 0 ? Math.round((session.successes / total) * 100) : 0;
-}
-
-function getRollingAvg(skillId, n) {
-  const sessions = getSkillSessions(skillId).slice(0, n || APP.settings.evalSessions);
-  if (sessions.length === 0) return null;
-  const rates = sessions.map(getSuccessRate);
-  return Math.round(rates.reduce((a, b) => a + b, 0) / rates.length);
-}
-
-function getStreak() {
-  const dates = [...new Set(APP.sessions.map(s => dateKey(s.date)))].sort().reverse();
-  if (dates.length === 0) return 0;
-  let streak = 0;
-  let check = new Date();
-  // If no session today, check yesterday
-  if (dates[0] !== dateKey(check)) {
-    check.setDate(check.getDate() - 1);
-    if (dates[0] !== dateKey(check)) return 0;
-  }
-  for (const d of dates) {
-    if (d === dateKey(check)) {
-      streak++;
-      check.setDate(check.getDate() - 1);
-    } else break;
-  }
-  return streak;
-}
-
-function isSkillUnlocked(skill) {
-  if (skill.prereqs.length === 0) return true;
-  return skill.prereqs.every(pid => {
-    const prog = APP.skillProgress[pid];
-    const sk = SKILLS_DB.find(s => s.id === pid);
-    return prog && prog.currentStep >= 1 && sk; // At least started step 2
-  });
-}
-
-function updateUnlocks() {
-  SKILLS_DB.forEach(skill => {
-    APP.skillProgress[skill.id].unlocked = isSkillUnlocked(skill);
-  });
-  saveData(APP);
-}
-
-function checkMilestones() {
-  const milestones = [];
-  const sessionCount = APP.sessions.length;
-  const milestoneDefs = [
-    { id: 'first_session', check: () => sessionCount >= 1, text: 'First Training Session!', emoji: '🎉' },
-    { id: '10_sessions', check: () => sessionCount >= 10, text: '10 Sessions Completed', emoji: '⭐' },
-    { id: '25_sessions', check: () => sessionCount >= 25, text: '25 Sessions Completed', emoji: '🏆' },
-    { id: '50_sessions', check: () => sessionCount >= 50, text: '50 Sessions Completed', emoji: '👑' },
-    { id: '100_sessions', check: () => sessionCount >= 100, text: '100 Sessions Completed!', emoji: '💎' },
-    { id: 'streak_3', check: () => getStreak() >= 3, text: '3-Day Streak', emoji: '🔥' },
-    { id: 'streak_7', check: () => getStreak() >= 7, text: '7-Day Streak', emoji: '🔥' },
-    { id: 'streak_14', check: () => getStreak() >= 14, text: '14-Day Streak!', emoji: '🔥' },
-    { id: 'streak_30', check: () => getStreak() >= 30, text: '30-Day Streak!', emoji: '🔥' },
+function updateUnlocks(){SKILLS.forEach(s=>{D.progress[s.id].unlocked=unlocked(s)});save()}
+function checkMilestones(){
+  const n=D.sessions.length,defs=[
+    {id:'first',ck:()=>n>=1,t:'First Training Session',ic:'star'},
+    {id:'s10',ck:()=>n>=10,t:'10 Sessions Completed',ic:'star'},
+    {id:'s25',ck:()=>n>=25,t:'25 Sessions Completed',ic:'trophy'},
+    {id:'s50',ck:()=>n>=50,t:'50 Sessions',ic:'trophy'},
+    {id:'s100',ck:()=>n>=100,t:'100 Sessions!',ic:'gem'},
+    {id:'k3',ck:()=>streak()>=3,t:'3-Day Streak',ic:'fire'},
+    {id:'k7',ck:()=>streak()>=7,t:'7-Day Streak',ic:'fire'},
+    {id:'k14',ck:()=>streak()>=14,t:'14-Day Streak!',ic:'fire'},
+    {id:'k30',ck:()=>streak()>=30,t:'30-Day Streak!',ic:'fire'},
   ];
-  // Per-skill milestones: completing all steps
-  SKILLS_DB.forEach(skill => {
-    milestoneDefs.push({
-      id: `complete_${skill.id}`,
-      check: () => APP.skillProgress[skill.id].currentStep >= skill.steps.length,
-      text: `${skill.name} Mastered!`,
-      emoji: skill.emoji
-    });
+  SKILLS.forEach(s=>defs.push({id:'m_'+s.id,ck:()=>D.progress[s.id].step>=s.steps.length,t:s.name+' Mastered!',ic:'check'}));
+  defs.forEach(m=>{if(!D.milestones.find(x=>x.id===m.id)&&m.ck())D.milestones.push({id:m.id,t:m.t,ic:m.ic,dt:new Date().toISOString()})});
+  save();
+}
+function dailyPlan(){
+  const plan=[];
+  SKILLS.forEach(sk=>{
+    const p=D.progress[sk.id];if(!p.unlocked||p.step>=sk.steps.length)return;
+    const ss=skillSess(sk.id),last=ss[0];
+    const days=last?Math.floor((Date.now()-new Date(last.dt))/864e5):999;
+    const avg=rollingAvg(sk.id);
+    plan.push({sk,days,avg,cnt:ss.length});
   });
+  plan.sort((a,b)=>b.days!==a.days?b.days-a.days:(a.avg!==null?Math.abs(a.avg-D.settings.threshold):100)-(b.avg!==null?Math.abs(b.avg-D.settings.threshold):100));
+  return plan.slice(0,5);
+}
 
-  milestoneDefs.forEach(m => {
-    const exists = APP.milestones.find(x => x.id === m.id);
-    if (!exists && m.check()) {
-      APP.milestones.push({ id: m.id, text: m.text, emoji: m.emoji, date: new Date().toISOString() });
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function go(t){
+  $$('.tab').forEach(p=>p.classList.remove('on'));$$('.nav-b').forEach(b=>b.classList.remove('on'));
+  $(`#t-${t}`).classList.add('on');$(`.nav-b[data-t="${t}"]`).classList.add('on');
+  ({home:rHome,skills:rSkills,train:rTrain,log:rLog,prog:rProg})[t]();
+}
+$$('.nav-b').forEach(b=>b.onclick=()=>go(b.dataset.t));
+
+// ═══════════════════════════════════════════════════════
+// HOME TAB
+// ═══════════════════════════════════════════════════════
+function rHome(){
+  const p=D.profile,info=[p.weight?p.weight+' kg':'','mixed rescue'];
+  if(p.rescueDate){const d=Math.floor((Date.now()-new Date(p.rescueDate))/864e5);info.push('home '+d+' days')}
+  const active=SKILLS.filter(s=>D.progress[s.id].unlocked&&D.progress[s.id].step<s.steps.length).length;
+  const plan=dailyPlan();
+  const todayPotty=D.pottyLogs.filter(l=>dk(l.dt)===dk()).length;
+  const todayAlone=D.aloneLogs.filter(l=>dk(l.dt)===dk()).length;
+
+  let h=`<div class="cd prof">
+    <div class="prof-av"><svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36"><path d="M4.5 9.5a2 2 0 0 1 2-2c.3 0 .6.07.87.18A7 7 0 0 1 12 5a7 7 0 0 1 4.63 2.68c.27-.11.57-.18.87-.18a2 2 0 0 1 0 4c-.06 0-.12 0-.18-.01A7 7 0 0 1 12 19a7 7 0 0 1-5.32-7.51c-.06.01-.12.01-.18.01a2 2 0 0 1 0-4z"/></svg></div>
+    <div class="prof-name">${p.name||'Zu'}</div>
+    <div class="prof-sub">${info.filter(Boolean).join(' · ')}</div>
+    <div class="stats"><div class="st"><div class="st-v">${streak()}</div><div class="st-l">Day Streak</div></div><div class="st"><div class="st-v">${D.sessions.length}</div><div class="st-l">Sessions</div></div><div class="st"><div class="st-v">${active}</div><div class="st-l">Active Skills</div></div></div>
+  </div>`;
+
+  // Quick actions
+  h+=`<div class="plan-h">Quick Actions</div><div class="qa-grid">
+    <button class="qa-btn" onclick="go('log');setTimeout(()=>openPottyForm(),50)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Log Potty<div class="log-btn-sub">${todayPotty} today</div></button>
+    <button class="qa-btn" onclick="go('log');setTimeout(()=>openAloneForm(),50)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/></svg>Alone Time<div class="log-btn-sub">${todayAlone} today</div></button>
+  </div>`;
+
+  // Today's plan
+  h+=`<div class="plan-h" style="margin-top:14px">Today's Training Plan</div>`;
+  if(!plan.length) h+='<p style="font-size:.82rem;color:var(--txt3);padding:8px">All skills mastered or locked. Check the Skills tab.</p>';
+  else plan.forEach(p=>{
+    const pr=D.progress[p.sk.id],step=p.sk.steps[pr.step],ph=PHASES[p.sk.phase];
+    const rc=p.avg===null?'var(--txt3)':p.avg>=80?'var(--ok)':p.avg<50?'var(--bad)':'var(--warn)';
+    h+=`<div class="pl-i" onclick="trainFor('${p.sk.id}')"><div class="si" style="background:${ph.color}18;color:${ph.color}">${p.sk.abbr}</div><div class="pl-i-info"><div class="pl-i-name">${p.sk.name}</div><div class="pl-i-step">Step ${pr.step+1}: ${step?step.t:'Done'}</div></div><div class="pl-i-rate" style="color:${rc}">${p.avg!==null?p.avg+'%':'\u2014'}</div></div>`;
+  });
+  $('#t-home').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════════
+// SKILLS TAB
+// ═══════════════════════════════════════════════════════
+function rSkills(){
+  let h='';
+  [1,2,3].forEach(phase=>{
+    const pi=PHASES[phase],sks=SKILLS.filter(s=>s.phase===phase);
+    h+=`<div class="ph-sec"><div class="sec-title"><span class="badge ${pi.badge}">Phase ${phase}</span> ${pi.name} <span style="font-weight:400;text-transform:none;color:var(--txt3)">(${pi.range})</span></div>`;
+    sks.forEach(sk=>{
+      const pr=D.progress[sk.id],lk=!pr.unlocked,pct=Math.round(pr.step/sk.steps.length*100),avg=rollingAvg(sk.id);
+      const prereqNames=sk.prereqs.map(pid=>{const s=SKILLS.find(x=>x.id===pid);return s?s.name:'?'});
+      h+=`<div class="cd sk-cd${lk?' lock':''}" id="sk-${sk.id}" onclick="togSkill('${sk.id}')">
+        <div class="sk-top"><div class="si" style="background:${pi.color}18;color:${pi.color}">${sk.abbr}</div>
+        <div class="sk-main"><div class="sk-name">${sk.name}${lk?' <span class="badge b-lock">Locked</span>':''}</div>
+        <div class="sk-meta">Step ${Math.min(pr.step+1,sk.steps.length)} of ${sk.steps.length}${avg!==null?' · '+avg+'% avg':''}</div>
+        ${lk&&prereqNames.length?`<div class="sk-prereq">Requires: ${prereqNames.join(', ')}</div>`:''}</div></div>
+        <div class="pbar" style="margin-top:8px"><div class="fill" style="width:${pct}%"></div></div>
+        <div class="sk-det"><ul class="stp-list">${sk.steps.map((st,i)=>{
+          const cls=i<pr.step?'done':i===pr.step?'cur':'';
+          const jmp=i<pr.step?'go back':i===pr.step?'':'skip here';
+          return `<li class="stp-i ${cls}" onclick="event.stopPropagation();setStep('${sk.id}',${i})"><span class="stp-n">${i<pr.step?'&#10003;':i+1}</span><div class="stp-txt"><strong>${st.t}</strong><br><span>${st.d}</span></div>${jmp?`<span class="stp-jmp">${jmp}</span>`:''}</li>`;
+        }).join('')}</ul>
+        ${sk.video?`<a href="${sk.video}" target="_blank" rel="noopener" class="vid-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>Kikopup Videos</a>`:''}
+        ${!lk?`<button class="btn btn-p btn-s" style="margin-top:10px" onclick="event.stopPropagation();trainFor('${sk.id}')">Train This</button>`:''}
+        </div></div>`;
+    });
+    h+='</div>';
+  });
+  $('#t-skills').innerHTML=h;
+}
+function togSkill(id){const e=$(`#sk-${id}`);if(e)e.classList.toggle('exp')}
+function setStep(id,i){
+  const sk=SKILLS.find(s=>s.id===id),pr=D.progress[id];
+  if(i===pr.step)return;
+  const dir=i>pr.step?'Skip ahead':'Go back',st=sk.steps[i];
+  modal(`${dir} to Step ${i+1}?`,
+    `${sk.name}: Move to "${st.t}"? ${i>pr.step?'Make sure Zu is ready.':'Reinforcing earlier steps is always good.'}`,
+    [{l:'Cancel'},{l:dir,c:i>pr.step?'btn-p':'btn-o',fn:()=>{pr.step=i;save();updateUnlocks();checkMilestones();rSkills();toast(`Now on Step ${i+1}: ${st.t}`)}}]
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// TRAIN TAB
+// ═══════════════════════════════════════════════════════
+let cur=null, tmI=null, tmOn=false, tmSec=0, selDur=180, selSk=null, sessStart=null;
+function rTrain(){
+  if(cur)return;
+  const g=$('#ss-grid'),avail=SKILLS.filter(s=>D.progress[s.id].unlocked&&D.progress[s.id].step<s.steps.length);
+  g.innerHTML=avail.length?avail.map(sk=>{
+    const ph=PHASES[sk.phase];
+    return `<button class="ss-btn${selSk===sk.id?' sel':''}" onclick="pickSk('${sk.id}')"><div class="si" style="background:${ph.color}18;color:${ph.color}">${sk.abbr}</div>${sk.name}</button>`;
+  }).join(''):'<p style="grid-column:1/-1;color:var(--txt3);font-size:.82rem">No skills available.</p>';
+  $('#btn-go').disabled=!selSk;
+}
+function pickSk(id){selSk=id;rTrain()}
+function trainFor(id){selSk=id;go('train');setTimeout(startSess,60)}
+function startSess(){
+  if(!selSk)return;
+  const sk=SKILLS.find(s=>s.id===selSk),pr=D.progress[sk.id],st=sk.steps[pr.step];
+  if(!st){toast('Skill fully completed!');return}
+  cur={sid:sk.id,ok:0,no:0};sessStart=Date.now();tmSec=selDur;tmOn=false;
+  $('.setup').classList.add('hid');$('#sess').classList.add('vis');
+  $('#instr-txt').textContent=`Step ${pr.step+1}: ${st.t} \u2014 ${st.d}`;
+  $('#r-ok').textContent='0';$('#r-no').textContent='0';$('#s-tot').textContent='0';$('#s-rate').textContent='0%';$('#s-elap').textContent='0:00';
+  $('#sess-notes').value='';updTm();$('#tm-tog').textContent='Start Timer';
+}
+function updTm(){$('#tm-d').textContent=`${Math.floor(tmSec/60)}:${(tmSec%60).toString().padStart(2,'0')}`}
+function updStats(){
+  if(!cur)return;const t=cur.ok+cur.no,r=t>0?Math.round(cur.ok/t*100):0;
+  $('#s-tot').textContent=t;$('#s-rate').textContent=r+'%';
+  const e=Math.floor((Date.now()-sessStart)/1000);$('#s-elap').textContent=`${Math.floor(e/60)}:${(e%60).toString().padStart(2,'0')}`;
+}
+$('#tm-tog').onclick=()=>{
+  if(tmOn){clearInterval(tmI);tmOn=false;$('#tm-tog').textContent='Resume'}
+  else{tmOn=true;$('#tm-tog').textContent='Pause';tmI=setInterval(()=>{tmSec--;updTm();updStats();if(tmSec<=0){clearInterval(tmI);tmOn=false;$('#tm-tog').textContent='Done!';toast('Time\'s up! End session when ready.')}},1000)}
+};
+$('#tm-rst').onclick=()=>{clearInterval(tmI);tmOn=false;tmSec=selDur;updTm();$('#tm-tog').textContent='Start Timer'};
+$('#b-ok').onclick=()=>{if(!cur)return;cur.ok++;$('#r-ok').textContent=cur.ok;updStats()};
+$('#b-no').onclick=()=>{if(!cur)return;cur.no++;$('#r-no').textContent=cur.no;updStats()};
+$('#btn-end').onclick=()=>{
+  if(!cur)return;clearInterval(tmI);tmOn=false;
+  if(cur.ok+cur.no===0){modal('End Session?','No reps recorded. Discard?',[{l:'Keep Training'},{l:'Discard',c:'btn-bad',fn:resetSess}]);return}
+  endSess();
+};
+function endSess(){
+  const s={id:Date.now()+'',sid:cur.sid,dt:new Date().toISOString(),step:D.progress[cur.sid].step,ok:cur.ok,no:cur.no,notes:$('#sess-notes').value.trim(),dur:Math.floor((Date.now()-sessStart)/1000)};
+  D.sessions.push(s);save();updateUnlocks();checkMilestones();
+  const r=rate(s),sk=SKILLS.find(x=>x.id===cur.sid),pr=D.progress[cur.sid];
+  const avg=rollingAvg(cur.sid),ss=skillSess(cur.sid),ev=D.settings.evalSessions,th=D.settings.threshold;
+  if(avg!==null&&ss.length>=ev){
+    if(avg>=th&&pr.step<sk.steps.length-1){
+      modal('Advance to Next Step?',`${sk.name}: ${avg}% avg over ${ev} sessions! Move to Step ${pr.step+2}: "${sk.steps[pr.step+1].t}"?`,
+        [{l:'Stay Here'},{l:'Advance!',c:'btn-ok',fn:()=>{pr.step++;save();updateUnlocks();checkMilestones();toast('Advanced to Step '+(pr.step+1)+'!')}}]);
+    }else if(avg<50&&pr.step>0){
+      modal('Go Back a Step?',`${sk.name}: ${avg}% avg. Consider revisiting Step ${pr.step}: "${sk.steps[pr.step-1].t}".`,
+        [{l:'Stay Here'},{l:'Go Back',c:'btn-o',fn:()=>{pr.step--;save();toast('Back to Step '+(pr.step+1))}}]);
+    }else if(avg>=th&&pr.step===sk.steps.length-1){
+      pr.step=sk.steps.length;save();updateUnlocks();checkMilestones();
+      modal('Skill Complete!',`${sk.name} is mastered! Amazing work with ${D.profile.name||'Zu'}!`,[{l:'Awesome!',c:'btn-p'}]);
     }
-  });
-  saveData(APP);
-}
-
-function getDailyPlan() {
-  // Prioritize: skills not trained recently + skills close to advancement
-  const plan = [];
-  const today = dateKey();
-  SKILLS_DB.forEach(skill => {
-    const prog = APP.skillProgress[skill.id];
-    if (!prog.unlocked || prog.currentStep >= skill.steps.length) return;
-    const sessions = getSkillSessions(skill.id);
-    const lastSession = sessions[0];
-    const daysSince = lastSession ? Math.floor((Date.now() - new Date(lastSession.date)) / 86400000) : 999;
-    const avg = getRollingAvg(skill.id);
-    plan.push({ skill, daysSince, avg, sessions: sessions.length });
-  });
-  // Sort: most days since last trained first, then by closeness to advancement
-  plan.sort((a, b) => {
-    if (b.daysSince !== a.daysSince) return b.daysSince - a.daysSince;
-    const aClose = a.avg !== null ? Math.abs(a.avg - APP.settings.threshold) : 100;
-    const bClose = b.avg !== null ? Math.abs(b.avg - APP.settings.threshold) : 100;
-    return aClose - bClose;
-  });
-  return plan.slice(0, 5);
-}
-
-// ============================================================
-// TAB NAVIGATION
-// ============================================================
-function switchTab(tabName) {
-  $$('.tab-panel').forEach(p => p.classList.remove('active'));
-  $$('.nav-btn').forEach(b => b.classList.remove('active'));
-  $(`#tab-${tabName}`).classList.add('active');
-  $(`.nav-btn[data-tab="${tabName}"]`).classList.add('active');
-  // Render tab content
-  if (tabName === 'dashboard') renderDashboard();
-  else if (tabName === 'skills') renderSkills();
-  else if (tabName === 'train') renderTrainSetup();
-  else if (tabName === 'progress') renderProgress();
-  else if (tabName === 'settings') renderSettings();
-}
-
-$$('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-});
-
-// ============================================================
-// DASHBOARD RENDER
-// ============================================================
-function renderDashboard() {
-  const p = APP.profile;
-  $('#dash-name').textContent = p.name || 'Zu';
-  const info = [];
-  if (p.weight) info.push(`${p.weight} kg`);
-  info.push('mixed rescue');
-  if (p.rescueDate) {
-    const days = Math.floor((Date.now() - new Date(p.rescueDate)) / 86400000);
-    info.push(`home ${days} days`);
   }
-  $('#dash-info').textContent = info.join(' · ');
-  $('#stat-streak').textContent = getStreak();
-  $('#stat-sessions').textContent = APP.sessions.length;
-  const activeSkills = SKILLS_DB.filter(s => APP.skillProgress[s.id].unlocked && APP.skillProgress[s.id].currentStep < s.steps.length).length;
-  $('#stat-skills').textContent = activeSkills;
+  toast(`Session saved! ${r}% success rate`);resetSess();
+}
+function resetSess(){cur=null;selSk=null;sessStart=null;clearInterval(tmI);tmOn=false;$('#sess').classList.remove('vis');$('.setup').classList.remove('hid');rTrain()}
+$$('.dur-b').forEach(b=>b.onclick=()=>{selDur=+b.dataset.d;$$('.dur-b').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');if(!cur){tmSec=selDur;updTm()}});
+$('#btn-go').onclick=startSess;
 
-  // Daily plan
-  const plan = getDailyPlan();
-  const planEl = $('#daily-plan-list');
-  if (plan.length === 0) {
-    planEl.innerHTML = '<p style="font-size:0.85rem;color:var(--text-dim);padding:12px;">All skills are mastered or locked! Check the Skills tab.</p>';
-    return;
-  }
-  planEl.innerHTML = plan.map(p => {
-    const prog = APP.skillProgress[p.skill.id];
-    const step = p.skill.steps[prog.currentStep];
-    const phase = PHASES[p.skill.phase];
-    const rateColor = p.avg === null ? 'var(--text-dim)' : p.avg >= 80 ? 'var(--success)' : p.avg < 50 ? 'var(--danger)' : 'var(--warning)';
-    return `<div class="plan-item" onclick="startTrainingFor('${p.skill.id}')">
-      <div class="skill-icon" style="background:${phase.color}22;color:${phase.color}">${p.skill.emoji}</div>
-      <div class="skill-info">
-        <div class="skill-name">${p.skill.name}</div>
-        <div class="skill-step">Step ${prog.currentStep + 1}: ${step ? step.title : 'Complete'}</div>
+// ═══════════════════════════════════════════════════════
+// LOG TAB — Potty, Alone Time, Quick Logs
+// ═══════════════════════════════════════════════════════
+let pottyPhoto=null, aloneTimer=null, aloneStart=null, aloneElapsed=0;
+
+function rLog(){
+  let h=`<div class="sec-title">Quick Logs</div>`;
+
+  // Potty form
+  h+=`<div id="potty-section">
+    <button class="log-btn" id="potty-toggle" onclick="openPottyForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <div><div>Log Potty</div><div class="log-btn-sub">Track wake-up and outdoor potty breaks</div></div>
+    </button>
+    <div class="log-form cd" id="potty-form">
+      <h3>Potty Log</h3>
+      <div class="tog-label">Type</div>
+      <div class="tog-row" id="potty-type">
+        <button class="tog" data-v="pee" onclick="togSel(this)">Pee</button>
+        <button class="tog" data-v="poop" onclick="togSel(this)">Poop</button>
+        <button class="tog" data-v="both" onclick="togSel(this)">Both</button>
       </div>
-      <div class="skill-rate" style="color:${rateColor}">${p.avg !== null ? p.avg + '%' : '—'}</div>
-    </div>`;
-  }).join('');
-}
+      <div class="tog-label">Location</div>
+      <div class="tog-row" id="potty-loc">
+        <button class="tog on" data-v="outside" onclick="togSel(this)">Outside</button>
+        <button class="tog" data-v="inside" onclick="togSel(this)">Inside (accident)</button>
+      </div>
+      <div class="tog-label">Context</div>
+      <div class="tog-row" id="potty-ctx">
+        <button class="tog" data-v="wakeup" onclick="togSel(this)">Wake-up</button>
+        <button class="tog" data-v="aftermeal" onclick="togSel(this)">After Meal</button>
+        <button class="tog" data-v="afterplay" onclick="togSel(this)">After Play</button>
+        <button class="tog" data-v="scheduled" onclick="togSel(this)">Scheduled</button>
+      </div>
+      <div class="tog-label">Photo (optional)</div>
+      <button class="photo-btn" id="photo-btn" onclick="takePhoto()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Take Photo
+      </button>
+      <img id="photo-preview" class="photo-preview" style="display:none">
+      <textarea id="potty-notes" placeholder="Notes (consistency, color, anything unusual...)" rows="2"></textarea>
+      <button class="btn btn-ok btn-block" style="margin-top:10px" onclick="savePotty()">Save Potty Log</button>
+      <button class="btn btn-o btn-block btn-s" style="margin-top:6px" onclick="closePottyForm()">Cancel</button>
+    </div>
+  </div>`;
 
-// ============================================================
-// SKILLS LIBRARY RENDER
-// ============================================================
-function renderSkills() {
-  const container = $('#skills-list');
-  let html = '';
-  [1, 2, 3].forEach(phase => {
-    const pInfo = PHASES[phase];
-    const skills = SKILLS_DB.filter(s => s.phase === phase);
-    html += `<div class="phase-section">
-      <div class="phase-header"><span class="badge ${pInfo.badge}">Phase ${phase}</span> ${pInfo.name} <span style="color:var(--text-dim);font-weight:400;text-transform:none;">(${pInfo.range})</span></div>`;
-    skills.forEach(skill => {
-      const prog = APP.skillProgress[skill.id];
-      const locked = !prog.unlocked;
-      const pct = Math.round((prog.currentStep / skill.steps.length) * 100);
-      const avg = getRollingAvg(skill.id);
-      html += `<div class="card skill-card ${locked ? 'locked' : ''}" id="skill-${skill.id}" onclick="toggleSkillDetail('${skill.id}')">
-        <div class="skill-card-top">
-          <div class="skill-icon" style="background:${pInfo.color}22;color:${pInfo.color}">${skill.emoji}</div>
-          <div class="skill-main">
-            <div class="skill-name">${skill.name} ${locked ? '<span class="badge badge-locked">Locked</span>' : ''}</div>
-            <div class="skill-meta">Step ${Math.min(prog.currentStep + 1, skill.steps.length)} of ${skill.steps.length}${avg !== null ? ` · ${avg}% avg` : ''}</div>
-          </div>
+  // Alone time
+  h+=`<div id="alone-section">
+    <button class="log-btn" id="alone-toggle" onclick="openAloneForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/></svg>
+      <div><div>Alone Time</div><div class="log-btn-sub">Track crate, pen, or room time</div></div>
+    </button>
+    <div class="log-form cd" id="alone-form">
+      <h3>Alone Time Log</h3>
+      <div class="alone-timer">
+        <div id="alone-status" class="alone-status" style="display:none">RECORDING</div>
+        <div class="timer-d" id="alone-display">0:00</div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
+          <button class="btn btn-p btn-s" id="alone-start-btn" onclick="toggleAlone()">Start Timer</button>
+          <button class="btn btn-o btn-s" onclick="manualAlone()">Enter Manually</button>
         </div>
-        <div class="progress-bar" style="margin-top:10px;"><div class="fill" style="width:${pct}%"></div></div>
-        <div class="skill-detail">
-          <ul class="step-list">
-            ${skill.steps.map((step, i) => {
-              const cls = i < prog.currentStep ? 'completed' : i === prog.currentStep ? 'current' : '';
-              return `<li class="step-item ${cls}"><span class="step-num">${i < prog.currentStep ? '✓' : i + 1}</span><div class="step-text"><strong>${step.title}</strong><br><span style="color:var(--text-muted);font-size:0.8rem;">${step.desc}</span></div></li>`;
-            }).join('')}
-          </ul>
-          ${skill.video ? `<a href="${skill.video}" target="_blank" rel="noopener" class="video-link">▶ Watch Kikopup Video</a>` : ''}
-          ${!locked ? `<button class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="event.stopPropagation(); startTrainingFor('${skill.id}')">Train This Skill</button>` : ''}
-        </div>
-      </div>`;
-    });
-    html += '</div>';
-  });
-  container.innerHTML = html;
+      </div>
+      <div class="tog-label">Location</div>
+      <div class="tog-row" id="alone-loc">
+        <button class="tog on" data-v="crate" onclick="togSel(this)">Crate</button>
+        <button class="tog" data-v="pen" onclick="togSel(this)">Pen / X-pen</button>
+        <button class="tog" data-v="room" onclick="togSel(this)">Room</button>
+      </div>
+      <div class="tog-label">Distraction Provided?</div>
+      <div class="tog-row" id="alone-dist">
+        <button class="tog" data-v="kong" onclick="togSel(this)">Kong</button>
+        <button class="tog" data-v="chew" onclick="togSel(this)">Chew</button>
+        <button class="tog" data-v="puzzle" onclick="togSel(this)">Puzzle Toy</button>
+        <button class="tog" data-v="none" onclick="togSel(this)">None</button>
+      </div>
+      <div class="tog-label">Barking / Whining</div>
+      <div class="tog-row" id="alone-bark">
+        <button class="tog on" data-v="none" onclick="togSel(this)">None</button>
+        <button class="tog" data-v="brief" onclick="togSel(this)">Brief</button>
+        <button class="tog" data-v="some" onclick="togSel(this)">Some</button>
+        <button class="tog" data-v="lots" onclick="togSel(this)">A Lot</button>
+      </div>
+      <div class="tog-label">Overall Calm?</div>
+      <div class="tog-row" id="alone-calm">
+        <button class="tog on" data-v="yes" onclick="togSel(this)">Calm</button>
+        <button class="tog" data-v="mostly" onclick="togSel(this)">Mostly</button>
+        <button class="tog" data-v="no" onclick="togSel(this)">Unsettled</button>
+      </div>
+      <textarea id="alone-notes" placeholder="Notes..." rows="2" style="margin-top:8px"></textarea>
+      <button class="btn btn-p btn-block" style="margin-top:10px" onclick="saveAlone()">Save Alone Time</button>
+      <button class="btn btn-o btn-block btn-s" style="margin-top:6px" onclick="closeAloneForm()">Cancel</button>
+    </div>
+  </div>`;
+
+  // Recent logs
+  h+=`<div class="sec-title" style="margin-top:18px">Recent Logs</div><div id="log-history"></div>`;
+  $('#t-log').innerHTML=h;
+  renderLogHistory();
 }
 
-function toggleSkillDetail(skillId) {
-  const el = $(`#skill-${skillId}`);
-  if (el) el.classList.toggle('expanded');
+function togSel(btn){
+  const row=btn.parentElement;
+  row.querySelectorAll('.tog').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
 }
+function getTogVal(parentId){const on=$(`#${parentId} .tog.on`);return on?on.dataset.v:''}
 
-// ============================================================
-// TRAINING SESSION
-// ============================================================
-let currentSession = null;
-let timerInterval = null;
-let timerRunning = false;
-let timerSeconds = 0;
-let selectedDuration = 120;
-let selectedSkillId = null;
-let sessionStartTime = null;
+function openPottyForm(){$('#potty-form').classList.add('vis');$('#potty-toggle').style.display='none';pottyPhoto=null;$('#photo-preview').style.display='none';$('#photo-btn').classList.remove('has-photo');$('#photo-btn').innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Take Photo'}
+function closePottyForm(){$('#potty-form').classList.remove('vis');$('#potty-toggle').style.display=''}
 
-function renderTrainSetup() {
-  if (currentSession) return; // Don't re-render if session is active
-  const grid = $('#skill-select-grid');
-  const available = SKILLS_DB.filter(s => APP.skillProgress[s.id].unlocked && APP.skillProgress[s.id].currentStep < s.steps.length);
-  grid.innerHTML = available.map(skill => {
-    const sel = selectedSkillId === skill.id ? 'selected' : '';
-    return `<button class="skill-select-btn ${sel}" onclick="selectSkill('${skill.id}')">
-      <span class="skill-emoji">${skill.emoji}</span>
-      ${skill.name}
-    </button>`;
-  }).join('');
-  if (available.length === 0) {
-    grid.innerHTML = '<p style="grid-column:1/-1;color:var(--text-dim);font-size:0.85rem;">No skills available. Unlock more in the Skills tab!</p>';
-  }
-  $('#btn-start-session').disabled = !selectedSkillId;
-}
-
-function selectSkill(skillId) {
-  selectedSkillId = skillId;
-  $$('.skill-select-btn').forEach(b => b.classList.remove('selected'));
-  const btns = $$('.skill-select-btn');
-  btns.forEach(b => { if (b.textContent.trim().includes(SKILLS_DB.find(s => s.id === skillId).name)) b.classList.add('selected'); });
-  $('#btn-start-session').disabled = false;
-}
-
-function startTrainingFor(skillId) {
-  selectedSkillId = skillId;
-  switchTab('train');
-  setTimeout(() => startSession(), 50);
-}
-
-function startSession() {
-  if (!selectedSkillId) return;
-  const skill = SKILLS_DB.find(s => s.id === selectedSkillId);
-  const prog = APP.skillProgress[skill.id];
-  const step = skill.steps[prog.currentStep];
-  if (!step) { toast('This skill is fully completed!'); return; }
-
-  currentSession = { skillId: skill.id, successes: 0, failures: 0 };
-  sessionStartTime = Date.now();
-  timerSeconds = selectedDuration;
-  timerRunning = false;
-
-  $('#session-setup').classList.add('hidden');
-  $('#session-active').classList.add('visible');
-  $('#step-instruction-text').textContent = `Step ${prog.currentStep + 1}: ${step.title} — ${step.desc}`;
-  $('#rep-success').textContent = '0';
-  $('#rep-fail').textContent = '0';
-  $('#session-total').textContent = '0';
-  $('#session-rate').textContent = '0%';
-  $('#session-elapsed').textContent = '0:00';
-  $('#session-notes-input').value = '';
-  updateTimerDisplay();
-  $('#btn-timer-toggle').textContent = 'Start Timer';
-}
-
-function updateTimerDisplay() {
-  const m = Math.floor(timerSeconds / 60);
-  const s = timerSeconds % 60;
-  $('#timer-display').textContent = `${m}:${s.toString().padStart(2, '0')}`;
-}
-
-function updateSessionStats() {
-  if (!currentSession) return;
-  const total = currentSession.successes + currentSession.failures;
-  const rate = total > 0 ? Math.round((currentSession.successes / total) * 100) : 0;
-  $('#session-total').textContent = total;
-  $('#session-rate').textContent = rate + '%';
-  const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
-  const em = Math.floor(elapsed / 60);
-  const es = elapsed % 60;
-  $('#session-elapsed').textContent = `${em}:${es.toString().padStart(2, '0')}`;
-}
-
-$('#btn-timer-toggle').addEventListener('click', () => {
-  if (timerRunning) {
-    clearInterval(timerInterval);
-    timerRunning = false;
-    $('#btn-timer-toggle').textContent = 'Resume';
-  } else {
-    timerRunning = true;
-    $('#btn-timer-toggle').textContent = 'Pause';
-    timerInterval = setInterval(() => {
-      timerSeconds--;
-      updateTimerDisplay();
-      updateSessionStats();
-      if (timerSeconds <= 0) {
-        clearInterval(timerInterval);
-        timerRunning = false;
-        $('#btn-timer-toggle').textContent = 'Done!';
-        toast('Time is up! End your session when ready.');
-      }
-    }, 1000);
-  }
-});
-
-$('#btn-timer-reset').addEventListener('click', () => {
-  clearInterval(timerInterval);
-  timerRunning = false;
-  timerSeconds = selectedDuration;
-  updateTimerDisplay();
-  $('#btn-timer-toggle').textContent = 'Start Timer';
-});
-
-$('#btn-rep-success').addEventListener('click', () => {
-  if (!currentSession) return;
-  currentSession.successes++;
-  $('#rep-success').textContent = currentSession.successes;
-  updateSessionStats();
-});
-
-$('#btn-rep-fail').addEventListener('click', () => {
-  if (!currentSession) return;
-  currentSession.failures++;
-  $('#rep-fail').textContent = currentSession.failures;
-  updateSessionStats();
-});
-
-$('#btn-end-session').addEventListener('click', () => {
-  if (!currentSession) return;
-  clearInterval(timerInterval);
-  timerRunning = false;
-  const total = currentSession.successes + currentSession.failures;
-  if (total === 0) {
-    showModal('End Session?', 'You have no reps recorded. Discard this session?', [
-      { label: 'Keep Training', cls: 'btn-outline' },
-      { label: 'Discard', cls: 'btn-danger', action: resetSession }
-    ]);
-    return;
-  }
-  endSession();
-});
-
-function endSession() {
-  const session = {
-    id: Date.now().toString(),
-    skillId: currentSession.skillId,
-    date: new Date().toISOString(),
-    step: APP.skillProgress[currentSession.skillId].currentStep,
-    successes: currentSession.successes,
-    failures: currentSession.failures,
-    notes: $('#session-notes-input').value.trim(),
-    duration: Math.floor((Date.now() - sessionStartTime) / 1000)
+function takePhoto(){$('#photo-input').onchange=handlePhoto;$('#photo-input').click()}
+function handlePhoto(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    pottyPhoto=ev.target.result;
+    const img=$('#photo-preview');img.src=pottyPhoto;img.style.display='block';
+    $('#photo-btn').classList.add('has-photo');$('#photo-btn').innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 6 9 17 4 12"/></svg>Photo Added';
   };
-  APP.sessions.push(session);
-  saveData(APP);
-  updateUnlocks();
-  checkMilestones();
+  // Resize to save localStorage space
+  const img=new Image();const url=URL.createObjectURL(file);
+  img.onload=()=>{
+    const c=document.createElement('canvas');const max=600;
+    let w=img.width,h=img.height;if(w>max||h>max){const r=Math.min(max/w,max/h);w*=r;h*=r}
+    c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+    pottyPhoto=c.toDataURL('image/jpeg',0.7);
+    $('#photo-preview').src=pottyPhoto;$('#photo-preview').style.display='block';
+    $('#photo-btn').classList.add('has-photo');$('#photo-btn').innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 6 9 17 4 12"/></svg>Photo Added';
+    URL.revokeObjectURL(url);
+  };
+  img.src=url;e.target.value='';
+}
 
-  const rate = getSuccessRate(session);
-  const skillId = currentSession.skillId;
-  const skill = SKILLS_DB.find(s => s.id === skillId);
-  const prog = APP.skillProgress[skillId];
+function savePotty(){
+  const type=getTogVal('potty-type');
+  if(!type){toast('Select pee, poop, or both');return}
+  const log={id:Date.now()+'',dt:new Date().toISOString(),type,loc:getTogVal('potty-loc')||'outside',ctx:getTogVal('potty-ctx')||'',photo:pottyPhoto||'',notes:$('#potty-notes').value.trim()};
+  D.pottyLogs.push(log);save();closePottyForm();renderLogHistory();toast('Potty logged!');$('#potty-notes').value='';
+}
 
-  // Auto-adjustment logic
-  const avg = getRollingAvg(skillId);
-  const sessionsForSkill = getSkillSessions(skillId);
-  const evalCount = APP.settings.evalSessions;
-  const threshold = APP.settings.threshold;
+function openAloneForm(){$('#alone-form').classList.add('vis');$('#alone-toggle').style.display='none'}
+function closeAloneForm(){$('#alone-form').classList.remove('vis');$('#alone-toggle').style.display='';if(aloneTimer){clearInterval(aloneTimer);aloneTimer=null}aloneElapsed=0;$('#alone-display').textContent='0:00';$('#alone-status').style.display='none';$('#alone-start-btn').textContent='Start Timer'}
 
-  if (avg !== null && sessionsForSkill.length >= evalCount) {
-    if (avg >= threshold && prog.currentStep < skill.steps.length - 1) {
-      showModal(
-        'Advance to Next Step?',
-        `${skill.name}: ${avg}% average over last ${evalCount} sessions! Ready to move to Step ${prog.currentStep + 2}: "${skill.steps[prog.currentStep + 1].title}"?`,
-        [
-          { label: 'Stay Here', cls: 'btn-outline' },
-          { label: 'Advance!', cls: 'btn-success', action: () => {
-            prog.currentStep++;
-            saveData(APP);
-            updateUnlocks();
-            checkMilestones();
-            toast(`Advanced to Step ${prog.currentStep + 1}!`);
-          }}
-        ]
-      );
-    } else if (avg < 50 && prog.currentStep > 0) {
-      showModal(
-        'Go Back a Step?',
-        `${skill.name}: ${avg}% average. It might help to revisit Step ${prog.currentStep}: "${skill.steps[prog.currentStep - 1].title}".`,
-        [
-          { label: 'Stay Here', cls: 'btn-outline' },
-          { label: 'Go Back', cls: 'btn-warning', action: () => {
-            prog.currentStep--;
-            saveData(APP);
-            toast(`Moved back to Step ${prog.currentStep + 1}`);
-          }}
-        ]
-      );
-    } else if (avg >= threshold && prog.currentStep === skill.steps.length - 1) {
-      // Completed all steps!
-      prog.currentStep = skill.steps.length;
-      saveData(APP);
-      updateUnlocks();
-      checkMilestones();
-      showModal('Skill Complete!', `${skill.emoji} ${skill.name} is mastered! Amazing work with ${APP.profile.name || 'Zu'}!`, [
-        { label: 'Awesome!', cls: 'btn-primary' }
-      ]);
+function toggleAlone(){
+  if(aloneTimer){
+    clearInterval(aloneTimer);aloneTimer=null;
+    $('#alone-status').style.display='none';$('#alone-start-btn').textContent='Start Timer';
+  }else{
+    aloneStart=Date.now()-aloneElapsed*1000;aloneTimer=setInterval(()=>{
+      aloneElapsed=Math.floor((Date.now()-aloneStart)/1000);
+      const m=Math.floor(aloneElapsed/60),s=aloneElapsed%60;
+      $('#alone-display').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+    $('#alone-status').style.display='';$('#alone-start-btn').textContent='Stop Timer';
+  }
+}
+function manualAlone(){
+  const mins=prompt('How many minutes was Zu alone?');
+  if(mins&&!isNaN(+mins)){aloneElapsed=Math.round(+mins*60);const m=Math.floor(aloneElapsed/60),s=aloneElapsed%60;$('#alone-display').textContent=`${m}:${s.toString().padStart(2,'0')}`}
+}
+function saveAlone(){
+  if(aloneElapsed<1){toast('Record or enter a duration first');return}
+  if(aloneTimer){clearInterval(aloneTimer);aloneTimer=null}
+  const log={id:Date.now()+'',dt:new Date().toISOString(),dur:aloneElapsed,loc:getTogVal('alone-loc')||'crate',dist:getTogVal('alone-dist')||'none',bark:getTogVal('alone-bark')||'none',calm:getTogVal('alone-calm')||'yes',notes:$('#alone-notes').value.trim()};
+  D.aloneLogs.push(log);save();closeAloneForm();renderLogHistory();toast('Alone time logged!');$('#alone-notes').value='';aloneElapsed=0;$('#alone-display').textContent='0:00';$('#alone-status').style.display='none';$('#alone-start-btn').textContent='Start Timer';
+}
+
+function renderLogHistory(){
+  const el=$('#log-history');if(!el)return;
+  const all=[
+    ...D.pottyLogs.map(l=>({...l,kind:'potty'})),
+    ...D.aloneLogs.map(l=>({...l,kind:'alone'})),
+    ...D.sessions.map(l=>({...l,kind:'session',dt:l.dt}))
+  ].sort((a,b)=>new Date(b.dt)-new Date(a.dt)).slice(0,25);
+  if(!all.length){el.innerHTML='<p style="font-size:.82rem;color:var(--txt3)">No logs yet. Start tracking!</p>';return}
+  el.innerHTML=all.map(l=>{
+    if(l.kind==='potty'){
+      const typeLabel={pee:'Pee',poop:'Poop',both:'Pee + Poop'}[l.type]||l.type;
+      const locLabel=l.loc==='inside'?'Inside (accident)':'Outside';
+      return `<div class="cd log-entry"><div class="le-icon" style="background:rgba(52,211,153,.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="le-body"><div class="le-title">${typeLabel} \u2014 ${locLabel}</div><div class="le-meta">${fmtDate(l.dt)} ${fmtTime(l.dt)}${l.ctx?' \u00B7 '+l.ctx:''}${l.notes?' \u00B7 '+l.notes:''}</div></div>${l.photo?`<img class="le-thumb" src="${l.photo}" onclick="window.open(this.src)">`:''}</div>`;
+    }else if(l.kind==='alone'){
+      const m=Math.floor(l.dur/60),s=l.dur%60;
+      return `<div class="cd log-entry"><div class="le-icon" style="background:rgba(124,110,246,.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="le-body"><div class="le-title">Alone \u2014 ${l.loc} \u00B7 ${m}m${s?s+'s':''}</div><div class="le-meta">${fmtDate(l.dt)} ${fmtTime(l.dt)} \u00B7 Barking: ${l.bark} \u00B7 Calm: ${l.calm}${l.dist&&l.dist!=='none'?' \u00B7 '+l.dist:''}${l.notes?' \u00B7 '+l.notes:''}</div></div></div>`;
+    }else{
+      const sk=SKILLS.find(x=>x.id===l.sid);const r=rate(l);
+      const rc=r>=80?'var(--ok)':r<50?'var(--bad)':'var(--warn)';
+      return `<div class="cd log-entry"><div class="le-icon" style="background:rgba(124,110,246,.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></div><div class="le-body"><div class="le-title">${sk?sk.name:'Training'} <span style="color:${rc};font-size:.82rem">${r}%</span></div><div class="le-meta">${fmtDate(l.dt)} ${fmtTime(l.dt)} \u00B7 ${l.ok+l.no} reps${l.notes?' \u00B7 '+l.notes:''}</div></div></div>`;
     }
-  }
-
-  toast(`Session saved! ${rate}% success rate`);
-  resetSession();
-}
-
-function resetSession() {
-  currentSession = null;
-  selectedSkillId = null;
-  sessionStartTime = null;
-  clearInterval(timerInterval);
-  timerRunning = false;
-  $('#session-active').classList.remove('visible');
-  $('#session-setup').classList.remove('hidden');
-  renderTrainSetup();
-}
-
-// Duration buttons
-$$('.duration-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    selectedDuration = parseInt(btn.dataset.dur);
-    $$('.duration-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    if (!currentSession) {
-      timerSeconds = selectedDuration;
-      updateTimerDisplay();
-    }
-  });
-});
-
-$('#btn-start-session').addEventListener('click', startSession);
-
-// ============================================================
-// PROGRESS / HISTORY RENDER
-// ============================================================
-function renderProgress() {
-  renderHeatmap();
-  renderMilestones();
-  renderHistory();
-}
-
-function renderHeatmap() {
-  const heatmap = $('#heatmap');
-  const today = new Date();
-  const days = 56; // 8 weeks
-  const sessionDates = {};
-  APP.sessions.forEach(s => {
-    const key = dateKey(s.date);
-    sessionDates[key] = (sessionDates[key] || 0) + 1;
-  });
-
-  let html = '';
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const key = dateKey(d);
-    const count = sessionDates[key] || 0;
-    const level = count === 0 ? '' : count <= 1 ? 'level-1' : count <= 2 ? 'level-2' : count <= 4 ? 'level-3' : 'level-4';
-    const title = `${formatDate(d)}: ${count} session${count !== 1 ? 's' : ''}`;
-    html += `<div class="heatmap-day ${level}" title="${title}"></div>`;
-  }
-  heatmap.innerHTML = html;
-}
-
-function renderMilestones() {
-  const list = $('#milestone-list');
-  if (APP.milestones.length === 0) {
-    list.innerHTML = '<p style="font-size:0.85rem;color:var(--text-dim);">Complete training sessions to earn milestones!</p>';
-    return;
-  }
-  list.innerHTML = APP.milestones.slice().reverse().map(m =>
-    `<div class="milestone-item">
-      <span class="milestone-icon">${m.emoji}</span>
-      <span class="milestone-text">${m.text}</span>
-      <span class="milestone-date">${formatDate(m.date)}</span>
-    </div>`
-  ).join('');
-}
-
-function renderHistory() {
-  const list = $('#history-list');
-  const sessions = APP.sessions.slice().reverse();
-  if (sessions.length === 0) {
-    list.innerHTML = '<p style="font-size:0.85rem;color:var(--text-dim);">No sessions yet. Start training!</p>';
-    return;
-  }
-  list.innerHTML = sessions.slice(0, 30).map(s => {
-    const skill = SKILLS_DB.find(sk => sk.id === s.skillId);
-    const rate = getSuccessRate(s);
-    const rateColor = rate >= 80 ? 'var(--success)' : rate < 50 ? 'var(--danger)' : 'var(--warning)';
-    const dur = s.duration ? `${Math.floor(s.duration / 60)}:${(s.duration % 60).toString().padStart(2, '0')}` : '';
-    return `<div class="card history-item">
-      <div class="history-top">
-        <span class="history-skill">${skill ? skill.emoji + ' ' + skill.name : 'Unknown'}</span>
-        <span class="history-rate" style="color:${rateColor}">${rate}%</span>
-      </div>
-      <div class="history-meta">${formatDate(s.date)} · Step ${s.step + 1} · ${s.successes + s.failures} reps${dur ? ' · ' + dur : ''}</div>
-      ${s.notes ? `<div class="history-notes">"${s.notes}"</div>` : ''}
-    </div>`;
   }).join('');
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════════════
+// PROGRESS TAB
+// ═══════════════════════════════════════════════════════
+function rProg(){
+  // Heatmap
+  const today=new Date(),days=56,sd={};
+  [...D.sessions,...D.pottyLogs,...D.aloneLogs].forEach(s=>{const k=dk(s.dt);sd[k]=(sd[k]||0)+1});
+  let hm='';for(let i=days-1;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);const k=dk(d),c=sd[k]||0;
+    const lv=c===0?'':c<=1?'l1':c<=3?'l2':c<=5?'l3':'l4';
+    hm+=`<div class="hm-d ${lv}" title="${fmtDate(d)}: ${c} entries"></div>`;
+  }
+  let h=`<div class="cd" style="padding:14px;overflow-x:auto"><div class="sec-title">Activity (8 weeks)</div><div class="hmap">${hm}</div><div class="hm-labels"><span>8 weeks ago</span><span>Today</span></div></div>`;
+
+  // Milestones
+  h+=`<div class="cd"><div class="sec-title">Milestones</div>`;
+  if(!D.milestones.length) h+='<p style="font-size:.82rem;color:var(--txt3)">Complete sessions to earn milestones!</p>';
+  else D.milestones.slice().reverse().forEach(m=>{h+=`<div class="ms-i"><div class="ms-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="ms-txt">${m.t}</div><div class="ms-dt">${fmtDate(m.dt)}</div></div>`});
+  h+=`</div>`;
+
+  // Session history
+  h+=`<div class="cd"><div class="sec-title">Session History</div>`;
+  const sess=D.sessions.slice().reverse().slice(0,30);
+  if(!sess.length) h+='<p style="font-size:.82rem;color:var(--txt3)">No sessions yet.</p>';
+  else sess.forEach(s=>{
+    const sk=SKILLS.find(x=>x.id===s.sid),r=rate(s);
+    const rc=r>=80?'var(--ok)':r<50?'var(--bad)':'var(--warn)';
+    const dur=s.dur?`${Math.floor(s.dur/60)}:${(s.dur%60).toString().padStart(2,'0')}`:'';
+    h+=`<div class="cd hi-item"><div class="hi-top"><span class="hi-name">${sk?sk.name:'?'}</span><span class="hi-rate" style="color:${rc}">${r}%</span></div><div class="hi-meta">${fmtDate(s.dt)} \u00B7 Step ${s.step+1} \u00B7 ${s.ok+s.no} reps${dur?' \u00B7 '+dur:''}</div>${s.notes?`<div class="hi-note">"${s.notes}"</div>`:''}</div>`;
+  });
+  h+=`</div>`;
+  $('#t-prog').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════════
 // SETTINGS
-// ============================================================
-function renderSettings() {
-  $('#set-name').value = APP.profile.name || 'Zu';
-  $('#set-weight').value = APP.profile.weight || 8.5;
-  $('#set-rescue-date').value = APP.profile.rescueDate || '';
-  $('#set-duration').value = APP.settings.duration;
-  $('#set-target-reps').value = APP.settings.targetReps;
-  $('#set-threshold').value = APP.settings.threshold;
-  $('#set-eval-sessions').value = APP.settings.evalSessions;
-  $('#set-treat-notes').value = APP.settings.treatNotes || '';
+// ═══════════════════════════════════════════════════════
+function openSettings(){
+  $('#s-name').value=D.profile.name||'Zu';$('#s-wt').value=D.profile.weight||8.5;
+  $('#s-rdate').value=D.profile.rescueDate||'';$('#s-dur').value=D.settings.duration;
+  $('#s-thresh').value=D.settings.threshold;$('#s-eval').value=D.settings.evalSessions;
+  $('#s-treats').value=D.settings.treatNotes||'';$('#sett-o').classList.add('vis');
+}
+function closeSettings(){$('#sett-o').classList.remove('vis')}
+function saveSettings(){
+  D.profile.name=$('#s-name').value.trim()||'Zu';D.profile.weight=parseFloat($('#s-wt').value)||8.5;
+  D.profile.rescueDate=$('#s-rdate').value;D.settings.duration=parseInt($('#s-dur').value)||180;
+  D.settings.threshold=parseInt($('#s-thresh').value)||80;D.settings.evalSessions=parseInt($('#s-eval').value)||3;
+  D.settings.treatNotes=$('#s-treats').value;selDur=D.settings.duration;
+  save();closeSettings();toast('Settings saved!');go('home');
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`zu-backup-${dk()}.json`;a.click();URL.revokeObjectURL(a.href);toast('Exported!');
+}
+$('#imp-f').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.sessions||d.progress){modal('Import?','Replace all data?',[{l:'Cancel'},{l:'Import',c:'btn-p',fn:()=>{D={...defaults(),...d};save();toast('Imported!');go('home')}}])}else toast('Invalid file')}catch(err){toast('Read error')}};
+  r.readAsText(f);e.target.value='';
+};
+function resetAll(){
+  modal('Reset Everything?','Permanently delete ALL data including training sessions, potty logs, and alone time records. Cannot be undone.',[{l:'Cancel'},{l:'Reset',c:'btn-bad',fn:()=>{
+    localStorage.removeItem(SK);D=defaults();SKILLS.forEach(s=>{D.progress[s.id]={step:0,unlocked:s.phase===1||s.prereqs.length===0}});save();toast('All data reset');go('home');
+  }}]);
 }
 
-$('#btn-save-settings').addEventListener('click', () => {
-  APP.profile.name = $('#set-name').value.trim() || 'Zu';
-  APP.profile.weight = parseFloat($('#set-weight').value) || 8.5;
-  APP.profile.rescueDate = $('#set-rescue-date').value;
-  APP.settings.duration = parseInt($('#set-duration').value) || 120;
-  APP.settings.targetReps = parseInt($('#set-target-reps').value) || 10;
-  APP.settings.threshold = parseInt($('#set-threshold').value) || 80;
-  APP.settings.evalSessions = parseInt($('#set-eval-sessions').value) || 3;
-  APP.settings.treatNotes = $('#set-treat-notes').value;
-  selectedDuration = APP.settings.duration;
-  saveData(APP);
-  toast('Settings saved!');
-});
-
-$('#btn-export').addEventListener('click', () => {
-  const data = JSON.stringify(APP, null, 2);
-  const blob = new Blob([data], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `zu-trainer-backup-${dateKey()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('Data exported!');
-});
-
-$('#btn-import').addEventListener('click', () => $('#import-file').click());
-$('#import-file').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    try {
-      const imported = JSON.parse(ev.target.result);
-      if (imported.sessions && imported.skillProgress) {
-        showModal('Import Data?', 'This will replace all current data. Are you sure?', [
-          { label: 'Cancel', cls: 'btn-outline' },
-          { label: 'Import', cls: 'btn-primary', action: () => {
-            APP = { ...getDefaultData(), ...imported };
-            saveData(APP);
-            toast('Data imported successfully!');
-            switchTab('dashboard');
-          }}
-        ]);
-      } else {
-        toast('Invalid backup file');
-      }
-    } catch(err) { toast('Error reading file'); }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
-});
-
-$('#btn-reset').addEventListener('click', () => {
-  showModal('Reset All Data?', 'This will permanently delete ALL training data, session history, and progress. This cannot be undone.', [
-    { label: 'Cancel', cls: 'btn-outline' },
-    { label: 'Reset Everything', cls: 'btn-danger', action: () => {
-      localStorage.removeItem(STORAGE_KEY);
-      APP = getDefaultData();
-      SKILLS_DB.forEach(skill => {
-        const unlocked = skill.phase === 1 || skill.prereqs.length === 0;
-        APP.skillProgress[skill.id] = { currentStep: 0, unlocked };
-      });
-      saveData(APP);
-      toast('All data has been reset');
-      switchTab('dashboard');
-    }}
-  ]);
-});
-
-// Close modal on overlay click
-$('#modal-overlay').addEventListener('click', (e) => {
-  if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible');
-});
-
-// ============================================================
+// ═══════════════════════════════════════════════════════
 // INIT
-// ============================================================
-updateUnlocks();
-checkMilestones();
-renderDashboard();
-
-// Register service worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
-}
+// ═══════════════════════════════════════════════════════
+updateUnlocks();checkMilestones();rHome();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
