@@ -210,11 +210,19 @@ textarea{resize:vertical;min-height:60px}
 .body-chip{padding:6px 10px;border-radius:16px;background:var(--card2);border:1px solid var(--brd);
   color:var(--txt2);font-size:0.75rem;cursor:pointer;min-height:32px;display:flex;align-items:center}
 .body-chip.active{background:var(--bad);color:#fff;border-color:var(--bad)}
-.shrine-header{display:flex;align-items:center;gap:10px;padding:4px 0}
-.shrine-header h1{font-size:1.15rem;margin:0}
-.shrine-stats{display:flex;gap:10px;font-size:0.72rem;color:var(--txt2)}
-.shrine-stats .sv{color:var(--pri);font-weight:600;font-family:var(--font-d)}
-.gear-btn{background:none;border:none;color:var(--txt3);cursor:pointer;padding:8px;min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center}
+.shrine-profile{display:flex;align-items:center;gap:14px;padding:8px 0}
+.shrine-portrait{width:56px;height:56px;border-radius:50%;border:2px solid var(--pri);
+  display:flex;align-items:center;justify-content:center;background:var(--card);
+  box-shadow:var(--glow-gold);flex-shrink:0}
+.shrine-portrait svg{width:36px;height:36px}
+.shrine-info{flex:1}
+.shrine-info h1{font-size:1.2rem;margin:0}
+.shrine-info .shrine-sub{font-size:0.75rem;color:var(--txt2);margin-top:2px}
+.shrine-stats{display:flex;gap:16px;justify-content:center;margin:8px 0}
+.shrine-stats .ss{text-align:center}
+.shrine-stats .sv{font-size:1.1rem;font-weight:700;color:var(--pri);font-family:var(--font-d);display:block}
+.shrine-stats .sl{font-size:0.65rem;color:var(--txt2)}
+.gear-btn{background:none;border:none;color:var(--txt3);cursor:pointer;padding:8px;min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;position:absolute;top:12px;right:8px}
 .gear-btn:active{color:var(--pri)}
 .quick-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0}
 .quick-btn{display:flex;align-items:center;justify-content:center;padding:10px 4px;border-radius:var(--r);
@@ -1611,15 +1619,29 @@ function renderShrine(){
  const aloneAction=D.aloneTimerState&&D.aloneTimerState.running?'openAloneForm()':'startAloneTimer()';
 
  $('#tab-shrine').innerHTML=`
-  <div class="shrine-header">
-   <button class="gear-btn" onclick="openSettings()"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.61 3.61 0 0112 15.6z"/></svg></button>
-   <div style="flex:1">
-    <h1 style="font-size:1.15rem;margin:0">${D.profile.name}</h1>
-    <div class="shrine-stats">
-     <span><span class="sv">${streak}</span> vigil</span>
-     <span><span class="sv">${totalRituals}</span> rituals</span>
-     <span><span class="sv">${sealedWards}</span>/${WARDS.length} sealed</span>
+  <div style="position:relative">
+   <button class="gear-btn" onclick="openSettings()"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.61 3.61 0 0112 15.6z"/></svg></button>
+   <div class="shrine-profile">
+    <div class="shrine-portrait"><svg viewBox="0 0 64 64" fill="none" stroke="var(--pri)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+     <path d="M14 28c-3-12 0-18 4-22c2-2 4-1 5 2c1 4 3 8 8 10"/>
+     <path d="M50 28c3-12 0-18-4-22c-2-2-4-1-5 2c-1 4-3 8-8 10"/>
+     <ellipse cx="32" cy="36" rx="16" ry="18"/>
+     <circle cx="24" cy="32" r="2.5" fill="var(--pri)" stroke="none"/>
+     <circle cx="40" cy="32" r="2.5" fill="var(--pri)" stroke="none"/>
+     <ellipse cx="32" cy="40" rx="4" ry="2.5" fill="var(--pri)" stroke="none"/>
+     <path d="M28 40c-2 3-3 5-2 7" stroke-width="1.5"/>
+     <path d="M36 40c2 3 3 5 2 7" stroke-width="1.5"/>
+    </svg></div>
+    <div class="shrine-info">
+     <h1>${D.profile.name}</h1>
+     <div class="shrine-sub">${D.profile.breed} | Day ${streak} Vigil</div>
     </div>
+   </div>
+   <div class="shrine-stats">
+    <div class="ss"><span class="sv">${streak}</span><span class="sl">Vigil</span></div>
+    <div class="ss"><span class="sv">${totalRituals}</span><span class="sl">Rituals</span></div>
+    <div class="ss"><span class="sv">${sealedWards}</span><span class="sl">Sealed</span></div>
+    <div class="ss"><span class="sv">${WARDS.length - sealedWards}</span><span class="sl">Remaining</span></div>
    </div>
   </div>
   ${aloneHtml}

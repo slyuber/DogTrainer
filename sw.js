@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pazuzu-v6';
+const CACHE_NAME = 'pazuzu-v7';
 const ASSETS = [
   './',
   './index.html',
