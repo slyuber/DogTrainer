@@ -1,100 +1,117 @@
-# CLAUDE.md
+# PALcares Website Redesign 2025
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## About This Project
+Next.js static/SSG nonprofit website for PALcares (Perseverance Analytics Ltd.). Originally built with AI assistance — functional and visually promising but needs systematic polish for production quality: cross-device consistency, performance, accessibility, and code hygiene.
 
-## What This Is
+## Tech Stack
+- **Framework**: Next.js (App Router, TypeScript)
+- **Styling**: Tailwind CSS + PostCSS
+- **Output**: Static export (`next export` / `output: 'export'`)
+- **Linting**: ESLint (eslint.config.mjs)
+- **Lighthouse**: Already configured (.lighthouserc.json, lighthouse-reports/)
 
-**Pazuzu's Wards** — a single-file PWA for tracking progressive reinforcement dog training. Themed around the Mesopotamian protective deity Pazuzu (canine-faced wind demon who paradoxically served as a household guardian spirit). The dog's name is Zuzu (a Chiweenie rescue from Mexico).
+## Key Directories
+- `app/` — Next.js App Router pages and layouts
+- `public/` — Static assets (images, fonts, favicons)
+- `PALcares Design Files/` — Reference design assets
+- `lighthouse-reports/` — Performance audit history
+- `dist/` / `out/` — Build output directories
 
-The full build specification lives in `PAZUZU_SPEC.md`. Pre-compiled research (mythology, Kikopup methodology, anxiety signals) lives in `RESEARCH_REFERENCE.md`. Both are authoritative — consult them before making design or data decisions.
-
-## Architecture
-
-**Single-file PWA — everything in `index.html`.** All CSS, HTML, and JS in one file. No build step, no bundler, no npm, no CDN dependencies, no external libraries.
-
-Supporting files:
-- `sw.js` — Service worker (cache-first). Bump `CACHE_NAME` version string on every change to `index.html`.
-- `manifest.json` — PWA manifest (already configured).
-- `icons/icon-192.svg`, `icons/icon-512.svg` — App icons (already built).
-
-## Running / Testing
-
-Open `index.html` directly in a browser, or:
-```
-python -m http.server 8000
-```
-Then visit `http://localhost:8000`. Service worker requires HTTP (not `file://`), so use the server for PWA install testing.
-
-Target device: **Pixel 4a** (5.81" OLED, 1080x2340). Always test in Chrome DevTools mobile emulation at 393x851 viewport.
-
-## Data Layer
-
-All state in **localStorage** under key `pazuzuWards`. The global data object `D` contains: `profile`, `settings`, `progress` (per-skill step tracking), `sessions`, `milestones`, `pottyLogs`, `aloneLogs`, `enrichmentLogs`, `foodNotes`, `behaviorNotes`, `aloneTimerState`.
-
-Migration: if `zuTrainer` key exists but `pazuzuWards` doesn't, migrate the old format.
-
-The `save()` function writes `D` to localStorage. Call it after every mutation.
-
-## Terminology Mapping
-
-The app uses Mesopotamian-themed naming consistently throughout the UI:
-
-| Concept | App Term |
-|---|---|
-| Skill | **Ward** |
-| Mastering a skill | **Sealing the Ward** |
-| Skill phases (1/2/3) | **Circles** (I: Foundation, II: Core, III: Life) |
-| Training session | **Ritual** |
-| Daily plan | **The Daily Rite** |
-| Milestone | **Inscription** |
-| Skill tree | **The Ward Tree** / **Pazuzu's Shield** |
-| Streak | **Vigil** |
-
-Never use generic terms like "skill" or "session" in UI text.
-
-## Skill Tree & Prerequisites
-
-20 skills across 3 Circles. The prerequisite graph determines unlock state:
-
-```
-attention --> recall, leashpressure
-leashpressure --> llwindoor
-llwindoor + interrupter --> llwoutdoor
-nomugging --> leaveit
-sit --> release, down
-sit + release --> doormanners
-calmness --> handling, separation
-crate --> separation
-dropit --> fetch
+## Common Commands
+```bash
+npm run dev          # Local dev server
+npm run build        # Production build
+npm run lint         # ESLint check
+npx next export      # Static export (if separate from build)
 ```
 
-Circle I skills (attention, interrupter, nomugging, calmness, crate, house) are auto-unlocked. Circle II/III skills unlock when all prereqs are mastered.
+## Critical Design Principles — READ BEFORE ANY CHANGE
 
-Each skill has steps with context-aware capture types: `reps` (success/miss counting), `duration` (hold timing), `observe` (mark-only, no fail), `timed_reps`. The UI must adapt buttons and display per capture type.
+### Preserve First, Improve Second
+- The existing visual design direction is APPROVED — do not redesign from scratch
+- Preserve: scroll-lock/snap behavior, section transitions, color palette, layout intent
+- Improve: consistency, spacing rhythm, responsive breakpoints, animation polish, accessibility
+- Every change must be justified by a specific problem it solves
 
-## Visual Design Constraints
+### Avoid Common AI-Generated Website Anti-Patterns
+These are the specific mistakes AI coding tools make repeatedly on this type of project. Actively check for and fix these:
 
-- **OLED true black** background (`#0A0A0F`). Warm gold/bronze primary (`#D4A853`), teal accent (`#4ECDC4`).
-- Fonts: **Cinzel** (display/headers — carved stone feel) + **DM Sans** (body) from Google Fonts. No Inter/Roboto/Arial.
-- No emoji anywhere. Use 2-letter abbreviation badges (AT, PI, IC, etc.) and inline SVG icons.
-- All touch targets minimum 44px. Use `:active` states, not `:hover`.
-- Max-width: 430px centered. Mobile-first, portrait orientation.
-- CSS variables defined in `:root` — see PAZUZU_SPEC.md section 2 for the full palette.
+1. **Inconsistent spacing** — AI mixes arbitrary px/rem values. Use a spacing scale consistently (Tailwind's built-in scale).
+2. **Breakpoint chaos** — Responsive styles added ad-hoc per component instead of a unified breakpoint strategy. All components must respond to the SAME breakpoints consistently.
+3. **Animation overload** — Too many competing animations, inconsistent durations/easings, animations that fire on every scroll. Use ONE easing curve and ONE duration scale project-wide.
+4. **Orphaned/dead CSS** — Tailwind classes that conflict, duplicate utility patterns, or inline styles mixed with Tailwind. No inline styles unless absolutely necessary.
+5. **Accessibility theater** — aria-labels that don't help, missing focus states, decorative images without alt="", semantic HTML violations (div soup).
+6. **Mobile afterthought** — Desktop-first layouts that break below 768px. Touch targets too small. Horizontal overflow. Text too small on mobile.
+7. **Scroll hijacking bugs** — Scroll-snap that traps users, sections that don't align properly, janky transitions between snap points.
+8. **Font loading flash** — No font-display strategy, layout shift from web fonts loading.
+9. **Image bloat** — Unoptimized images, missing next/image usage, no srcset/responsive images, massive hero images on mobile.
+10. **Z-index wars** — Arbitrary z-index values, no z-index scale, overlapping elements on certain viewports.
 
-## Key Behaviors
+### Responsive Breakpoint Contract
+Use EXACTLY these breakpoints everywhere — no custom one-offs:
+- `sm`: 640px  (large phones landscape)
+- `md`: 768px  (tablets)
+- `lg`: 1024px (small laptops)
+- `xl`: 1280px (desktops)
+- `2xl`: 1536px (large screens)
 
-**Alone Timer Persistence:** Must survive app backgrounding, tab closure, and phone lock. Uses `aloneTimerState` in localStorage with `visibilitychange` and `beforeunload` events. On app load, check if timer was running and resume from `startTime`. Floating pill indicator visible across all tabs.
+### Animation & Transition Contract
+- **Easing**: Use `ease-out` for entrances, `ease-in` for exits, `ease-in-out` for state changes
+- **Duration scale**: `150ms` (micro), `300ms` (standard), `500ms` (emphasis), `700ms` (dramatic)
+- **No animation on `prefers-reduced-motion: reduce`** — always wrap in media query or Tailwind `motion-safe:`
+- **Scroll-triggered animations**: Use IntersectionObserver, fire ONCE, no re-triggering on scroll back
 
-**Training Ritual Flow:** Pre-session guidance (vocal/hand/position) -> 3-2-1 countdown -> timer with capture-type-specific buttons -> audio ding (Web Audio API, 880Hz + 1318.5Hz two-tone) + vibration on end -> session summary with advancement recommendation (>=80% over N sessions = advance).
+### Spacing Rhythm
+Stick to Tailwind's default spacing scale. For section-level vertical spacing, use multiples of 4:
+- Between elements within a section: `gap-4` to `gap-8`
+- Section padding: `py-16` (mobile), `py-24` (tablet+), `py-32` (desktop+)
+- Never use arbitrary values like `mt-[37px]` — find the nearest scale value
 
-**First-Time Ward Flow:** When training a ward for the first time, show "Where is Zuzu with this Ward?" modal to let the user pick their starting step rather than forcing step 1.
+## Code Quality Standards
 
-**Ward Tree Visualization:** Interactive SVG/CSS skill tree with connection lines between prerequisite nodes. Node states: locked (grey), available (pulsing gold outline), in-progress (gold fill + progress ring), sealed (golden glow). Tapping a node opens a slide-up detail sheet.
+### TypeScript
+- No `any` types — use `unknown` or proper interfaces
+- All component props must have explicit interfaces
+- Prefer `type` for component props, `interface` for data shapes
 
-## Tabs (5 total, bottom nav)
+### Component Patterns
+- One component per file
+- Co-locate component-specific types in the same file
+- Extract repeated UI patterns into shared components (don't let AI duplicate code across pages)
+- Use semantic HTML: `<section>`, `<article>`, `<nav>`, `<header>`, `<footer>`, `<main>`
 
-1. **Shrine** (Home) — Profile, vigil streak, daily rite, quick actions (potty/alone/enrichment/behavior logging)
-2. **Ward Tree** — Interactive skill tree visualization
-3. **Ritual** (Train) — Session flow with capture-type-aware UI
-4. **Chronicle** (Log) — Session history, filterable by skill
-5. **Chronicles** (Progress) — Heatmap, inscriptions, separation chart, ward progress bars
+### Tailwind Discipline
+- No `@apply` in CSS files unless creating a genuinely reusable utility (rare)
+- No inline `style={{}}` — everything through Tailwind classes
+- Use `cn()` or `clsx()` for conditional classes — no string interpolation
+- Group Tailwind classes logically: layout → spacing → sizing → typography → colors → effects
+
+### Performance
+- All images through `next/image` with explicit width/height or fill
+- Lazy load below-fold sections and images
+- No layout shift (CLS) — reserve space for dynamic content
+- Fonts: use `next/font` with `display: 'swap'`
+
+## Testing Workflow
+Before considering any change "done":
+1. `npm run build` must pass with zero errors
+2. Check in Chrome DevTools responsive mode at: 375px, 768px, 1024px, 1440px
+3. Keyboard-navigate through all interactive elements
+4. Run Lighthouse on affected pages (performance, accessibility, best practices)
+
+## Instructions for Claude
+
+### How to Approach Work
+- Read existing code thoroughly before changing it. Understand the pattern before "improving" it.
+- Make surgical, targeted changes. Do not refactor an entire file when fixing one issue.
+- When you find a pattern used inconsistently, fix ALL instances — not just the one in front of you.
+- If a change affects more than 3 files, stop and outline the plan before executing.
+- Always explain WHY a change improves things, not just what you changed.
+
+### What NOT to Do
+- Do not add new npm dependencies without explicit approval
+- Do not change the color palette, typography choices, or brand elements
+- Do not remove scroll-snap or section-locking behavior — improve it
+- Do not add loading spinners, skeleton screens, or UI patterns that weren't there unless asked
+- Do not wrap everything in `try-catch` or add defensive patterns that hide real bugs
+- Do not add comments explaining obvious code — only explain non-obvious decisions
